@@ -1,0 +1,511 @@
+{
+  "types": [
+    {
+      "location": {
+        "start": {
+          "line": 7,
+          "column": 19
+        },
+        "stop": {
+          "line": 7,
+          "column": 27
+        }
+      },
+      "annotation": "typing.Type[typing.Sequence]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 10,
+          "column": 6
+        },
+        "stop": {
+          "line": 10,
+          "column": 10
+        }
+      },
+      "annotation": "typing.Type[simple_class.Item]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 11,
+          "column": 8
+        },
+        "stop": {
+          "line": 11,
+          "column": 16
+        }
+      },
+      "annotation": "typing.Callable(simple_class.Item.__init__)[[Named(self, simple_class.Item), Named(n, int)], None]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 11,
+          "column": 17
+        },
+        "stop": {
+          "line": 11,
+          "column": 21
+        }
+      },
+      "annotation": "simple_class.Item"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 11,
+          "column": 23
+        },
+        "stop": {
+          "line": 11,
+          "column": 29
+        }
+      },
+      "annotation": "int"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 11,
+          "column": 26
+        },
+        "stop": {
+          "line": 11,
+          "column": 29
+        }
+      },
+      "annotation": "typing.Type[int]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 11,
+          "column": 34
+        },
+        "stop": {
+          "line": 11,
+          "column": 38
+        }
+      },
+      "annotation": "None"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 12,
+          "column": 8
+        },
+        "stop": {
+          "line": 12,
+          "column": 12
+        }
+      },
+      "annotation": "simple_class.Item"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 12,
+          "column": 8
+        },
+        "stop": {
+          "line": 12,
+          "column": 19
+        }
+      },
+      "annotation": "int"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 12,
+          "column": 21
+        },
+        "stop": {
+          "line": 12,
+          "column": 24
+        }
+      },
+      "annotation": "typing.Type[int]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 12,
+          "column": 27
+        },
+        "stop": {
+          "line": 12,
+          "column": 28
+        }
+      },
+      "annotation": "int"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 15,
+          "column": 6
+        },
+        "stop": {
+          "line": 15,
+          "column": 19
+        }
+      },
+      "annotation": "typing.Type[simple_class.ItemCollector]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 16,
+          "column": 8
+        },
+        "stop": {
+          "line": 16,
+          "column": 17
+        }
+      },
+      "annotation": "typing.Callable(simple_class.ItemCollector.get_items)[[Named(self, simple_class.ItemCollector), Named(n, int)], typing.Sequence[simple_class.Item]]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 16,
+          "column": 18
+        },
+        "stop": {
+          "line": 16,
+          "column": 22
+        }
+      },
+      "annotation": "simple_class.ItemCollector"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 16,
+          "column": 24
+        },
+        "stop": {
+          "line": 16,
+          "column": 30
+        }
+      },
+      "annotation": "int"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 16,
+          "column": 27
+        },
+        "stop": {
+          "line": 16,
+          "column": 30
+        }
+      },
+      "annotation": "typing.Type[int]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 16,
+          "column": 35
+        },
+        "stop": {
+          "line": 16,
+          "column": 43
+        }
+      },
+      "annotation": "BoundMethod[typing.Callable(typing.GenericMeta.__getitem__)[[Named(self, unknown), typing.Type[Variable[typing._T_co](covariant)]], typing.Type[typing.Sequence[Variable[typing._T_co](covariant)]]], typing.Type[typing.Sequence]]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 16,
+          "column": 35
+        },
+        "stop": {
+          "line": 16,
+          "column": 49
+        }
+      },
+      "annotation": "typing.Type[typing.Sequence[simple_class.Item]]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 16,
+          "column": 44
+        },
+        "stop": {
+          "line": 16,
+          "column": 48
+        }
+      },
+      "annotation": "typing.Type[simple_class.Item]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 17,
+          "column": 15
+        },
+        "stop": {
+          "line": 17,
+          "column": 42
+        }
+      },
+      "annotation": "typing.List[simple_class.Item]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 17,
+          "column": 16
+        },
+        "stop": {
+          "line": 17,
+          "column": 20
+        }
+      },
+      "annotation": "typing.Type[simple_class.Item]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 17,
+          "column": 16
+        },
+        "stop": {
+          "line": 17,
+          "column": 23
+        }
+      },
+      "annotation": "simple_class.Item"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 17,
+          "column": 28
+        },
+        "stop": {
+          "line": 17,
+          "column": 29
+        }
+      },
+      "annotation": "int"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 17,
+          "column": 33
+        },
+        "stop": {
+          "line": 17,
+          "column": 38
+        }
+      },
+      "annotation": "typing.Type[range]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 17,
+          "column": 33
+        },
+        "stop": {
+          "line": 17,
+          "column": 41
+        }
+      },
+      "annotation": "range"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 17,
+          "column": 39
+        },
+        "stop": {
+          "line": 17,
+          "column": 40
+        }
+      },
+      "annotation": "int"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 20,
+          "column": 0
+        },
+        "stop": {
+          "line": 20,
+          "column": 9
+        }
+      },
+      "annotation": "simple_class.ItemCollector"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 20,
+          "column": 12
+        },
+        "stop": {
+          "line": 20,
+          "column": 25
+        }
+      },
+      "annotation": "typing.Type[simple_class.ItemCollector]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 20,
+          "column": 12
+        },
+        "stop": {
+          "line": 20,
+          "column": 27
+        }
+      },
+      "annotation": "simple_class.ItemCollector"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 21,
+          "column": 0
+        },
+        "stop": {
+          "line": 21,
+          "column": 5
+        }
+      },
+      "annotation": "typing.Sequence[simple_class.Item]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 21,
+          "column": 7
+        },
+        "stop": {
+          "line": 21,
+          "column": 21
+        }
+      },
+      "annotation": "typing.Type[typing.Sequence[simple_class.Item]]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 21,
+          "column": 24
+        },
+        "stop": {
+          "line": 21,
+          "column": 33
+        }
+      },
+      "annotation": "simple_class.ItemCollector"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 21,
+          "column": 24
+        },
+        "stop": {
+          "line": 21,
+          "column": 43
+        }
+      },
+      "annotation": "BoundMethod[typing.Callable(simple_class.ItemCollector.get_items)[[Named(self, simple_class.ItemCollector), Named(n, int)], typing.Sequence[simple_class.Item]], simple_class.ItemCollector]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 21,
+          "column": 24
+        },
+        "stop": {
+          "line": 21,
+          "column": 46
+        }
+      },
+      "annotation": "typing.Sequence[simple_class.Item]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 21,
+          "column": 44
+        },
+        "stop": {
+          "line": 21,
+          "column": 45
+        }
+      },
+      "annotation": "typing_extensions.Literal[3]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 22,
+          "column": 4
+        },
+        "stop": {
+          "line": 22,
+          "column": 8
+        }
+      },
+      "annotation": "simple_class.Item"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 22,
+          "column": 12
+        },
+        "stop": {
+          "line": 22,
+          "column": 17
+        }
+      },
+      "annotation": "typing.Sequence[simple_class.Item]"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 23,
+          "column": 4
+        },
+        "stop": {
+          "line": 23,
+          "column": 8
+        }
+      },
+      "annotation": "simple_class.Item"
+    },
+    {
+      "location": {
+        "start": {
+          "line": 23,
+          "column": 4
+        },
+        "stop": {
+          "line": 23,
+          "column": 15
+        }
+      },
+      "annotation": "int"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+// This file is part of Indico.
+// Copyright (C) 2002 - 2022 CERN
+//
+// Indico is free software; you can redistribute it and/or
+// modify it under the terms of the MIT License; see the
+// LICENSE file for more details.
+
+@import 'base/palette';
+@import 'base/defaults';
+@import 'base/borders';
+@import 'base/utilities';
+
+.choices-table-wrapper {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.choices-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+  padding-bottom: 25px;
+
+  tr:hover .table-sortable-handle,
+  td:active .table-sortable-handle {
+    @include icon-before('icon-drag-indicator');
+  }
+
+  .table-sortable-handle {
+    color: $dark-gray;
+    width: 15px;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  thead {
+    th {
+      @include border-bottom();
+      padding-bottom: 4px;
+      vertical-align: top;
+    }
+
+    td {
+      background: white !important;
+    }
+
+    th:first-of-type {
+      text-align: left;
+    }
+  }
+
+  td,
+  th {
+    padding: 4px 4px;
+  }
+
+  tr {
+    &:hover td {
+      background: $light-blue;
+    }
+
+    &.empty-row:hover td {
+      background: white !important;
+    }
+
+    &.disabled-row td {
+      background-color: $pastel-gray;
+
+      input[type='text'],
+      input[type='number'] {
+        background-image: repeating-linear-gradient(-45deg, $pastel-gray 0 2px, white 3px 15px);
+        border-color: $gray;
+        color: $dark-black;
+      }
+    }
+
+    &.disabled-row:hover td {
+      background-color: darken($pastel-gray, 5%);
+    }
+
+    td a {
+      padding: 2px;
+    }
+  }
+}

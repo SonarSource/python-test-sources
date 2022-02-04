@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "archery.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "archery.name" . }}
+    helm.sh/chart: {{ include "archery.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "archery.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "archery.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      initContainers:
+        - image: busybox
+          name: init-mysql
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'until nslookup archery-mysql; do echo waiting for mysql; sleep 10; done;']
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          name: init-archery
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: archery-settings
+            subPath: settings.py
+            mountPath: /opt/archery/archery/settings.py
+          - name: archery-settings
+            subPath: init-archery.sh
+            mountPath: /opt/archery/src/docker/init-archery.sh
+          - name: archery-settings
+            subPath: createsuperuser.py
+            mountPath: /opt/archery/src/docker/createsuperuser.py
+          - mountPath: /opt/archery/downloads
+            name: archery-download
+          - mountPath: /opt/archery/src/script
+            name: archery-script
+          command: ['/bin/bash','/opt/archery/src/docker/init-archery.sh']
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NGINX_PORT
+              value: "9123"
+          ports:
+            - name: archery
+              containerPort: 9123
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: archery
+            initialDelaySeconds: 180
+            periodSeconds: 60
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+          {{- toYaml . | nindent 12 }}
+         {{- end }}
+     {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}  
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

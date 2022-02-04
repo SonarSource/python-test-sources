@@ -1,0 +1,17 @@
+{% macro get_enable_persistent_msg() -%}
+    {%- trans -%}
+        Enabling persistent signatures will allow signed requests without a timestamp.
+        This means that the same link can be used forever to access private information.
+        This introduces the risk that if somebody finds out about the link, they can access
+        the same private information as yourself. By enabling this you agree to keep those links
+        private and ensure that no unauthorized people will use them.
+    {%- endtrans -%}
+{%- endmacro %}
+
+{% macro get_disable_persistent_msg() -%}
+    {%- trans -%}
+        When disabling persistent signatures, all signed requests need a valid timestamp again.
+        If you enable them again, old persistent links will start working again - if you need to
+        invalidate them, you have to create a new API key!
+    {%- endtrans -%}
+{%- endmacro %}

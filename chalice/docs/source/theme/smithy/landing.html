@@ -1,0 +1,182 @@
+<section id="landing-container">
+
+    <div id="splash">
+        <div class="width-wrapper">
+            <div class="splash-row">
+                <div class="splash-column">
+		    <img id="splash-logo" src="{{ pathto('_static/img/chalice-logo-whitespace.png', 1) }}" alt="AWS Chalice" />
+                    <div class="headline">
+                        A framework for writing serverless applications
+                    </div>
+                    <a class="splash-link" href="quickstart.html">Get started</a>
+                </div>
+
+                <div class="splash-column">
+                    <div class="highlight-chalice notranslate">
+                        <div class="highlight">
+<pre><a class="see-full-example" href="{{ pathto('quickstart') }}#complete-example">[full example]</a>
+<span style="color: #f92672">from</span> <span style="color: #f8f8f2">chalice</span> <span style="color: #66d9ef">import</span> <span style="color: #f8f8f2">Chalice</span>
+
+<span style="color: #f8f8f2">app</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Chalice(app_name</span><span style="color: #f92672">=</span><span style="color: #e6db74">"helloworld"</span><span style="color: #f8f8f2">)</span>
+
+<span style="color: #a6e22e">@app</span><span style="color: #f92672">.</span><span style="color: #f8f8f2">route(</span><span style="color: #e6db74">"/"</span><span style="color: #f8f8f2">)</span>
+<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">index</span><span style="color: #f8f8f2">():</span>
+    <span style="color: #66d9ef">return</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">"hello"</span><span style="color: #f8f8f2">:</span> <span style="color: #e6db74">"world"</span><span style="color: #f8f8f2">}</span>
+
+<span style="color: #a6e22e">@app</span><span style="color: #f92672">.</span><span style="color: #f8f8f2">schedule(Rate(</span><span style="color: #ae81ff">5</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">unit</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">Rate</span><span style="color: #f92672">.</span><span style="color: #f8f8f2">MINUTES))</span>
+<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">periodic_task</span><span style="color: #f8f8f2">(event):</span>
+    <span style="color: #66d9ef">return</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">"hello"</span><span style="color: #f8f8f2">:</span> <span style="color: #e6db74">"world"</span><span style="color: #f8f8f2">}</span>
+
+<span style="color: #a6e22e">@app</span><span style="color: #f92672">.</span><span style="color: #f8f8f2">on_s3_event(bucket</span><span style="color: #f92672">=</span><span style="color: #e6db74">'mybucket'</span><span style="color: #f8f8f2">)</span>
+<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">s3_handler</span><span style="color: #f8f8f2">(event):</span>
+    <span style="color: #f8f8f2">print(event</span><span style="color: #f92672">.</span><span style="color: #f8f8f2">bucket,</span> <span style="color: #f8f8f2">event</span><span style="color: #f92672">.</span><span style="color: #f8f8f2">key)</span>
+
+</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="width-wrapper">
+        <div class="splash-row">
+	    <img class="lp-image" src="{{ pathto('_static/img/coding.png', 1) }}" alt="Coding" />
+            <div class="splash-column">
+                <h2>Focus on writing your application code</h2>
+                <p>Focus on writing your application code
+		   instead of the resources or services needed to deploy
+		   your application.  Chalice automatically determines how to
+		   provision the necessary resources for your application.</p>
+            </div>
+	    <img class="lp-image" src="{{ pathto('_static/img/programming.png', 1) }}" alt="Coding" />
+            <div class="splash-column">
+                <h2>A familiar decorator based API</h2>
+                <p>Chalice's API for writing serverless application uses a familiar
+		   decorator-based syntax used in frameworks such as Flask,
+		   bottle, and FastAPI.  Skip the learning curve and get up and
+		   running quickly.
+		   </p>
+            </div>
+	    <img class="lp-image" src="{{ pathto('_static/img/maintenance.png', 1) }}" alt="Coding" />
+            <div class="splash-column">
+                <h2>Supports multiple deployment systems</h2>
+                <p>Chalice supports multiple tools to deploy your application
+		   including AWS CloudFormation, Terraform, and its own built-in
+		   deployer based on the AWS SDK for Python.  Use the deployment
+		   tools and services you're already familiar with.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quickstart-vid">
+        <div class="width-wrapper">
+            <div class="splash-row">
+                <div class="splash-column-one-third">
+                    <span>
+                    <img id="quickstart-img" src="{{ pathto('_static/img/speed.svg', 1) }}" alt="Quickstart" />
+                    <h2 id="quickstart-title">Up and running in minutes</h2>
+                    </span>
+                    <p>Chalice lets you quickly create and deploy python applications that use
+            AWS Lambda.  Using the Chalice CLI, you can have a REST API deployed to
+            Amazon API Gateway and AWS Lambda in minutes.
+            </p>
+                </div>
+                <div class="splash-column-two-third">
+                <asciinema-player preload=1 speed=1.2 idle-time-limit=1.2 src="{{ pathto('_static/casts/chalice-quickstart.cast', 1) }}"></asciinema-player>
+            <script src="{{ pathto('_static/asciinema-player.js', 1) }}"></script>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="width-wrapper">
+	<h2>Features</h2>
+        <div class="splash-row">
+            <div class="splash-column">
+                <h2>Native python packaging</h2>
+                <p class="feature-desc">Chalice has built-in support for python packaging tools.
+                    It will automatically package your application and install
+                    3rd party dependencies specified in your requirements.txt file.
+                </p>
+	        </div>
+            <div class="splash-column">
+                <h2>AWS SAM and Terraform integration</h2>
+                <p class="feature-desc">
+                    You can use Chalice's included deployer that's built
+                    using the AWS SDK for Python (boto3) or you can have
+                    Chalice generate packages that can be deployed with
+                    AWS CloudFormation or Terraform.
+                </p>
+	        </div>
+            <div class="splash-column">
+                <h2>CI/CD pipeline generation</h2>
+                <p class="feature-desc">Automatically generate a deployment pipeline that's
+                   built with AWS CodePipeline and AWS CodeBuild.
+                   Deploy your application whenever you push changes
+                   to your Git repository.
+                </p>
+	        </div>
+        </div>
+        <div class="splash-row">
+            <div class="splash-column">
+                <h2>Local testing support</h2>
+                <p class="feature-desc">Test your REST API using the local test server.  This gives
+                    you a quicker feedback loop and let's you test your code
+                    before deploying to AWS.
+                </p>
+	        </div>
+            <div class="splash-column">
+                <h2>Websocket APIs</h2>
+                <p class="feature-desc">Create Websocket APIs with API Gateway.
+                    Includes runtime APIs to send messages back to connected clients.
+                </p>
+	        </div>
+            <div class="splash-column">
+                <h2>Automatic policy generation</h2>
+                <p class="feature-desc">
+                    Automatically generate policies for your application based on
+                    scanning your source code.
+                </p>
+	        </div>
+        </div>
+    </div>
+    <div class="faq">
+        <div class="width-wrapper">
+            <h2 class="faq-heading">Learning Resources</h2>
+            <div class="splash-row">
+                <div class="splash-column splash-box">
+                    <h2>Tutorials</h2>
+		    <p>See step-by-step tutorials that show you how to use various
+		    features of Chalice.  These are designed to quickly
+		    get you up and running if you're new to Chalice.  These
+		    are perfect for new users of Chalice.
+		    </p>
+	            <a href="{{ pathto('tutorials/index') }}" class="splash-clickable">
+                    See more.
+                    </a>
+		</div>
+                <div class="splash-column splash-box">
+                    <h2>Sample Applications</h2>
+		    <p>Our sample applications are complete examples
+		      that are larger in scope than our tutorials.  Learn
+		      how you can combine multiple features of Chalice
+		      to create more real-world serverless applications.  We walk through
+		      the architecture, deployment, and code for all
+		      of our sample applications.
+		    </p>
+		    <a href="{{ pathto('samples/index') }}" class="splash-clickable">
+                    See more.
+                    </a>
+		</div>
+	    </div>
+        </div>
+    </div>
+    <div class="width-wrapper">
+        <section class="relations">
+        <a class="next-page clearfix" href="{{ pathto('quickstart')}}">Quick start -&gt;</a>
+        </section>
+	<p></p>
+    </div>
+</section>
