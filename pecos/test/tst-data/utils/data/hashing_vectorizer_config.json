@@ -1,7 +1,0 @@
-{
-    "type": "sklearnhashing",
-    "kwargs":
-    {
-        "n_features": 8 
-    }
-}
