@@ -1,19 +1,8 @@
 load("//tensorflow:tensorflow.bzl", "py_test")
 
 package(
-    licenses = ["notice"],  # Apache 2.0
-)
-
-filegroup(
-    name = "all_files",
-    srcs = glob(
-        ["**/*"],
-        exclude = [
-            "**/METADATA",
-            "**/OWNERS",
-        ],
-    ),
-    visibility = ["//tensorflow:__subpackages__"],
+    # copybara:uncomment default_applicable_licenses = ["//tensorflow:license"],
+    licenses = ["notice"],
 )
 
 py_library(
@@ -21,11 +10,13 @@ py_library(
     srcs = [
         "anf.py",
     ],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
+        "//tensorflow/python/autograph/pyct:gast_util",
+        "//tensorflow/python/autograph/pyct:templates",
+        "//tensorflow/python/autograph/pyct:transformer",
         "@gast_archive//:gast",
-        "@six_archive//:six",
     ],
 )
 
@@ -33,11 +24,14 @@ py_test(
     name = "anf_test",
     srcs = ["anf_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     tags = ["no_oss"],
     deps = [
+        ":common_transformers",
         "//tensorflow/python:client_testlib",
-        "//tensorflow/python/autograph/pyct",
+        "//tensorflow/python/autograph/pyct:loader",
+        "//tensorflow/python/autograph/pyct:parser",
+        "//tensorflow/python/autograph/pyct:transformer",
         "@gast_archive//:gast",
     ],
 )

@@ -53,18 +53,18 @@ class Residues:
             return
 
         fragments = []
-        for l in str.split(","):
-            m = _fragment_re.match(l)
+        for fragment in str.split(","):
+            m = _fragment_re.match(fragment)
             if m is None:
-                raise ValueError("I don't understand the format of %s" % l)
+                raise ValueError(f"I don't understand the format of {fragment}")
             chain, start, end, postfix = m.groups()
 
             if postfix != "":
-                raise ValueError("I don't understand the format of %s" % l)
+                raise ValueError(f"I don't understand the format of {fragment}")
 
             if chain:
                 if chain[-1] != ":":
-                    raise ValueError("I don't understand the chain in %s" % l)
+                    raise ValueError(f"I don't understand the chain in {fragment}")
                 chain = chain[:-1]  # chop off the ':'
             else:
                 chain = ""
@@ -84,8 +84,8 @@ class Residues:
         for chain, start, end in self.fragments:
             s = []
             if chain:
-                s.append("%s:" % chain)
+                s.append(f"{chain}:")
             if start:
-                s.append("%s-%s" % (start, end))
+                s.append(f"{start}-{end}")
             strs.append("".join(s))
         return prefix + ",".join(strs)

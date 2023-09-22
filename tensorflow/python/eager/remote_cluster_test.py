@@ -14,16 +14,13 @@
 # ==============================================================================
 """Tests for remote eager execution."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
 import threading
 
 from absl.testing import parameterized
 import numpy as np
 
+from tensorflow.core.distributed_runtime.preemption import gen_check_preemption_op
 from tensorflow.core.protobuf import cluster_pb2
 from tensorflow.core.protobuf import tensorflow_server_pb2
 from tensorflow.python import pywrap_tfe
@@ -59,6 +56,7 @@ def get_server_def(job_name, local_server_port, remote_server_addresses,
       job_name=job_name,
       task_index=task_index,
       protocol="grpc")
+  server_def.default_session_config.experimental.coordination_config.service_type = "standalone"
 
   return server_def
 
@@ -143,6 +141,23 @@ class DynamicClusterTest(test.TestCase, parameterized.TestCase):
     super(DynamicClusterTest, self).tearDown()
     ops.device(None).__enter__()
     context._reset_context()
+
+  def testCheckPreemption(self):
+    preemption_key = "TF_DEFAULT_PREEMPTION_NOTICE_KEY"
+    preemption_task = "/job:worker/task:0"
+
+    with ops.device(self.device_t1):
+      gen_check_preemption_op.check_preemption(preemption_key=preemption_key)
+
+    # Simulate a preemption notifier callback invocation.
+    context.context().set_config_key_value(preemption_key, preemption_task)
+    with self.assertRaises(errors.AbortedError) as cm:
+      with ops.device(self.device_t2):
+        gen_check_preemption_op.check_preemption(preemption_key=preemption_key)
+    self.assertEqual(
+        cm.exception.experimental_payloads.get(
+            b"type.googleapis.com/tensorflow.distributed_runtime.WorkerPreemption"
+        ), preemption_task.encode())
 
   @test_util.run_in_async_and_sync_mode
   def testServerAdded(self):
@@ -300,6 +315,38 @@ class DynamicClusterTest(test.TestCase, parameterized.TestCase):
       y = worker_fn(x1)
     np.testing.assert_array_equal([[2, 2], [2, 2]], y.numpy())
 
+  @test_util.run_in_async_and_sync_mode
+  def testFunctionRegisteredAndRemoved(self):
+    """Update cluster when other function are registered and removed."""
+    with ops.device(self.device_local):
+      x1 = array_ops.ones([2, 2])
+
+    num_calls = 30
+    self._coord = coordinator.Coordinator()
+
+    def update_server_def_fn():
+      with self._coord.stop_on_exception():
+        for i in range(num_calls):
+          context.update_server_def(
+              server_def=(self.server_def_s1_s2 if i %
+                          2 == 0 else self.server_def_s1_s3))
+
+    t = threading.Thread(target=update_server_def_fn)
+    t.start()
+
+    for _ in range(num_calls):
+
+      @def_function.function
+      def worker_fn(i):
+        return math_ops.matmul(i, i)
+
+      concrete_fn = worker_fn.get_concrete_function(x1)
+      del concrete_fn
+      del worker_fn
+
+    # No exception should be thrown from the thread
+    self._coord.join([t])
+
   def testPendingNodesServerReplaced(self):
     """Update cluster when nodes are still pending on remote workers."""
     with ops.device(self.device_local):
@@ -358,10 +405,10 @@ class DynamicClusterTest(test.TestCase, parameterized.TestCase):
     t1_results = [None] * num_calls
     t2_results = [None] * num_calls
     threads = []
-    threads.append(threading.Thread(target=thread_fn,
-                                    args=(self.device_t1, t1_results)))
-    threads.append(threading.Thread(target=thread_fn,
-                                    args=(self.device_t2, t2_results)))
+    threads.append(
+        threading.Thread(target=thread_fn, args=(self.device_t1, t1_results)))
+    threads.append(
+        threading.Thread(target=thread_fn, args=(self.device_t2, t2_results)))
     threads.append(threading.Thread(target=update_server_def_fn))
     for t in threads:
       t.start()
@@ -504,6 +551,7 @@ class DynamicClusterTest(test.TestCase, parameterized.TestCase):
       with ops.device(self.device_t2):
         add = mul + i
       return add - i
+
     worker_fn.get_concrete_function(x1)
 
     num_calls = 10
@@ -520,13 +568,13 @@ class DynamicClusterTest(test.TestCase, parameterized.TestCase):
       with self._coord.stop_on_exception():
         for i in range(num_calls):
           context.update_server_def(
-              server_def=(self.server_def_s1_s2_s3
-                          if i % 2 == 0 else self.server_def_s1_s2))
+              server_def=(self.server_def_s1_s2_s3 if i %
+                          2 == 0 else self.server_def_s1_s2))
 
     results = [None] * num_calls
     threads = []
-    threads.append(threading.Thread(target=thread_fn,
-                                    args=(self.device_t1, results)))
+    threads.append(
+        threading.Thread(target=thread_fn, args=(self.device_t1, results)))
     threads.append(threading.Thread(target=update_server_def_fn))
     for t in threads:
       t.start()
@@ -592,16 +640,15 @@ class DynamicClusterTest(test.TestCase, parameterized.TestCase):
     self.assertGreater(total, 0)
 
   def testCheckAlive(self):
-    with self.assertRaisesRegexp(ValueError, "Context is not initialized."):
+    with self.assertRaisesRegex(ValueError, "Context is not initialized."):
       context.check_alive("/job:remote_device/task:0")
     context.context().ensure_initialized()
 
     self.assertTrue(context.check_alive("/job:remote_device/replica:0/task:0"))
     self.assertTrue(context.check_alive("/job:remote_device/replica:0/task:1"))
 
-    with self.assertRaisesRegexp(
-        errors.InvalidArgumentError,
-        "Client for target /job:remote_device/replica:0/task:10 not found."):
+    with self.assertRaisesRegex(errors.InvalidArgumentError,
+                                "Unable to find worker interface"):
       context.check_alive("/job:remote_device/replica:0/task:10")
 
 

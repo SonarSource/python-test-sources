@@ -14,11 +14,9 @@
 # ==============================================================================
 """Nadam optimizer implementation."""
 # pylint: disable=g-classes-have-attributes
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 from tensorflow.python.framework import ops
+from tensorflow.python.framework import tensor_conversion
 from tensorflow.python.keras import backend_config
 from tensorflow.python.keras.optimizer_v2 import learning_rate_schedule
 from tensorflow.python.keras.optimizer_v2 import optimizer_v2
@@ -33,7 +31,6 @@ from tensorflow.python.util.tf_export import keras_export
 @keras_export('keras.optimizers.Nadam')
 class Nadam(optimizer_v2.OptimizerV2):
   r"""Optimizer that implements the NAdam algorithm.
-
   Much like Adam is essentially RMSprop with momentum, Nadam is Adam with
   Nesterov momentum.
 
@@ -50,6 +47,14 @@ class Nadam(optimizer_v2.OptimizerV2):
       `"clipnorm"` or `"clipvalue"`.
       `"clipnorm"` (float) clips gradients by norm; `"clipvalue"` (float) clips
       gradients by value.
+
+  Usage Example:
+    >>> opt = tf.keras.optimizers.Nadam(learning_rate=0.2)
+    >>> var1 = tf.Variable(10.0)
+    >>> loss = lambda: (var1 ** 2) / 2.0
+    >>> step_count = opt.minimize(loss, [var1]).numpy()
+    >>> "{:.1f}".format(var1.numpy())
+    9.8
 
   Reference:
     - [Dozat, 2015](http://cs229.stanford.edu/proj2015/054_report.pdf).
@@ -121,18 +126,20 @@ class Nadam(optimizer_v2.OptimizerV2):
 
     apply_state[(var_device, var_dtype)] = dict(
         lr_t=lr_t,
-        neg_lr_t=-lr_t,
-        epsilon=ops.convert_to_tensor_v2(self.epsilon, var_dtype),
+        neg_lr_t=-lr_t,  # pylint: disable=invalid-unary-operand-type
+        epsilon=tensor_conversion.convert_to_tensor_v2_with_dispatch(
+            self.epsilon, var_dtype
+        ),
         beta_1_t=beta_1_t,
         beta_2_t=beta_2_t,
         m_t=m_t,
         m_t_1=m_t_1,
         one_minus_beta_1_t=1 - beta_1_t,
         one_minus_beta_2_t=1 - beta_2_t,
-        one_minus_m_t=1. - m_t,
-        one_minus_m_schedule_new=1. - m_schedule_new,
-        one_minus_m_schedule_next=1. - m_schedule_next,
-        v_t_prime_denominator=1. - math_ops.pow(beta_2_t, local_step),
+        one_minus_m_t=1.0 - m_t,
+        one_minus_m_schedule_new=1.0 - m_schedule_new,
+        one_minus_m_schedule_next=1.0 - m_schedule_next,
+        v_t_prime_denominator=1.0 - math_ops.pow(beta_2_t, local_step),
     )
 
   def _prepare(self, var_list):
@@ -207,7 +214,7 @@ class Nadam(optimizer_v2.OptimizerV2):
     config = super(Nadam, self).get_config()
     config.update({
         'learning_rate': self._serialize_hyperparameter('learning_rate'),
-        'decay': self._serialize_hyperparameter('decay'),
+        'decay': self._initial_decay,
         'beta_1': self._serialize_hyperparameter('beta_1'),
         'beta_2': self._serialize_hyperparameter('beta_2'),
         'epsilon': self.epsilon,

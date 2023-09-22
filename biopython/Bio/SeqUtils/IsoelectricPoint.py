@@ -6,7 +6,7 @@
 # package.
 """Calculate isoelectric points of polypeptides using methods of Bjellqvist.
 
-pK values and the methos are taken from::
+pK values and the methods are taken from::
 
     * Bjellqvist, B.,Hughes, G.J., Pasquali, Ch., Paquet, N., Ravier, F.,
     Sanchez, J.-Ch., Frutiger, S. & Hochstrasser, D.F.
@@ -45,8 +45,8 @@ class IsoelectricPoint:
     ----------
     :protein_sequence: A ``Bio.Seq`` or string object containing a protein
                        sequence.
-    :aa_content: A dictionary with amino acid letters as keys and it's
-                 occurences as integers, e.g. ``{"A": 3, "C": 0, ...}``.
+    :aa_content: A dictionary with amino acid letters as keys and its
+                 occurrences as integers, e.g. ``{"A": 3, "C": 0, ...}``.
                  Default: ``None``. If ``None``, the dic will be calculated
                  from the given sequence.
 
@@ -66,8 +66,8 @@ class IsoelectricPoint:
     >>> protein = IP("INGAR")
     >>> print(f"IEP of peptide {protein.sequence} is {protein.pi():.2f}")
     IEP of peptide INGAR is 9.75
-    >>> print(f"It's charge at pH 7 is {protein.charge_at_pH(7.0):.2f}")
-    It's charge at pH 7 is 0.76
+    >>> print(f"Its charge at pH 7 is {protein.charge_at_pH(7.0):.2f}")
+    Its charge at pH 7 is 0.76
 
 
     >>> from Bio.SeqUtils.ProtParam import ProteinAnalysis as PA
@@ -81,7 +81,7 @@ class IsoelectricPoint:
 
     def __init__(self, protein_sequence, aa_content=None):
         """Initialize the class."""
-        self.sequence = str(protein_sequence).upper()
+        self.sequence = protein_sequence.upper()
         if not aa_content:
             from Bio.SeqUtils.ProtParam import ProteinAnalysis as _PA
 
@@ -159,3 +159,9 @@ class IsoelectricPoint:
             next_pH = (min_ + max_) / 2
             return self.pi(next_pH, min_, max_)
         return pH
+
+
+if __name__ == "__main__":
+    from Bio._utils import run_doctest
+
+    run_doctest()

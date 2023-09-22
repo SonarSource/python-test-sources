@@ -1,5 +1,4 @@
 # Copyright 2017 The TensorFlow Authors. All Rights Reserved.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -26,10 +25,6 @@ TODO: this works fine but there is an issue with exporting
 'const char * const' and importing it from a user_ops. The problem is
 on the importing end and using __declspec(dllimport) works around it.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import argparse
 import io
 import os
@@ -46,11 +41,29 @@ DUMPBIN_CMD = "\"{}\" /SYMBOLS".format("%{dumpbin_bin_path}")
 EXCLUDE_RE = re.compile(r"RTTI|deleting destructor|::internal::")
 
 # Include if matched before exclude
-INCLUDEPRE_RE = re.compile(r"google::protobuf::internal::ExplicitlyConstructed|"
+INCLUDEPRE_RE = re.compile(r"absl::lts_[0-9]+::base_internal::ThrowStdOutOfRange|" # for _pywrap_tfe
+                           r"absl::lts_[0-9]+::str_format_internal::FormatArgImpl|" # for _pywrap_tfe
+                           r"absl::lts_[0-9]+::ByChar|" # for _pywrap_tfe
+                           r"absl::lts_[0-9]+::numbers_internal::FastIntToBuffer|" # for _pywrap_tfe
+                           r"absl::lts_[0-9]+::StrCat|" # for _pywrap_tfe
+                           r"absl::lts_[0-9]+::StrAppend|" # for _pywrap_tfe
+                           r"absl::lts_[0-9]+::hash_internal|" # for _pywrap_tfcompile
+                           r"absl::lts_[0-9]+::container_internal|" # for _pywrap_tfcompile
+                           r"absl::lts_[0-9]+::Status::raw_code|" # for absl::Status
+                           r"absl::lts_[0-9]+::Status::code|" # for absl::Status
+                           r"absl::lts_[0-9]+::Status::UnrefNonInlined|"  # for absl::Status
+                           r"absl::lts_[0-9]+::Status::Status|" # for absl::Status
+                           r"absl::lts_[0-9]+::Status::ForEachPayload|" # for absl::Status
+                           r"absl::lts_[0-9]+::Cord|" # for tensorflow::Status
+                           r"absl::lts_[0-9]+::Cord::DestroyCordSlow|" # for tensorflow::Status
+                           r"absl::lts_[0-9]+::cord_internal::CordzInfo::MaybeTrackCordImpl" # tensorflow::Status usage of absl::Cord
+                           r"google::protobuf::internal::ExplicitlyConstructed|"
                            r"google::protobuf::internal::ArenaImpl::AllocateAligned|" # for contrib/data/_prefetching_ops
                            r"google::protobuf::internal::ArenaImpl::AddCleanup|" # for contrib/data/_prefetching_ops
                            r"google::protobuf::internal::LogMessage|" # for contrib/data/_prefetching_ops
                            r"google::protobuf::Arena::OnArenaAllocation|" # for contrib/data/_prefetching_ops
+                           r"google::protobuf::MessageLite::SerializeAsString|" # for pywrap_saved_model
+                           r"google::protobuf::MessageLite::ParseFromString|" # for pywrap_saved_model
                            r"absl::Mutex::ReaderLock|" # for //tensorflow/contrib/rnn:python/ops/_gru_ops.so and more ops
                            r"absl::Mutex::ReaderUnlock|" # for //tensorflow/contrib/rnn:python/ops/_gru_ops.so and more ops
                            r"tensorflow::internal::LogMessage|"
@@ -59,9 +72,15 @@ INCLUDEPRE_RE = re.compile(r"google::protobuf::internal::ExplicitlyConstructed|"
                            r"tensorflow::internal::MakeCheckOpValueString|"
                            r"tensorflow::internal::PickUnusedPortOrDie|"
                            r"tensorflow::internal::ValidateDevice|"
-                           r"tensorflow::ops::internal::Enter|"
-                           r"tensorflow::strings::internal::AppendPieces|"
-                           r"tensorflow::strings::internal::CatPieces|"
+                           r"tsl::internal::LogMessage|"
+                           r"tsl::internal::LogString|"
+                           r"tsl::internal::CheckOpMessageBuilder|"
+                           r"tsl::internal::MakeCheckOpValueString|"
+                           r"tsl::internal::PickUnusedPortOrDie|"
+                           r"tsl::internal::ValidateDevice|"
+                           r"tsl::ops::internal::Enter|"
+                           r"tsl::strings::internal::AppendPieces|"
+                           r"tsl::strings::internal::CatPieces|"
                            r"tensorflow::io::internal::JoinPathImpl")
 
 # Include if matched after exclude
@@ -70,6 +89,7 @@ INCLUDE_RE = re.compile(r"^(TF_\w*)$|"
                         r"nsync::|"
                         r"tensorflow::|"
                         r"toco::|"
+                        r"tsl::|"
                         r"functor::|"
                         r"tf_git_version|"
                         r"tf_compiler_version|"
@@ -138,7 +158,7 @@ def get_symbols(path_to_lib, re_filter):
   # Example symbol line:
   # 954 00000000 SECT2BD notype ()    External    | ?IsSequence@swig@tensorflow@@YA_NPEAU_object@@@Z (bool __cdecl tensorflow::swig::IsSequence(struct _object *))
   # Anomaly symbol line:
-  # 00B 00000000 SECT4  notype       External     | _tensorflow_numpy_api.
+  # 00B 00000000 SECT4  notype       External     | _tsl_numpy_api.
   sym_filtered = []
   re_filter_comp = re.compile(r"{}".format(re_filter))
 
@@ -168,9 +188,17 @@ def get_pybind_export_symbols(symbols_file, lib_paths_file):
     lib_paths_file: String that is the path to txt file that lists
                     cc_library target execpaths for exporting symbols.
   """
-  # cc_library target name is always in [target_name] format in
-  # `symbols_pybind.txt`.
-  section_header_filter = r"\[(\S+)\]"  # e.g. `[cpp_python_util]`
+  # A cc_library target name must begin its own line, and it must begin with
+  # `//tensorflow`. It can then optionally have some number of directories, and
+  # it must end with a target name directly preceded by either a slash or a
+  # colon. A directory or target name is any combination of letters, numbers,
+  # underscores, and dashes.
+  # Examples of possible headers:
+  # `[//tensorflow/core/util/tensor_bundle]`
+  # `[//tensorflow/python:safe_ptr]`
+  # `[//tensorflow:target_name_v2_25]`
+  # `[//tensorflow/-/24/util_:port-5]`
+  section_header_filter = r"^\[\/\/(tensorflow(\/[\w-]+)*(:|\/)[\w-]+)\]"
 
   # Create a dict of target libs and their symbols to be exported and populate
   # it. (key = cc_library target, value = list of symbols) that we need to
@@ -199,20 +227,31 @@ def get_pybind_export_symbols(symbols_file, lib_paths_file):
   symbols_all = []
   for lib in lib_paths:
     if lib:
-      for cc_lib in symbols:  # keys in symbols = cc_library target name
-        path_to_lib = cc_lib.split("/")
-        cc_target = path_to_lib[-1]
-        # if `len(path_to_lib)` is larger than 1, that means, we are given one
-        # or more parent directory of the target. e.g. `[foo/bar]` instead of
-        # just the target name `[bar]`.
-        if len(path_to_lib) > 1:
-          parent_dir = path_to_lib[0]
+      for cc_lib in symbols:   # keys in symbols = cc_library target name
+        if cc_lib.count(":") == 1:
+          formatted_cc_lib = cc_lib.replace(":", "/")
+        elif cc_lib.count(":") == 0:
+          formatted_cc_lib = cc_lib
         else:
-          parent_dir = ""
-        if cc_target in lib and parent_dir in lib:
-          symbols_all.extend(
-            get_symbols(lib, "|".join(symbols[cc_lib])))
-
+          raise ValueError(f"Detected wrong format for symbols header in"
+                           "`symbols_pybind.txt`. Header must have 0 or 1 "
+                           "colon (e.g. `[//third_party/tensorflow/python:safe_ptr]`"
+                           "or `[tensorflow/core/util/tensor_bundle]`) but "
+                           "detected: {cc_lib}")
+        path_to_lib = formatted_cc_lib.split("/")
+        # `path_to_lib` is a bazel out path, which means the actual path string
+        # we get here differs from the package path listed in
+        # `win_lib_files_for_exported_symbols` and `symbols_pybind.txt`.
+        # For example, the target `tensorflow/core:op_gen_lib` in
+        # `win_lib_files_for_exported_symbols` generates the bazel library path
+        # `bazel-out/x64_windows-opt/bin/tensorflow/core/framework/op_gen_lib.lib`
+        lib_and_cc_lib_match = True
+        for p in path_to_lib:
+          if p not in lib:
+            lib_and_cc_lib_match = False
+            break
+        if lib_and_cc_lib_match:
+          symbols_all.extend(get_symbols(lib, "|".join(symbols[cc_lib])))
   return symbols_all
 
 def main():
@@ -249,6 +288,28 @@ def main():
       def_fp.write("LIBRARY " + args.target + "\n")
     def_fp.write("EXPORTS\n")
     def_fp.write("\t ??1OpDef@tensorflow@@UEAA@XZ\n")
+    # Write additional symbols:
+    def_fp.write("\t ??0SessionOptions@tensorflow@@QEAA@XZ\n")
+    def_fp.write("\t ?NewSession@tensorflow@@YAPEAVSession@1@AEBUSessionOptions@1@@Z\n")
+    def_fp.write("\t ??1SavedModelBundleInterface@tensorflow@@UEAA@XZ\n")
+    def_fp.write("\t ?MaybeSavedModelDirectory@tensorflow@@YA_NAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z\n")
+    def_fp.write("\t ??_7HistogramProto@tensorflow@@6B@\n")
+    def_fp.write("\t ??_7ConfigProto@tensorflow@@6B@\n") # for _pywrap_tfe
+    def_fp.write("\t ??_7CoordinatedTask@tensorflow@@6B@\n") # for _pywrap_tfe
+    def_fp.write("\t ?InternalSwap@CoordinatedTask@tensorflow@@AEAAXPEAV12@@Z\n") # for _pywrap_tfe
+    def_fp.write("\t ?kSeed@MixingHashState@hash_internal@lts_20230125@absl@@0QEBXEB\n") # for _pywrap_tfcompile
+    def_fp.write("\t ?kEmptyGroup@container_internal@lts_20230125@absl@@3QBW4ctrl_t@123@B\n") # for _pywrap_tfcompile
+    def_fp.write("\t ??_7GraphDef@tensorflow@@6B@\n")
+    def_fp.write("\t ??_7DeviceProperties@tensorflow@@6B@\n")
+    def_fp.write("\t ??_7MetaGraphDef@tensorflow@@6B@\n")
+    def_fp.write("\t ??_7SavedModel@tensorflow@@6B@\n")
+    def_fp.write("\t ??0CoordinatedTask@tensorflow@@QEAA@XZ\n") # for _pywrap_tfe
+    def_fp.write("\t ?Set@ArenaStringPtr@internal@protobuf@google@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAVArena@34@@Z\n") # _pywrap_tfe
+    def_fp.write("\t ??1CoordinatedTask@tensorflow@@UEAA@XZ\n") # for _pywrap_tfe
+    def_fp.write("\t ?CopyFrom@CoordinatedTask@tensorflow@@QEAAXAEBV12@@Z\n") # for _pywrap_tfe
+    def_fp.write("\t ??0CoordinatedTask@tensorflow@@IEAA@PEAVArena@protobuf@google@@_N@Z\n") # for _pywrap_tfe
+    def_fp.write("\t ?MaybeTrackCordImpl@CordzInfo@cord_internal@lts_20230125@absl@@CAXAEAVInlineData@234@AEBV5234@W4MethodIdentifier@CordzUpdateTracker@234@@Z\n") # for tensorflow::Status usage of absl::Cord
+
 
     # Each symbols returned by undname matches the same position in candidates.
     # We compare on undname but use the decorated name from candidates.

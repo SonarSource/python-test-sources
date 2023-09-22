@@ -6,7 +6,7 @@
 """mmCIF parsers."""
 
 
-import numpy
+import numpy as np
 import warnings
 
 from Bio.File import as_handle
@@ -20,16 +20,26 @@ from Bio.PDB.PDBExceptions import PDBConstructionWarning
 class MMCIFParser:
     """Parse a mmCIF file and return a Structure object."""
 
-    def __init__(self, structure_builder=None, QUIET=False):
+    def __init__(
+        self, structure_builder=None, auth_chains=True, auth_residues=True, QUIET=False
+    ):
         """Create a PDBParser object.
 
         The mmCIF parser calls a number of standard methods in an aggregated
-        StructureBuilder object. Normally this object is instanciated by the
+        StructureBuilder object. Normally this object is instantiated by the
         MMCIParser object itself, but if the user provides his/her own
         StructureBuilder object, the latter is used instead.
 
         Arguments:
          - structure_builder - an optional user implemented StructureBuilder class.
+         - auth_chains - True by default. If true, use the author chain IDs.
+           If false, use the re-assigned mmCIF chain IDs.
+         - auth_residues - True by default. If true, use the author residue numbering.
+           If false, use the mmCIF "label" residue numbering, which has no insertion
+           codes, and strictly increments residue numbers.
+           NOTE: Non-polymers such as water don't have a "label" residue number,
+           and will be skipped.
+
          - QUIET - Evaluated as a Boolean. If true, warnings issued in constructing
            the SMCRA data will be suppressed. If false (DEFAULT), they will be shown.
            These warnings might be indicative of problems in the mmCIF file!
@@ -43,6 +53,8 @@ class MMCIFParser:
         # self.trailer = None
         self.line_counter = 0
         self.build_structure = None
+        self.auth_chains = bool(auth_chains)
+        self.auth_residues = bool(auth_residues)
         self.QUIET = bool(QUIET)
 
     # Public methods
@@ -92,7 +104,7 @@ class MMCIFParser:
             "idcode": "",
             "deposition_date": "",
             "structure_method": "",
-            "resolution": 0.0,
+            "resolution": None,
         }
 
         self._update_header_entry(
@@ -107,9 +119,18 @@ class MMCIFParser:
         )
         self._update_header_entry("structure_method", ["_exptl.method"])
         self._update_header_entry(
-            "resolution", ["_refine.ls_d_res_high", "_refine_hist.d_res_high"]
+            "resolution",
+            [
+                "_refine.ls_d_res_high",
+                "_refine_hist.d_res_high",
+                "_em_3d_reconstruction.resolution",
+            ],
         )
-        self.header["resolution"] = float(self.header["resolution"])
+        if self.header["resolution"] is not None:
+            try:
+                self.header["resolution"] = float(self.header["resolution"])
+            except ValueError:
+                self.header["resolution"] = None
 
         return self.header
 
@@ -121,13 +142,18 @@ class MMCIFParser:
         _unassigned = {".", "?"}
 
         mmcif_dict = self._mmcif_dict
+
+        atom_serial_list = mmcif_dict["_atom_site.id"]
         atom_id_list = mmcif_dict["_atom_site.label_atom_id"]
         residue_id_list = mmcif_dict["_atom_site.label_comp_id"]
         try:
             element_list = mmcif_dict["_atom_site.type_symbol"]
         except KeyError:
             element_list = None
-        chain_id_list = mmcif_dict["_atom_site.auth_asym_id"]
+        if self.auth_chains:
+            chain_id_list = mmcif_dict["_atom_site.auth_asym_id"]
+        else:
+            chain_id_list = mmcif_dict["_atom_site.label_asym_id"]
         x_list = [float(x) for x in mmcif_dict["_atom_site.Cartn_x"]]
         y_list = [float(x) for x in mmcif_dict["_atom_site.Cartn_y"]]
         z_list = [float(x) for x in mmcif_dict["_atom_site.Cartn_z"]]
@@ -155,10 +181,14 @@ class MMCIFParser:
         except KeyError:
             # no anisotropic B factors
             aniso_flag = 0
-        # if auth_seq_id is present, we use this.
-        # Otherwise label_seq_id is used.
-        if "_atom_site.auth_seq_id" in mmcif_dict:
-            seq_id_list = mmcif_dict["_atom_site.auth_seq_id"]
+
+        if self.auth_residues:
+            # if auth_seq_id is present, we use this.
+            # Otherwise label_seq_id is used.
+            if "_atom_site.auth_seq_id" in mmcif_dict:
+                seq_id_list = mmcif_dict["_atom_site.auth_seq_id"]
+            else:
+                seq_id_list = mmcif_dict["_atom_site.label_seq_id"]
         else:
             seq_id_list = mmcif_dict["_atom_site.label_seq_id"]
         # Now loop over atoms and build the structure
@@ -176,8 +206,18 @@ class MMCIFParser:
 
             # set the line_counter for 'ATOM' lines only and not
             # as a global line counter found in the PDBParser()
-            # this number should match the '_atom_site.id' index in the MMCIF
             structure_builder.set_line_counter(i)
+
+            # Try coercing serial to int, for compatibility with PDBParser
+            # But do not quit if it fails. mmCIF format specs allow strings.
+            try:
+                serial = int(atom_serial_list[i])
+            except ValueError:
+                serial = atom_serial_list[i]
+                warnings.warn(
+                    "PDBConstructionWarning: Some atom serial numbers are not numerical",
+                    PDBConstructionWarning,
+                )
 
             x = x_list[i]
             y = y_list[i]
@@ -187,7 +227,22 @@ class MMCIFParser:
             altloc = alt_list[i]
             if altloc in _unassigned:
                 altloc = " "
-            int_resseq = int(seq_id_list[i])
+            resseq = seq_id_list[i]
+            if resseq == ".":
+                # Non-existing residue ID
+                try:
+                    msg_resseq = mmcif_dict["_atom_site.auth_seq_id"][i]
+                    msg = "Non-existing residue ID in chain '{}', residue '{}'".format(
+                        chainid, msg_resseq
+                    )
+                except (KeyError, IndexError):
+                    msg = f"Non-existing residue ID in chain '{chainid}'"
+                warnings.warn(
+                    "PDBConstructionWarning: " + msg,
+                    PDBConstructionWarning,
+                )
+                continue
+            int_resseq = int(resseq)
             icode = icode_list[i]
             if icode in _unassigned:
                 icode = " "
@@ -238,10 +293,17 @@ class MMCIFParser:
                 current_resname = resname
                 structure_builder.init_residue(resname, hetatm_flag, int_resseq, icode)
 
-            coord = numpy.array((x, y, z), "f")
+            coord = np.array((x, y, z), "f")
             element = element_list[i].upper() if element_list else None
             structure_builder.init_atom(
-                name, coord, tempfactor, occupancy, altloc, name, element=element
+                name,
+                coord,
+                tempfactor,
+                occupancy,
+                altloc,
+                name,
+                serial_number=serial,
+                element=element,
             )
             if aniso_flag == 1 and i < len(aniso_u11):
                 u = (
@@ -253,7 +315,7 @@ class MMCIFParser:
                     aniso_u33[i],
                 )
                 mapped_anisou = [float(_) for _ in u]
-                anisou_array = numpy.array(mapped_anisou, "f")
+                anisou_array = np.array(mapped_anisou, "f")
                 structure_builder.set_anisou(anisou_array)
         # Now try to set the cell
         try:
@@ -263,7 +325,7 @@ class MMCIFParser:
             alpha = float(mmcif_dict["_cell.angle_alpha"][0])
             beta = float(mmcif_dict["_cell.angle_beta"][0])
             gamma = float(mmcif_dict["_cell.angle_gamma"][0])
-            cell = numpy.array((a, b, c, alpha, beta, gamma), "f")
+            cell = np.array((a, b, c, alpha, beta, gamma), "f")
             spacegroup = mmcif_dict["_symmetry.space_group_name_H-M"][0]
             spacegroup = spacegroup[1:-1]  # get rid of quotes!!
             if spacegroup is None:
@@ -276,11 +338,13 @@ class MMCIFParser:
 class FastMMCIFParser:
     """Parse an MMCIF file and return a Structure object."""
 
-    def __init__(self, structure_builder=None, QUIET=False):
+    def __init__(
+        self, structure_builder=None, auth_chains=True, auth_residues=True, QUIET=False
+    ):
         """Create a FastMMCIFParser object.
 
         The mmCIF parser calls a number of standard methods in an aggregated
-        StructureBuilder object. Normally this object is instanciated by the
+        StructureBuilder object. Normally this object is instantiated by the
         parser object itself, but if the user provides his/her own
         StructureBuilder object, the latter is used instead.
 
@@ -290,6 +354,14 @@ class FastMMCIFParser:
 
         Arguments:
          - structure_builder - an optional user implemented StructureBuilder class.
+         - auth_chains - True by default. If true, use the author chain IDs.
+           If false, use the re-assigned mmCIF chain IDs.
+         - auth_residues - True by default. If true, use the author residue numbering.
+           If false, use the mmCIF "label" residue numbering, which has no insertion
+           codes, and strictly increments residue numbers.
+           NOTE: Non-polymers such as water don't have a "label" residue number,
+           and will be skipped.
+
          - QUIET - Evaluated as a Boolean. If true, warnings issued in constructing
            the SMCRA data will be suppressed. If false (DEFAULT), they will be shown.
            These warnings might be indicative of problems in the mmCIF file!
@@ -302,6 +374,8 @@ class FastMMCIFParser:
 
         self.line_counter = 0
         self.build_structure = None
+        self.auth_chains = bool(auth_chains)
+        self.auth_residues = bool(auth_residues)
         self.QUIET = bool(QUIET)
 
     # Public methods
@@ -361,6 +435,7 @@ class FastMMCIFParser:
         mmcif_dict.update(dict(zip(_anisof, _anisob_tbl)))
 
         # Build structure object
+        atom_serial_list = mmcif_dict["_atom_site.id"]
         atom_id_list = mmcif_dict["_atom_site.label_atom_id"]
         residue_id_list = mmcif_dict["_atom_site.label_comp_id"]
 
@@ -369,7 +444,10 @@ class FastMMCIFParser:
         except KeyError:
             element_list = None
 
-        chain_id_list = mmcif_dict["_atom_site.auth_asym_id"]
+        if self.auth_chains:
+            chain_id_list = mmcif_dict["_atom_site.auth_asym_id"]
+        else:
+            chain_id_list = mmcif_dict["_atom_site.label_asym_id"]
 
         x_list = [float(x) for x in mmcif_dict["_atom_site.Cartn_x"]]
         y_list = [float(x) for x in mmcif_dict["_atom_site.Cartn_y"]]
@@ -401,10 +479,13 @@ class FastMMCIFParser:
             # no anisotropic B factors
             aniso_flag = 0
 
-        # if auth_seq_id is present, we use this.
-        # Otherwise label_seq_id is used.
-        if "_atom_site.auth_seq_id" in mmcif_dict:
-            seq_id_list = mmcif_dict["_atom_site.auth_seq_id"]
+        if self.auth_residues:
+            # if auth_seq_id is present, we use this.
+            # Otherwise label_seq_id is used.
+            if "_atom_site.auth_seq_id" in mmcif_dict:
+                seq_id_list = mmcif_dict["_atom_site.auth_seq_id"]
+            else:
+                seq_id_list = mmcif_dict["_atom_site.label_seq_id"]
         else:
             seq_id_list = mmcif_dict["_atom_site.label_seq_id"]
 
@@ -424,8 +505,9 @@ class FastMMCIFParser:
 
             # set the line_counter for 'ATOM' lines only and not
             # as a global line counter found in the PDBParser()
-            # this number should match the '_atom_site.id' index in the MMCIF
             structure_builder.set_line_counter(i)
+
+            serial = atom_serial_list[i]
 
             x = x_list[i]
             y = y_list[i]
@@ -435,7 +517,22 @@ class FastMMCIFParser:
             altloc = alt_list[i]
             if altloc in _unassigned:
                 altloc = " "
-            int_resseq = int(seq_id_list[i])
+            resseq = seq_id_list[i]
+            if resseq == ".":
+                # Non-existing residue ID
+                try:
+                    msg_resseq = mmcif_dict["_atom_site.auth_seq_id"][i]
+                    msg = "Non-existing residue ID in chain '{}', residue '{}'".format(
+                        chainid, msg_resseq
+                    )
+                except (KeyError, IndexError):
+                    msg = f"Non-existing residue ID in chain '{chainid}'"
+                warnings.warn(
+                    "PDBConstructionWarning: " + msg,
+                    PDBConstructionWarning,
+                )
+                continue
+            int_resseq = int(resseq)
             icode = icode_list[i]
             if icode in _unassigned:
                 icode = " "
@@ -487,10 +584,17 @@ class FastMMCIFParser:
                 current_resname = resname
                 structure_builder.init_residue(resname, hetatm_flag, int_resseq, icode)
 
-            coord = numpy.array((x, y, z), "f")
+            coord = np.array((x, y, z), "f")
             element = element_list[i] if element_list else None
             structure_builder.init_atom(
-                name, coord, tempfactor, occupancy, altloc, name, element=element
+                name,
+                coord,
+                tempfactor,
+                occupancy,
+                altloc,
+                name,
+                serial_number=serial,
+                element=element,
             )
             if aniso_flag == 1 and i < len(aniso_u11):
                 u = (
@@ -502,5 +606,5 @@ class FastMMCIFParser:
                     aniso_u33[i],
                 )
                 mapped_anisou = [float(_) for _ in u]
-                anisou_array = numpy.array(mapped_anisou, "f")
+                anisou_array = np.array(mapped_anisou, "f")
                 structure_builder.set_anisou(anisou_array)

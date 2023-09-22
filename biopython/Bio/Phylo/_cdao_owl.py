@@ -22,7 +22,7 @@ def resolve_uri(s, namespaces=cdao_namespaces, cdao_to_obo=True, xml_style=False
     Optionally, converts CDAO named identifiers to OBO numeric identifiers.
     """
     if cdao_to_obo and s.startswith("cdao:"):
-        return resolve_uri("obo:%s" % cdao_elements[s[5:]], namespaces, cdao_to_obo)
+        return resolve_uri(f"obo:{cdao_elements[s[5:]]}", namespaces, cdao_to_obo)
 
     for prefix in namespaces:
         if xml_style:
@@ -2883,5 +2883,8 @@ for node_type in "ObjectProperty", "Class", "DatatypeProperty":
         obo = element.attrib[
             "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about"
         ].split("/")[-1]
-        cdao = element.find("{http://www.w3.org/2000/01/rdf-schema#}label").text
+        label = element.find("{http://www.w3.org/2000/01/rdf-schema#}label")
+        if label is None:
+            raise Exception("Unable to find label")
+        cdao = label.text
         cdao_elements[cdao] = obo

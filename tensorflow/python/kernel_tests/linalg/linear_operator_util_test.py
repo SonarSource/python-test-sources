@@ -13,10 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from absl.testing import parameterized
 import numpy as np
 
@@ -25,6 +21,7 @@ from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import linalg_ops
 from tensorflow.python.ops import math_ops
+from tensorflow.python.ops.linalg import linalg as linalg_lib
 from tensorflow.python.ops.linalg import linear_operator_util
 from tensorflow.python.platform import test
 
@@ -182,10 +179,10 @@ class BroadcastMatrixBatchDimsTest(test.TestCase):
     x = rng.rand(3)
     y = rng.rand(1, 1)
 
-    with self.assertRaisesRegexp(ValueError, "at least two dimensions"):
+    with self.assertRaisesRegex(ValueError, "at least two dimensions"):
       linear_operator_util.broadcast_matrix_batch_dims([x, y])
 
-    with self.assertRaisesRegexp(ValueError, "at least two dimensions"):
+    with self.assertRaisesRegex(ValueError, "at least two dimensions"):
       linear_operator_util.broadcast_matrix_batch_dims([y, x])
 
 
@@ -302,6 +299,64 @@ class AssertCompatibleMatrixDimensionsTest(test.TestCase):
     # pylint: enable=g-error-prone-assert-raises
 
 
+class IsAdjointPairTest(test.TestCase):
+
+  def test_one_is_explicitly_adjoint_of_other_returns_true(self):
+    x = linalg_lib.LinearOperatorFullMatrix(
+        [[1., 2.], [3., 4.]], is_self_adjoint=False)
+    self.assertTrue(linear_operator_util.is_adjoint_pair(x, x.H))
+    self.assertTrue(linear_operator_util.is_adjoint_pair(x.H, x))
+
+  def test_repeated_non_self_adjoint_operator_returns_false(self):
+    x = linalg_lib.LinearOperatorFullMatrix(
+        [[1., 2.], [3., 4.]], is_self_adjoint=False)
+    self.assertFalse(linear_operator_util.is_adjoint_pair(x, x))
+
+  def test_repeated_self_adjoint_operator_returns_true(self):
+    x = linalg_lib.LinearOperatorFullMatrix(
+        [[1., 2.], [2., 1.]], is_self_adjoint=True)
+    self.assertTrue(linear_operator_util.is_adjoint_pair(x, x))
+
+  def test_pair_of_non_self_adjoint_operator_returns_false(self):
+    x = linalg_lib.LinearOperatorFullMatrix(
+        [[1., 2.], [3., 4.]], is_self_adjoint=False)
+    y = linalg_lib.LinearOperatorFullMatrix(
+        [[10., 20.], [3., 4.]], is_self_adjoint=False)
+    self.assertFalse(linear_operator_util.is_adjoint_pair(x, y))
+
+
+class IsAATFormTest(test.TestCase):
+  # Careful when writing tests to avoid LinearOperatorDiag, since D.H is D for
+  # real D and this will be confusing.
+
+  def test_empty_operators_raises(self):
+    with self.assertRaisesRegex(ValueError, "empty operators"):
+      linear_operator_util.is_aat_form(operators=[])
+
+  def test_odd_length_returns_false(self):
+    x = linalg_lib.LinearOperatorFullMatrix([[1., 2.], [2., 1]],
+                                            is_self_adjoint=True)
+    self.assertFalse(linear_operator_util.is_aat_form([x]))
+    self.assertFalse(linear_operator_util.is_aat_form([x, x, x.H]))
+
+  def test_length_2_aat_form_with_sa_x(self):
+    x = linalg_lib.LinearOperatorFullMatrix([[1., 2.], [2., 1]],
+                                            is_self_adjoint=True)
+    self.assertTrue(linear_operator_util.is_aat_form([x, x.H]))
+
+  def test_length_2_aat_form_with_non_sa_x(self):
+    x = linalg_lib.LinearOperatorFullMatrix([[1., 5.], [2., 1]],
+                                            is_self_adjoint=False)
+    self.assertTrue(linear_operator_util.is_aat_form([x, x.H]))
+
+  def test_length_4_aat_form(self):
+    x = linalg_lib.LinearOperatorFullMatrix([[1., 2.], [5., 1]],
+                                            is_self_adjoint=False)
+    y = linalg_lib.LinearOperatorFullMatrix([[10., 2.], [3., 10]],
+                                            is_self_adjoint=False)
+    self.assertTrue(linear_operator_util.is_aat_form([x, y, y.H, x.H]))
+
+
 class DummyOperatorWithHint(object):
 
   def __init__(self, **kwargs):
@@ -337,7 +392,7 @@ class UseOperatorOrProvidedHintUnlessContradictingTest(test.TestCase,
   )
   def test_raises_if_contradicting(self, operator_hint_value,
                                    provided_hint_value):
-    with self.assertRaisesRegexp(ValueError, "my error message"):
+    with self.assertRaisesRegex(ValueError, "my error message"):
       linear_operator_util.use_operator_or_provided_hint_unless_contradicting(
           operator=DummyOperatorWithHint(my_hint=operator_hint_value),
           hint_attr_name="my_hint",
@@ -413,7 +468,7 @@ class BlockwiseTest(test.TestCase, parameterized.TestCase):
 
     # Since the leftmost dimension of `x` is equal to the number of blocks, and
     # the operators have unknown dimension, the input is ambiguous.
-    with self.assertRaisesRegexp(ValueError, "structure is ambiguous"):
+    with self.assertRaisesRegex(ValueError, "structure is ambiguous"):
       linear_operator_util.arg_is_blockwise(op_dimensions, x, -2)
 
   def test_mismatched_input_raises(self):
@@ -425,7 +480,7 @@ class BlockwiseTest(test.TestCase, parameterized.TestCase):
     # two-element list; if interpreted blockwise, its corresponding dimensions
     # sum to 12 (=6*2). If not interpreted blockwise, its corresponding
     # dimension is 6. This is a mismatch.
-    with self.assertRaisesRegexp(ValueError, "dimension does not match"):
+    with self.assertRaisesRegex(ValueError, "dimension does not match"):
       linear_operator_util.arg_is_blockwise(op_dimensions, x, -1)
 
 if __name__ == "__main__":
