@@ -1,0 +1,125 @@
+# SPDX-FileCopyrightText: 2021 The meson-python developers
+#
+# SPDX-License-Identifier: MIT
+
+[build-system]
+build-backend = 'mesonpy'
+backend-path = ['.']
+requires = [
+  'meson >= 0.63.3',
+  'pyproject-metadata >= 0.7.1',
+  'tomli >= 1.0.0; python_version < "3.11"',
+  'setuptools >= 60.0; python_version >= "3.12"',
+]
+
+[project]
+name = 'meson-python'
+description = 'Meson Python build backend (PEP 517)'
+readme = 'README.rst'
+requires-python = '>= 3.7'
+license = { file = 'LICENSES/MIT.txt' }
+keywords = ['meson', 'build', 'backend', 'pep517', 'package']
+authors = [
+  { name = 'Filipe Laíns', email = 'lains@riseup.net' },
+]
+classifiers = [
+  'Development Status :: 4 - Beta',
+  'Programming Language :: Python',
+]
+
+dependencies = [
+  'colorama; os_name == "nt"',
+  'meson >= 0.63.3',
+  'pyproject-metadata >= 0.7.1',
+  'tomli >= 1.0.0; python_version < "3.11"',
+  'setuptools >= 60.0; python_version >= "3.12"',
+]
+
+dynamic = [
+  'version',
+]
+
+[project.optional-dependencies]
+test = [
+  'build',
+  'pytest >= 6.0',
+  'pytest-cov[toml]',
+  'pytest-mock',
+  'auditwheel',
+  'cython >= 0.29.34', # required for Python 3.12 support
+  'wheel',
+  'typing-extensions >= 3.7.4; python_version < "3.10"',
+]
+docs = [
+  'furo >= 2021.08.31',
+  'sphinx ~= 4.0',
+  'sphinx-copybutton >= 0.5.0',
+  'sphinx-design >= 0.1.0',
+  'sphinxext-opengraph >= 0.7.0',
+]
+
+[project.urls]
+homepage = 'https://github.com/mesonbuild/meson-python'
+repository = 'https://github.com/mesonbuild/meson-python'
+documentation = 'https://meson-python.readthedocs.io/'
+changelog = 'https://meson-python.readthedocs.io/en/latest/changelog.html'
+
+
+[tool.mypy]
+show_error_codes = true
+ignore_missing_imports = true
+strict = true
+
+
+[tool.ruff]
+line-length = 127
+extend-ignore = [
+  'B019',
+]
+select = [
+  'B',       # flake8-bugbear
+  'C4',      # flake8-comprehensions
+  'C9',      # mccabe
+  'E',       # pycodestyle
+  'F',       # pyflakes
+  'W',       # pycodestyle
+  'RUF100',  # ruff
+]
+exclude = [
+  'docs/conf.py',
+]
+
+[tool.ruff.mccabe]
+max-complexity = 12
+
+
+[tool.isort]
+lines_between_types = 1
+lines_after_imports = 2
+multi_line_output = 5
+known_first_party = 'mesonpy'
+line_length = 127
+skip = [
+  'docs/conf.py',
+]
+
+
+[tool.coverage.run]
+disable_warnings = [
+  'couldnt-parse',
+]
+
+[tool.coverage.html]
+show_contexts = true
+
+
+[tool.pytest.ini_options]
+minversion = '6.0'
+addopts = ['-ra', '--strict-markers', '--strict-config']
+log_cli_level = 'info'
+norecursedirs = 'tests/packages/*'
+testpaths = ['tests']
+xfail_strict = true
+filterwarnings = [
+  'error',
+]
