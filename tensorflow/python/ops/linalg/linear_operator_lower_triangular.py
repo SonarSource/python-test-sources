@@ -14,10 +14,6 @@
 # ==============================================================================
 """`LinearOperator` acting like a lower triangular matrix."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
@@ -32,6 +28,7 @@ __all__ = [
 
 
 @tf_export("linalg.LinearOperatorLowerTriangular")
+@linear_operator.make_composite_tensor
 class LinearOperatorLowerTriangular(linear_operator.LinearOperator):
   """`LinearOperator` acting like a [batch] square lower triangular matrix.
 
@@ -137,6 +134,14 @@ class LinearOperatorLowerTriangular(linear_operator.LinearOperator):
     Raises:
       ValueError:  If `is_square` is `False`.
     """
+    parameters = dict(
+        tril=tril,
+        is_non_singular=is_non_singular,
+        is_self_adjoint=is_self_adjoint,
+        is_positive_definite=is_positive_definite,
+        is_square=is_square,
+        name=name
+    )
 
     if is_square is False:
       raise ValueError(
@@ -150,13 +155,17 @@ class LinearOperatorLowerTriangular(linear_operator.LinearOperator):
 
       super(LinearOperatorLowerTriangular, self).__init__(
           dtype=self._tril.dtype,
-          graph_parents=None,
           is_non_singular=is_non_singular,
           is_self_adjoint=is_self_adjoint,
           is_positive_definite=is_positive_definite,
           is_square=is_square,
+          parameters=parameters,
           name=name)
-      self._set_graph_parents([self._tril])
+
+  @property
+  def tril(self):
+    """The lower triangular matrix defining this operator."""
+    return self._tril
 
   def _check_tril(self, tril):
     """Static check of the `tril` argument."""
@@ -206,3 +215,11 @@ class LinearOperatorLowerTriangular(linear_operator.LinearOperator):
 
   def _eigvals(self):
     return self._get_diag()
+
+  @property
+  def _composite_tensor_fields(self):
+    return ("tril",)
+
+  @property
+  def _experimental_parameter_ndims_to_matrix_ndims(self):
+    return {"tril": 2}

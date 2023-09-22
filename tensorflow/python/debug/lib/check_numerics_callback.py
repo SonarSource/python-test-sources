@@ -14,10 +14,6 @@
 # ==============================================================================
 """Eager-graph unified check numerics callback."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import collections
 import threading
 
@@ -33,12 +29,13 @@ from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import gen_debug_ops
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.util import compat
+from tensorflow.python.util import object_identity
 from tensorflow.python.util.tf_export import tf_export
 
 
 # Many ops have benign NaN outputs, and running them with check_numerics
 # on will create unwanted errors
-# TODO(b/142497024): Replace this whitelist with function decorators in the ops
+# TODO(b/142497024): Replace this allowlist with function decorators in the ops
 IGNORE_OP_OUTPUTS = (
     # For FusedBatchNorm, if the input tensor is empty then batch_mean and
     # batch_variance will be NaN. reserve_space holds intermediate values
@@ -234,7 +231,8 @@ class CheckNumericsCallback(object):
     # Used only under V1 graph mode, where we can't rely on auto control
     # dependency to execute the debug tensors and hence need to attach the debug
     # tensors as control dependencies of the ops that consume the Placeholder.
-    self._placeholder_to_debug_tensor = dict()
+    self._placeholder_to_debug_tensor = (
+        object_identity.ObjectIdentityDictionary())
 
   def callback(self,
                op_type,
@@ -422,7 +420,7 @@ def enable_check_numerics(stack_height_limit=30,
   tf.debugging.enable_check_numerics()
 
   resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='')
-  strategy = tf.distribute.experimental.TPUStrategy(resolver)
+  strategy = tf.distribute.TPUStrategy(resolver)
   with strategy.scope():
     # ...
   ```

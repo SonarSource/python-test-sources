@@ -1,12 +1,13 @@
 # Cloud TPU Client.
 
-load("//tensorflow:tensorflow.bzl", "tf_py_test")
+load("//tensorflow:tensorflow.default.bzl", "tf_py_test")
 
 package(
+    # copybara:uncomment default_applicable_licenses = ["//tensorflow:license"],
     default_visibility = [
         "//tensorflow:internal",
     ],
-    licenses = ["notice"],  # Apache 2.0
+    licenses = ["notice"],
 )
 
 py_library(
@@ -15,10 +16,7 @@ py_library(
         "client.py",
         "version.py",
     ],
-    srcs_version = "PY2AND3",
-    deps = [
-        "@six_archive//:six",
-    ],
+    srcs_version = "PY3",
 )
 
 py_library(
@@ -26,11 +24,8 @@ py_library(
     srcs = [
         "__init__.py",
     ],
-    srcs_version = "PY2AND3",
-    deps = [
-        ":client",
-        "@six_archive//:six",
-    ],
+    srcs_version = "PY3",
+    deps = [":client"],
 )
 
 tf_py_test(
@@ -40,9 +35,6 @@ tf_py_test(
     grpc_enabled = True,
     main = "client_test.py",
     python_version = "PY3",
-    tags = [
-        "no_oss_py2",
-    ],
     deps = [
         ":client",
         "//tensorflow/python:client_testlib",

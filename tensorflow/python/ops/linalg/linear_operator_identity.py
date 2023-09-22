@@ -14,17 +14,15 @@
 # ==============================================================================
 """`LinearOperator` acting like the identity matrix."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import numpy as np
 
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
+from tensorflow.python.framework import tensor_conversion
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.framework import tensor_util
 from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import array_ops_stack
 from tensorflow.python.ops import check_ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
@@ -99,6 +97,7 @@ class BaseLinearOperatorIdentity(linear_operator.LinearOperator):
 
 
 @tf_export("linalg.LinearOperatorIdentity")
+@linear_operator.make_composite_tensor
 class LinearOperatorIdentity(BaseLinearOperatorIdentity):
   """`LinearOperator` acting like a [batch] square identity matrix.
 
@@ -252,6 +251,17 @@ class LinearOperatorIdentity(BaseLinearOperatorIdentity):
         `{is_self_adjoint, is_non_singular, is_positive_definite}`.
       TypeError:  If `num_rows` or `batch_shape` is ref-type (e.g. Variable).
     """
+    parameters = dict(
+        num_rows=num_rows,
+        batch_shape=batch_shape,
+        dtype=dtype,
+        is_non_singular=is_non_singular,
+        is_self_adjoint=is_self_adjoint,
+        is_positive_definite=is_positive_definite,
+        is_square=is_square,
+        assert_proper_shapes=assert_proper_shapes,
+        name=name)
+
     dtype = dtype or dtypes.float32
     self._assert_proper_shapes = assert_proper_shapes
 
@@ -272,6 +282,7 @@ class LinearOperatorIdentity(BaseLinearOperatorIdentity):
           is_self_adjoint=is_self_adjoint,
           is_positive_definite=is_positive_definite,
           is_square=is_square,
+          parameters=parameters,
           name=name)
 
       linear_operator_util.assert_not_ref_type(num_rows, "num_rows")
@@ -301,7 +312,8 @@ class LinearOperatorIdentity(BaseLinearOperatorIdentity):
     return batch_shape.concatenate(matrix_shape)
 
   def _shape_tensor(self):
-    matrix_shape = array_ops.stack((self._num_rows, self._num_rows), axis=0)
+    matrix_shape = array_ops_stack.stack(
+        (self._num_rows, self._num_rows), axis=0)
     if self._batch_shape_arg is None:
       return matrix_shape
 
@@ -393,8 +405,10 @@ class LinearOperatorIdentity(BaseLinearOperatorIdentity):
     Returns:
       A `Tensor` with broadcast shape and same `dtype` as `self`.
     """
-    with self._name_scope(name):
-      mat = ops.convert_to_tensor(mat, name="mat")
+    with self._name_scope(name):  # pylint: disable=not-callable
+      mat = tensor_conversion.convert_to_tensor_v2_with_dispatch(
+          mat, name="mat"
+      )
       mat_diag = array_ops.matrix_diag_part(mat)
       new_diag = 1 + mat_diag
       return array_ops.matrix_set_diag(mat, new_diag)
@@ -470,8 +484,25 @@ class LinearOperatorIdentity(BaseLinearOperatorIdentity):
       raise ValueError("Argument batch_shape must be non-negative.  Found:"
                        "%s" % self._batch_shape_static)
 
+  @property
+  def _composite_tensor_prefer_static_fields(self):
+    return ("num_rows", "batch_shape")
+
+  @property
+  def _composite_tensor_fields(self):
+    return ("num_rows", "batch_shape", "dtype", "assert_proper_shapes")
+
+  def __getitem__(self, slices):
+    # Slice the batch shape and return a new LinearOperatorIdentity.
+    # Use a proxy shape and slice it. Use this as the new batch shape
+    new_batch_shape = array_ops.shape(
+        array_ops.ones(self._batch_shape_arg)[slices])
+    parameters = dict(self.parameters, batch_shape=new_batch_shape)
+    return LinearOperatorIdentity(**parameters)
+
 
 @tf_export("linalg.LinearOperatorScaledIdentity")
+@linear_operator.make_composite_tensor
 class LinearOperatorScaledIdentity(BaseLinearOperatorIdentity):
   """`LinearOperator` acting like a scaled [batch] identity matrix `A = c I`.
 
@@ -596,6 +627,16 @@ class LinearOperatorScaledIdentity(BaseLinearOperatorIdentity):
       ValueError:  If `num_rows` is determined statically to be non-scalar, or
         negative.
     """
+    parameters = dict(
+        num_rows=num_rows,
+        multiplier=multiplier,
+        is_non_singular=is_non_singular,
+        is_self_adjoint=is_self_adjoint,
+        is_positive_definite=is_positive_definite,
+        is_square=is_square,
+        assert_proper_shapes=assert_proper_shapes,
+        name=name)
+
     self._assert_proper_shapes = assert_proper_shapes
 
     with ops.name_scope(name, values=[multiplier, num_rows]):
@@ -620,6 +661,7 @@ class LinearOperatorScaledIdentity(BaseLinearOperatorIdentity):
           is_self_adjoint=is_self_adjoint,
           is_positive_definite=is_positive_definite,
           is_square=is_square,
+          parameters=parameters,
           name=name)
 
       self._num_rows = linear_operator_util.shape_tensor(
@@ -638,7 +680,8 @@ class LinearOperatorScaledIdentity(BaseLinearOperatorIdentity):
     return batch_shape.concatenate(matrix_shape)
 
   def _shape_tensor(self):
-    matrix_shape = array_ops.stack((self._num_rows, self._num_rows), axis=0)
+    matrix_shape = array_ops_stack.stack(
+        (self._num_rows, self._num_rows), axis=0)
 
     batch_shape = array_ops.shape(self.multiplier)
     return array_ops.concat((batch_shape, matrix_shape), 0)
@@ -715,12 +758,14 @@ class LinearOperatorScaledIdentity(BaseLinearOperatorIdentity):
     Returns:
       A `Tensor` with broadcast shape and same `dtype` as `self`.
     """
-    with self._name_scope(name):
+    with self._name_scope(name):  # pylint: disable=not-callable
       # Shape [B1,...,Bb, 1]
       multiplier_vector = array_ops.expand_dims(self.multiplier, -1)
 
       # Shape [C1,...,Cc, M, M]
-      mat = ops.convert_to_tensor(mat, name="mat")
+      mat = tensor_conversion.convert_to_tensor_v2_with_dispatch(
+          mat, name="mat"
+      )
 
       # Shape [C1,...,Cc, M]
       mat_diag = array_ops.matrix_diag_part(mat)
@@ -745,3 +790,15 @@ class LinearOperatorScaledIdentity(BaseLinearOperatorIdentity):
   def multiplier(self):
     """The [batch] scalar `Tensor`, `c` in `cI`."""
     return self._multiplier
+
+  @property
+  def _composite_tensor_prefer_static_fields(self):
+    return ("num_rows",)
+
+  @property
+  def _composite_tensor_fields(self):
+    return ("num_rows", "multiplier", "assert_proper_shapes")
+
+  @property
+  def _experimental_parameter_ndims_to_matrix_ndims(self):
+    return {"multiplier": 0}

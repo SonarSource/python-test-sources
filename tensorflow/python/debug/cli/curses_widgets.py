@@ -13,10 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 """Widgets for Curses-based CLI."""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.python.debug.cli import debugger_cli_common
 
 
@@ -166,13 +162,12 @@ class CursesNavigationHistory(object):
         the shortcut menu item.
       forward_command: (`str`) command for going forward. Used to construct the
         shortcut menu item.
-       latest_command_attribute: font attribute for lastest command.
+       latest_command_attribute: font attribute for latest command.
        old_command_attribute: font attribute for old (non-latest) command.
 
     Returns:
       (`debugger_cli_common.RichTextLines`) the navigation bar text with
         attributes.
-
     """
     output = RL("| ")
     output += RL(

@@ -14,10 +14,6 @@
 # ==============================================================================
 """bincount ops."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
@@ -120,8 +116,14 @@ def bincount(arr,
   """
   name = "bincount" if name is None else name
   with ops.name_scope(name):
-    # Somehow forward compatible needs to be False.
-    if not binary_output and axis is None:
+    # TODO(b/255381064) Remove the following block which uses older kernels for
+    # backwards compatibility for certain cases once all tests pass with the
+    # newer (dense_bincount, ragged_bincount and sparse_bincount) kernels.
+    if (
+        not isinstance(arr, ragged_tensor.RaggedTensor)
+        and not binary_output
+        and axis is None
+    ):
       arr = ops.convert_to_tensor(arr, name="arr", dtype=dtypes.int32)
       array_is_nonempty = math_ops.reduce_prod(array_ops.shape(arr)) > 0
       output_size = math_ops.cast(array_is_nonempty, dtypes.int32) * (
@@ -138,6 +140,7 @@ def bincount(arr,
         weights = ops.convert_to_tensor(weights, name="weights")
         return gen_math_ops.unsorted_segment_sum(weights, arr, output_size)
       weights = constant_op.constant([], dtype)
+      arr = array_ops.reshape(arr, [-1])
       return gen_math_ops.bincount(arr, output_size, weights)
 
     if not isinstance(arr, sparse_tensor.SparseTensor):
@@ -148,7 +151,8 @@ def bincount(arr,
             weights, name="weights")
 
     if weights is not None and binary_output:
-      raise ValueError("binary_output and weights are mutually exclusive.")
+      raise ValueError("Arguments `binary_output` and `weights` are mutually "
+                       "exclusive. Please specify only one.")
 
     if not arr.dtype.is_integer:
       arr = math_ops.cast(arr, dtypes.int32)
@@ -156,13 +160,10 @@ def bincount(arr,
       axis = 0
 
     if axis not in [0, -1]:
-      raise ValueError("Unsupported axis value %s. Only 0 and -1 are currently "
-                       "supported." % axis)
+      raise ValueError(f"Unsupported value for argument axis={axis}. Only 0 and"
+                       " -1 are currently supported.")
 
-    if isinstance(arr, ragged_tensor.RaggedTensor):
-      array_is_nonempty = math_ops.reduce_prod(array_ops.shape(arr.values)) > 0
-    else:
-      array_is_nonempty = math_ops.reduce_prod(array_ops.shape(arr)) > 0
+    array_is_nonempty = array_ops.size(arr) > 0
     if isinstance(arr, sparse_tensor.SparseTensor):
       output_size = math_ops.cast(array_is_nonempty, arr.dtype) * (
           math_ops.reduce_max(arr.values) + 1)
@@ -184,9 +185,12 @@ def bincount(arr,
           weights = validate_sparse_weights(arr, weights, dtype)
         arr = arr.values
       elif isinstance(arr, ragged_tensor.RaggedTensor):
-        if weights is not None:
-          weights = validate_ragged_weights(arr, weights, dtype)
-        arr = arr.values
+        # Flatten RaggedTensors with multiple ragged dimensions which use a
+        # nested RaggedTensor for the values tensor.
+        while isinstance(arr, ragged_tensor.RaggedTensor):
+          if weights is not None:
+            weights = validate_ragged_weights(arr, weights, dtype)
+          arr = arr.values
       else:
         if weights is not None:
           weights = array_ops.reshape(weights, [-1])
@@ -292,6 +296,8 @@ def sparse_bincount(values,
       * `0` (if `values` is empty);
       * `reduce_max(values) + 1` otherwise.
 
+  Raises:
+    `InvalidArgumentError` if negative values are provided as an input.
 
   Examples:
 
@@ -394,14 +400,15 @@ def sparse_bincount(values,
             weights, name="weights")
 
     if weights is not None and binary_output:
-      raise ValueError("binary_output and weights are mutually exclusive.")
+      raise ValueError("Arguments `binary_output` and `weights` are mutually "
+                       "exclusive. Please specify only one.")
 
     if axis is None:
       axis = 0
 
     if axis not in [0, -1]:
-      raise ValueError("Unsupported axis value %s. Only 0 and -1 are currently "
-                       "supported." % axis)
+      raise ValueError(f"Unsupported value for argument axis={axis}. Only 0 and"
+                       " -1 are currently supported.")
 
     minlength_value = minlength if minlength is not None else -1
     maxlength_value = maxlength if maxlength is not None else -1
@@ -460,7 +467,8 @@ def validate_dense_weights(values, weights, dtype=None):
 
   if not isinstance(weights, ops.Tensor):
     raise ValueError(
-        "`weights` must be a tf.Tensor if `values` is a tf.Tensor.")
+        "Argument `weights` must be a tf.Tensor if `values` is a tf.Tensor. "
+        f"Received weights={weights} of type: {type(weights).__name__}")
 
   return weights
 
@@ -474,7 +482,9 @@ def validate_sparse_weights(values, weights, dtype=None):
 
   if not isinstance(weights, sparse_tensor.SparseTensor):
     raise ValueError(
-        "`weights` must be a SparseTensor if `values` is a SparseTensor.")
+        "Argument `weights` must be a SparseTensor if `values` is a "
+        f"SparseTensor. Received weights={weights} of type: "
+        f"{type(weights).__name__}")
 
   checks = []
   if weights.dense_shape is not values.dense_shape:
@@ -508,7 +518,9 @@ def validate_ragged_weights(values, weights, dtype=None):
 
   if not isinstance(weights, ragged_tensor.RaggedTensor):
     raise ValueError(
-        "`weights` must be a RaggedTensor if `values` is a RaggedTensor.")
+        "`weights` must be a RaggedTensor if `values` is a RaggedTensor. "
+        f"Received argument weights={weights} of type: "
+        f"{type(weights).__name__}.")
 
   checks = []
   if weights.row_splits is not values.row_splits:

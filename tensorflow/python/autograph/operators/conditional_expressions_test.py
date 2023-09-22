@@ -1,4 +1,3 @@
-# Lint as: python3
 # Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 """Tests for conditional_expressions module."""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 from tensorflow.python.autograph.operators import conditional_expressions
 from tensorflow.python.eager import def_function
@@ -48,7 +43,7 @@ class IfExpTest(test.TestCase):
       conditional_expressions.if_exp(
           constant_op.constant(True), lambda: 1.0, lambda: 2, 'expr_repr')
 
-    with self.assertRaisesRegexp(
+    with self.assertRaisesRegex(
         TypeError,
         "'expr_repr' has dtype float32 in the main.*int32 in the else"):
       test_fn()

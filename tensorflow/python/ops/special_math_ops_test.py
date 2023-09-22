@@ -14,15 +14,10 @@
 # ==============================================================================
 """Tests for tensorflow.python.ops.special_math_ops."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from absl.testing import parameterized
 
 import numpy as np
 import opt_einsum
-import six
 
 from tensorflow.python.client import session
 from tensorflow.python.eager import context
@@ -48,7 +43,7 @@ class LBetaTest(test.TestCase):
     # Should evaluate to 1 and 1/2.
     x_one = [1, 1.]
     x_one_half = [2, 1.]
-    with self.session(use_gpu=True):
+    with self.session():
       self.assertAllClose(
           1, self.evaluate(math_ops.exp(special_math_ops.lbeta(x_one))))
       self.assertAllClose(
@@ -60,7 +55,7 @@ class LBetaTest(test.TestCase):
     # Should evaluate to 1 and 1/2.
     x_one = [1, 1.]
     x_one_half = [2, 1.]
-    with self.session(use_gpu=True):
+    with self.session():
       ph = array_ops.placeholder(dtypes.float32)
       beta_ph = math_ops.exp(special_math_ops.lbeta(ph))
       self.assertAllClose(1, beta_ph.eval(feed_dict={ph: x_one}))
@@ -76,7 +71,7 @@ class LBetaTest(test.TestCase):
     #     = Gamma(1) * Gamma(1) * Gamma(1) * Gamma(1) / Gamma(1 + 1 + 1 + 1)
     #     = 1 / 6
     expected_beta_x = 1 / 6 * np.ones((3, 2, 3))
-    with self.session(use_gpu=True):
+    with self.session():
       x_ph = array_ops.placeholder(dtypes.float32, [3, 2, 3, None])
       beta_ph = math_ops.exp(special_math_ops.lbeta(x_ph))
       self.assertAllClose(expected_beta_x,
@@ -86,7 +81,7 @@ class LBetaTest(test.TestCase):
   def test_two_dimensional_arg(self):
     # Should evaluate to 1/2.
     x_one_half = [[2, 1.], [2, 1.]]
-    with self.session(use_gpu=True):
+    with self.session():
       self.assertAllClose(
           [0.5, 0.5],
           self.evaluate(math_ops.exp(special_math_ops.lbeta(x_one_half))))
@@ -96,7 +91,7 @@ class LBetaTest(test.TestCase):
   def test_two_dimensional_arg_dynamic(self):
     # Should evaluate to 1/2.
     x_one_half = [[2, 1.], [2, 1.]]
-    with self.session(use_gpu=True):
+    with self.session():
       ph = array_ops.placeholder(dtypes.float32)
       beta_ph = math_ops.exp(special_math_ops.lbeta(ph))
       self.assertAllClose([0.5, 0.5],
@@ -106,7 +101,7 @@ class LBetaTest(test.TestCase):
   def test_two_dimensional_proper_shape(self):
     # Should evaluate to 1/2.
     x_one_half = [[2, 1.], [2, 1.]]
-    with self.session(use_gpu=True):
+    with self.session():
       self.assertAllClose(
           [0.5, 0.5],
           self.evaluate(math_ops.exp(special_math_ops.lbeta(x_one_half))))
@@ -119,7 +114,7 @@ class LBetaTest(test.TestCase):
 
   @test_util.run_in_graph_and_eager_modes
   def test_complicated_shape(self):
-    with self.session(use_gpu=True):
+    with self.session():
       x = ops.convert_to_tensor(np.random.rand(3, 2, 2))
       self.assertAllEqual(
           (3, 2), self.evaluate(array_ops.shape(special_math_ops.lbeta(x))))
@@ -133,7 +128,7 @@ class LBetaTest(test.TestCase):
     # as the answer, always.
     x_a = [5.5]
     x_b = [0.1]
-    with self.session(use_gpu=True):
+    with self.session():
       self.assertAllClose(
           1,
           self.evaluate(math_ops.exp(special_math_ops.lbeta(x_a))),
@@ -144,7 +139,7 @@ class LBetaTest(test.TestCase):
 
   @test_util.run_in_graph_and_eager_modes
   def test_empty_rank1_returns_negative_infinity(self):
-    with self.session(use_gpu=True):
+    with self.session():
       x = constant_op.constant([], shape=[0])
       lbeta_x = special_math_ops.lbeta(x)
       expected_result = constant_op.constant(-np.inf, shape=())
@@ -155,7 +150,7 @@ class LBetaTest(test.TestCase):
 
   @test_util.run_in_graph_and_eager_modes
   def test_empty_rank2_with_zero_last_dim_returns_negative_infinity(self):
-    with self.session(use_gpu=True):
+    with self.session():
       event_size = 0
       for batch_size in [0, 1, 2]:
         x = constant_op.constant([], shape=[batch_size, event_size])
@@ -168,7 +163,7 @@ class LBetaTest(test.TestCase):
 
   @test_util.run_in_graph_and_eager_modes
   def test_empty_rank2_with_zero_batch_dim_returns_empty(self):
-    with self.session(use_gpu=True):
+    with self.session():
       batch_size = 0
       for event_size in [0, 1, 2]:
         x = constant_op.constant([], shape=[batch_size, event_size])
@@ -403,36 +398,240 @@ class SpenceTest(test.TestCase, parameterized.TestCase):
     self.assertAllClose([[[-1.]]], analytical)
 
 
-class BesselTest(test.TestCase):
+@test_util.run_all_in_graph_and_eager_modes
+class BesselTest(test.TestCase, parameterized.TestCase):
 
   @test_util.run_in_graph_and_eager_modes
-  def test_bessel_i0(self):
-    x_single = np.arange(-3, 3).reshape(1, 3, 2).astype(np.float32)
-    x_double = np.arange(-3, 3).reshape(1, 3, 2).astype(np.float64)
+  def test_besseli_boundary(self):
+    self.assertAllClose(1., special_math_ops.bessel_i0(0.))
+    self.assertAllClose(1., special_math_ops.bessel_i0e(0.))
+    self.assertAllClose(0., special_math_ops.bessel_i1(0.))
+    self.assertAllClose(0., special_math_ops.bessel_i1e(0.))
+    self.assertTrue(np.isnan(self.evaluate(special_math_ops.bessel_i0(np.nan))))
+    self.assertTrue(
+        np.isnan(self.evaluate(special_math_ops.bessel_i0e(np.nan))))
+    self.assertTrue(np.isnan(self.evaluate(special_math_ops.bessel_i1(np.nan))))
+    self.assertTrue(
+        np.isnan(self.evaluate(special_math_ops.bessel_i1e(np.nan))))
+
+  @test_util.run_in_graph_and_eager_modes
+  def test_besselj_boundary(self):
+    self.assertAllClose(1., special_math_ops.bessel_j0(0.))
+    self.assertAllClose(0., special_math_ops.bessel_j1(0.))
+    self.assertTrue(np.isnan(self.evaluate(special_math_ops.bessel_j0(np.nan))))
+    self.assertTrue(np.isnan(self.evaluate(special_math_ops.bessel_j1(np.nan))))
+
+  @test_util.run_in_graph_and_eager_modes
+  def test_besselk_boundary(self):
+    self.assertTrue(np.isinf(self.evaluate(special_math_ops.bessel_k0(0.))))
+    self.assertTrue(np.isinf(self.evaluate(special_math_ops.bessel_k0e(0.))))
+    self.assertTrue(np.isinf(self.evaluate(special_math_ops.bessel_k1(0.))))
+    self.assertTrue(np.isinf(self.evaluate(special_math_ops.bessel_k1e(0.))))
+    self.assertTrue(np.isnan(self.evaluate(special_math_ops.bessel_k0(np.nan))))
+    self.assertTrue(
+        np.isnan(self.evaluate(special_math_ops.bessel_k0e(np.nan))))
+    self.assertTrue(np.isnan(self.evaluate(special_math_ops.bessel_k1(np.nan))))
+    self.assertTrue(
+        np.isnan(self.evaluate(special_math_ops.bessel_k1e(np.nan))))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_i0j0_even(self, dtype):
+    x = np.random.uniform(-100., 100., size=int(1e4)).astype(dtype)
+    self.assertAllClose(
+        self.evaluate(special_math_ops.bessel_i0(x)),
+        self.evaluate(special_math_ops.bessel_i0(-x)))
+
+    self.assertAllClose(
+        self.evaluate(special_math_ops.bessel_i0e(x)),
+        self.evaluate(special_math_ops.bessel_i0e(-x)))
+
+    self.assertAllClose(
+        self.evaluate(special_math_ops.bessel_j0(x)),
+        self.evaluate(special_math_ops.bessel_j0(-x)))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_i1j1_odd(self, dtype):
+    x = np.random.uniform(-100., 100., size=int(1e4)).astype(dtype)
+    self.assertAllClose(
+        self.evaluate(special_math_ops.bessel_i1(x)),
+        self.evaluate(-special_math_ops.bessel_i1(-x)))
+
+    self.assertAllClose(
+        self.evaluate(special_math_ops.bessel_i1e(x)),
+        self.evaluate(-special_math_ops.bessel_i1e(-x)))
+
+    self.assertAllClose(
+        self.evaluate(special_math_ops.bessel_j1(x)),
+        self.evaluate(-special_math_ops.bessel_j1(-x)))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_besseli_small(self, dtype):
+    x = np.random.uniform(-1., 1., size=int(1e4)).astype(dtype)
     try:
       from scipy import special  # pylint: disable=g-import-not-at-top
-      self.assertAllClose(special.i0(x_single),
-                          self.evaluate(special_math_ops.bessel_i0(x_single)))
-      self.assertAllClose(special.i0(x_double),
-                          self.evaluate(special_math_ops.bessel_i0(x_double)))
+      self.assertAllClose(
+          special.i0(x), self.evaluate(special_math_ops.bessel_i0(x)))
+      self.assertAllClose(
+          special.i1(x), self.evaluate(special_math_ops.bessel_i1(x)))
+      self.assertAllClose(
+          special.i0e(x), self.evaluate(special_math_ops.bessel_i0e(x)))
+      self.assertAllClose(
+          special.i1e(x), self.evaluate(special_math_ops.bessel_i1e(x)))
     except ImportError as e:
       tf_logging.warn('Cannot test special functions: %s' % str(e))
 
-  @test_util.run_in_graph_and_eager_modes
-  def test_bessel_i1(self):
-    x_single = np.arange(-3, 3).reshape(1, 3, 2).astype(np.float32)
-    x_double = np.arange(-3, 3).reshape(1, 3, 2).astype(np.float64)
+  @parameterized.parameters(np.float32, np.float64)
+  def test_besselj_small(self, dtype):
+    x = np.random.uniform(-1., 1., size=int(1e4)).astype(dtype)
     try:
       from scipy import special  # pylint: disable=g-import-not-at-top
-      self.assertAllClose(special.i1(x_single),
-                          self.evaluate(special_math_ops.bessel_i1(x_single)))
-      self.assertAllClose(special.i1(x_double),
-                          self.evaluate(special_math_ops.bessel_i1(x_double)))
+      self.assertAllClose(
+          special.j0(x), self.evaluate(special_math_ops.bessel_j0(x)))
+      self.assertAllClose(
+          special.j1(x), self.evaluate(special_math_ops.bessel_j1(x)))
     except ImportError as e:
       tf_logging.warn('Cannot test special functions: %s' % str(e))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_besselk_small(self, dtype):
+    x = np.random.uniform(np.finfo(dtype).eps, 1., size=int(1e4)).astype(dtype)
+    try:
+      from scipy import special  # pylint: disable=g-import-not-at-top
+      self.assertAllClose(
+          special.k0(x), self.evaluate(special_math_ops.bessel_k0(x)))
+      self.assertAllClose(
+          special.k0e(x), self.evaluate(special_math_ops.bessel_k0e(x)))
+      self.assertAllClose(
+          special.k1(x), self.evaluate(special_math_ops.bessel_k1(x)))
+      self.assertAllClose(
+          special.k1e(x), self.evaluate(special_math_ops.bessel_k1e(x)))
+    except ImportError as e:
+      tf_logging.warn('Cannot test special functions: %s' % str(e))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_bessely_small(self, dtype):
+    x = np.random.uniform(np.finfo(dtype).eps, 1., size=int(1e4)).astype(dtype)
+    try:
+      from scipy import special  # pylint: disable=g-import-not-at-top
+      self.assertAllClose(
+          special.y0(x), self.evaluate(special_math_ops.bessel_y0(x)))
+      self.assertAllClose(
+          special.y1(x), self.evaluate(special_math_ops.bessel_y1(x)))
+    except ImportError as e:
+      tf_logging.warn('Cannot test special functions: %s' % str(e))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_besseli_larger(self, dtype):
+    x = np.random.uniform(1., 20., size=int(1e4)).astype(dtype)
+    try:
+      from scipy import special  # pylint: disable=g-import-not-at-top
+      self.assertAllClose(
+          special.i0e(x), self.evaluate(special_math_ops.bessel_i0e(x)))
+      self.assertAllClose(
+          special.i1e(x), self.evaluate(special_math_ops.bessel_i1e(x)))
+    except ImportError as e:
+      tf_logging.warn('Cannot test special functions: %s' % str(e))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_besselj_larger(self, dtype):
+    x = np.random.uniform(1., 30., size=int(1e4)).astype(dtype)
+    try:
+      from scipy import special  # pylint: disable=g-import-not-at-top
+      self.assertAllClose(
+          special.j0(x), self.evaluate(special_math_ops.bessel_j0(x)))
+      self.assertAllClose(
+          special.j1(x), self.evaluate(special_math_ops.bessel_j1(x)))
+    except ImportError as e:
+      tf_logging.warn('Cannot test special functions: %s' % str(e))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_besselk_larger(self, dtype):
+    x = np.random.uniform(1., 30., size=int(1e4)).astype(dtype)
+    try:
+      from scipy import special  # pylint: disable=g-import-not-at-top
+      self.assertAllClose(
+          special.k0(x), self.evaluate(special_math_ops.bessel_k0(x)))
+      self.assertAllClose(
+          special.k0e(x), self.evaluate(special_math_ops.bessel_k0e(x)))
+      self.assertAllClose(
+          special.k1(x), self.evaluate(special_math_ops.bessel_k1(x)))
+      self.assertAllClose(
+          special.k1e(x), self.evaluate(special_math_ops.bessel_k1e(x)))
+    except ImportError as e:
+      tf_logging.warn('Cannot test special functions: %s' % str(e))
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_bessely_larger(self, dtype):
+    x = np.random.uniform(1., 30., size=int(1e4)).astype(dtype)
+    try:
+      from scipy import special  # pylint: disable=g-import-not-at-top
+      self.assertAllClose(
+          special.y0(x), self.evaluate(special_math_ops.bessel_y0(x)))
+      self.assertAllClose(
+          special.y1(x), self.evaluate(special_math_ops.bessel_y1(x)))
+    except ImportError as e:
+      tf_logging.warn('Cannot test special functions: %s' % str(e))
+
+  def test_besseli_gradient(self):
+    inputs = [np.random.uniform(-10., 10., size=int(1e2))]
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_i0, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-3)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_i0e, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_i1, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-3)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_i1e, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+  def test_besselj_gradient(self):
+    inputs = [np.random.uniform(-50., 50., size=int(1e2))]
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_j0, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_j1, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+  def test_besselk_gradient(self):
+    inputs = [np.random.uniform(1., 50., size=int(1e2))]
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_k0, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_k0e, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_k1, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_k1e, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+  def test_bessely_gradient(self):
+    inputs = [np.random.uniform(1., 50., size=int(1e2))]
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_y0, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
+
+    analytical, numerical = gradient_checker_v2.compute_gradient(
+        special_math_ops.bessel_y1, inputs)
+    self.assertLess(gradient_checker_v2.max_error(analytical, numerical), 1e-4)
 
 
 @test_util.run_all_in_graph_and_eager_modes
+@test_util.run_all_without_tensor_float_32(
+    'Tests einsum, which sometimes does a matmul with cuBLAS')
 class EinsumTest(test.TestCase):
 
   def _check(self, s, *input_shapes, **kwargs):
@@ -654,8 +853,7 @@ class EinsumTest(test.TestCase):
       # with the same input args (as input_1 and input_2 above), and if
       # those tests run before this test, then the call_count for the method
       # mock_contract_path will not increment.
-      if not six.PY2:
-        special_math_ops._get_opt_einsum_contract_path.cache_clear()
+      special_math_ops._get_opt_einsum_contract_path.cache_clear()
 
       self.assertEqual(mock_contract_path.call_count, 0)
       self._check(*input_1)
@@ -663,15 +861,15 @@ class EinsumTest(test.TestCase):
       # The same input results in no extra call if we're caching the
       # opt_einsum.contract_path call. We only cache in Python3.
       self._check(*input_1)
-      self.assertEqual(mock_contract_path.call_count, 2 if six.PY2 else 1)
+      self.assertEqual(mock_contract_path.call_count, 1)
       # New input results in another call to opt_einsum.
       self._check(*input_2)
-      self.assertEqual(mock_contract_path.call_count, 3 if six.PY2 else 2)
+      self.assertEqual(mock_contract_path.call_count, 2)
       # No more extra calls as the inputs should be cached.
       self._check(*input_1)
       self._check(*input_2)
       self._check(*input_1)
-      self.assertEqual(mock_contract_path.call_count, 6 if six.PY2 else 2)
+      self.assertEqual(mock_contract_path.call_count, 2)
 
   @test_util.disable_xla('b/131919749')
   def test_long_cases_with_repeated_labels(self):
@@ -913,7 +1111,7 @@ class EinsumBenchmark(test.Benchmark):
           input_shape = (dim,) * len(subscript)
           input_vars.append(
               variables.Variable(np.array(r.randn(*input_shape), np.float32)))
-        variables.global_variables_initializer().run()
+        self.evaluate(variables.global_variables_initializer())
 
         if len(input_vars) <= 2:
           self.run_op_benchmark(

@@ -1,173 +1,286 @@
-load("//tensorflow:tensorflow.bzl", "py_test")
+load("//tensorflow:pytype.default.bzl", "pytype_strict_library")
+load("//tensorflow:strict.default.bzl", "py_strict_library", "py_strict_test")
 
 package(
-    licenses = ["notice"],  # Apache 2.0
+    # copybara:uncomment default_applicable_licenses = ["//tensorflow:license"],
+    licenses = ["notice"],
 )
 
-exports_files(["LICENSE"])
-
-filegroup(
-    name = "all_files",
-    srcs = glob(
-        ["**/*"],
-        exclude = [
-            "**/METADATA",
-            "**/OWNERS",
-        ],
-    ),
-    visibility = ["//tensorflow:__subpackages__"],
-)
-
-py_library(
-    name = "operators",
-    srcs = [
-        "__init__.py",
-        "conditional_expressions.py",
-        "control_flow.py",
-        "control_flow_deprecated_py2.py",
-        "data_structures.py",
-        "exceptions.py",
-        "logical.py",
-        "py_builtins.py",
-        "slices.py",
-        "variables.py",
-    ],
-    srcs_version = "PY2AND3",
+py_strict_library(
+    name = "py_builtins",
+    srcs = ["py_builtins.py"],
     visibility = ["//tensorflow:__subpackages__"],
     deps = [
         "//tensorflow/python:array_ops",
+        "//tensorflow/python:cond",
         "//tensorflow/python:constant_op",
-        "//tensorflow/python:control_flow_ops",
-        "//tensorflow/python:control_flow_util",
+        "//tensorflow/python:control_flow_assert",
+        "//tensorflow/python:dtypes",
+        "//tensorflow/python:framework_ops",
+        "//tensorflow/python:list_ops",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python:parsing_ops_gen",
+        "//tensorflow/python:string_ops_gen",
+        "//tensorflow/python:tensor_util",
+        "//tensorflow/python/autograph/utils:tensors",
+        "//tensorflow/python/autograph/utils:type_registry",
+    ],
+)
+
+py_strict_library(
+    name = "exceptions",
+    srcs = ["exceptions.py"],
+    visibility = ["//tensorflow:__subpackages__"],
+    deps = [
+        "//tensorflow/python:control_flow_assert",
+        "//tensorflow/python:tensor_util",
+        "//tensorflow/python/util:tf_inspect",
+    ],
+)
+
+py_strict_library(
+    name = "__init__",
+    srcs = ["__init__.py"],
+    visibility = ["//tensorflow:__subpackages__"],
+    deps = [
+        ":conditional_expressions",
+        ":control_flow",
+        ":data_structures",
+        ":exceptions",
+        ":logical",
+        ":py_builtins",
+        ":slices",
+        ":variables",
+    ],
+)
+
+py_strict_library(
+    name = "logical",
+    srcs = ["logical.py"],
+    visibility = ["//tensorflow:__subpackages__"],
+    deps = [
+        "//tensorflow/python:cond",
+        "//tensorflow/python:math_ops_gen",
+        "//tensorflow/python:tensor_util",
+    ],
+)
+
+py_strict_library(
+    name = "variables",
+    srcs = ["variables.py"],
+    visibility = ["//tensorflow:__subpackages__"],
+)
+
+py_strict_library(
+    name = "data_structures",
+    srcs = ["data_structures.py"],
+    visibility = ["//tensorflow:__subpackages__"],
+    deps = [
+        "//tensorflow/python:array_ops",
+        "//tensorflow/python:cond",
+        "//tensorflow/python:constant_op",
         "//tensorflow/python:dtypes",
         "//tensorflow/python:framework_ops",
         "//tensorflow/python:list_ops",
         "//tensorflow/python:tensor_array_ops",
         "//tensorflow/python:tensor_util",
-        "//tensorflow/python:util",
-        "//tensorflow/python:variables",
-        "//tensorflow/python/autograph/utils",
-        "//tensorflow/python/data/ops:dataset_ops",
+    ],
+)
+
+py_strict_library(
+    name = "conditional_expressions",
+    srcs = ["conditional_expressions.py"],
+    visibility = ["//tensorflow:__subpackages__"],
+    deps = [
+        ":control_flow",
+        "//tensorflow/python:cond",
+        "//tensorflow/python/autograph/utils:tensors",
+    ],
+)
+
+py_strict_library(
+    name = "control_flow",
+    srcs = ["control_flow.py"],
+    visibility = ["//tensorflow:__subpackages__"],
+    deps = [
+        ":py_builtins",
+        ":variables",
+        "//tensorflow/python:array_ops",
+        "//tensorflow/python:cond",
+        "//tensorflow/python:control_flow_assert",
+        "//tensorflow/python:control_flow_util",
+        "//tensorflow/python:dtypes",
+        "//tensorflow/python:framework_ops",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python:tensor_array_ops",
+        "//tensorflow/python:tensor_util",
+        "//tensorflow/python:while_loop",
+        "//tensorflow/python/autograph/utils:ag_logging",
+        "//tensorflow/python/autograph/utils:misc",
+        "//tensorflow/python/autograph/utils:tensors",
+        "//tensorflow/python/autograph/utils:type_registry",
+        "//tensorflow/python/framework:errors",
+        "//tensorflow/python/framework:func_graph",
+        "//tensorflow/python/framework:tensor_conversion",
+        "//tensorflow/python/framework:tensor_shape",
+        "//tensorflow/python/ops/ragged:ragged_tensor",
+        "//tensorflow/python/types:distribute",
+        "//tensorflow/python/util:nest",
+        "//tensorflow/python/util:variable_utils",
         "//third_party/py/numpy",
     ],
 )
 
-py_test(
-    name = "data_structures_test",
-    srcs = ["data_structures_test.py"],
-    python_version = "PY3",
-    srcs_version = "PY2AND3",
+py_strict_library(
+    name = "slices",
+    srcs = ["slices.py"],
+    visibility = ["//tensorflow:__subpackages__"],
     deps = [
-        ":operators",
-        "//tensorflow/python:client_testlib",
+        "//tensorflow/python:array_ops_gen",
+        "//tensorflow/python:dtypes",
+        "//tensorflow/python:list_ops",
+        "//tensorflow/python:string_ops_gen",
+        "//tensorflow/python:tensor_array_ops",
+        "//tensorflow/python:tensor_util",
     ],
 )
 
-py_test(
+py_strict_test(
+    name = "data_structures_test",
+    srcs = ["data_structures_test.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":data_structures",
+        "//tensorflow/python:client_testlib",
+        "//tensorflow/python:list_ops",
+        "//tensorflow/python:tensor_array_ops",
+        "//tensorflow/python/framework:constant_op",
+        "//tensorflow/python/framework:dtypes",
+        "//tensorflow/python/framework:ops",
+        "//tensorflow/python/framework:test_lib",
+    ],
+)
+
+py_strict_test(
     name = "conditional_expressions_test",
     srcs = ["conditional_expressions_test.py"],
     python_version = "PY3",
     srcs_version = "PY3",
-    tags = [
-        "no_oss_py2",
-    ],
     deps = [
-        ":operators",
+        ":conditional_expressions",
         "//tensorflow/python:client_testlib",
+        "//tensorflow/python/eager:def_function",
+        "//tensorflow/python/framework:constant_op",
+        "//tensorflow/python/framework:test_lib",
     ],
 )
 
-py_test(
+py_strict_test(
     name = "control_flow_test",
     srcs = ["control_flow_test.py"],
     python_version = "PY3",
     srcs_version = "PY3",
     tags = [
         "no_gpu",  # b/127001953
-        "no_oss_py2",
     ],
     deps = [
-        ":operators",
+        ":control_flow",
+        ":variables",
+        "//tensorflow/python:array_ops",
         "//tensorflow/python:client_testlib",
-        # TODO(b/145618471): Remove this transitive dependency.
-        "//tensorflow/python/distribute:input_lib",
+        "//tensorflow/python:control_flow_assert",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python:math_ops_gen",
+        "//tensorflow/python:random_ops",
+        "//tensorflow/python/autograph/utils:ag_logging",
+        "//tensorflow/python/autograph/utils:testing",
+        "//tensorflow/python/data/ops:dataset_ops",
+        "//tensorflow/python/framework:constant_op",
+        "//tensorflow/python/framework:dtypes",
+        "//tensorflow/python/framework:errors",
+        "//tensorflow/python/framework:ops",
+        "//tensorflow/python/framework:tensor_shape",
+        "//tensorflow/python/ops/ragged:ragged_factory_ops",
+        "//third_party/py/numpy",
     ],
 )
 
-py_test(
+py_strict_test(
     name = "exceptions_test",
     srcs = ["exceptions_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
-        ":operators",
+        ":exceptions",
         "//tensorflow/python:client_testlib",
+        "//tensorflow/python/framework:constant_op",
+        "//tensorflow/python/framework:errors",
+        "//tensorflow/python/framework:test_lib",
     ],
 )
 
-py_test(
+py_strict_test(
     name = "logical_test",
     srcs = ["logical_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
-        ":operators",
+        ":logical",
         "//tensorflow/python:client_testlib",
+        "//tensorflow/python/framework:constant_op",
+        "//tensorflow/python/framework:test_lib",
     ],
 )
 
-py_test(
+py_strict_test(
     name = "py_builtins_test",
     srcs = ["py_builtins_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
-    tags = ["no_windows"],
-    deps = [
-        ":operators",
-        "//tensorflow/python:client_testlib",
-        "//tensorflow/python/autograph/core",
-        # TODO(b/145618471): Remove this transitive dependency.
-        "//tensorflow/python/distribute:input_lib",
-        "//tensorflow/python/ops/parallel_for:control_flow_ops",
-        "//tensorflow/python/ops/signal",
-    ],
-)
-
-py_test(
-    name = "py_builtins_py3_test",
-    srcs = ["py_builtins_py3_test.py"],
-    python_version = "PY3",
     srcs_version = "PY3",
-    tags = [
-        "no_windows",
-        # TODO(kkb): Temporay workaround since KokoroPresubmit was failing.
-        #                 cl/259400943 for more context.
-        "no_oss_py2",
-    ],
     deps = [
-        ":operators",
+        ":data_structures",
+        ":py_builtins",
+        "//tensorflow/python:array_ops",
         "//tensorflow/python:client_testlib",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python:tensor_array_ops",
+        "//tensorflow/python/autograph/core:converter",
+        "//tensorflow/python/autograph/core:function_wrappers",
+        "//tensorflow/python/data/ops:dataset_ops",
+        "//tensorflow/python/eager:def_function",
+        "//tensorflow/python/framework:constant_op",
+        "//tensorflow/python/framework:dtypes",
+        "//tensorflow/python/framework:errors",
+        "//tensorflow/python/framework:test_lib",
     ],
 )
 
-py_test(
+py_strict_test(
     name = "slices_test",
     srcs = ["slices_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
-        ":operators",
+        ":slices",
+        "//tensorflow/python:client_testlib",
+        "//tensorflow/python:list_ops",
+        "//tensorflow/python/framework:constant_op",
+    ],
+)
+
+py_strict_test(
+    name = "variables_test",
+    srcs = ["variables_test.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":variables",
         "//tensorflow/python:client_testlib",
     ],
 )
 
-py_test(
-    name = "variables_test",
-    srcs = ["variables_test.py"],
-    python_version = "PY3",
-    srcs_version = "PY2AND3",
-    deps = [
-        ":operators",
-        "//tensorflow/python:client_testlib",
-    ],
+pytype_strict_library(
+    name = "dispatch_context",
+    srcs = ["dispatch_context.py"],
 )

@@ -14,12 +14,9 @@
 # ==============================================================================
 """Registrations for LinearOperator.solve."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.python.ops.linalg import linear_operator
 from tensorflow.python.ops.linalg import linear_operator_algebra
+from tensorflow.python.ops.linalg import linear_operator_block_diag
 from tensorflow.python.ops.linalg import linear_operator_circulant
 from tensorflow.python.ops.linalg import linear_operator_composition
 from tensorflow.python.ops.linalg import linear_operator_diag
@@ -174,11 +171,15 @@ def _solve_linear_operator_diag_tril(linop_diag, linop_triangular):
 # Circulant.
 
 
+# pylint: disable=protected-access
 @linear_operator_algebra.RegisterSolve(
-    linear_operator_circulant.LinearOperatorCirculant,
-    linear_operator_circulant.LinearOperatorCirculant)
+    linear_operator_circulant._BaseLinearOperatorCirculant,
+    linear_operator_circulant._BaseLinearOperatorCirculant)
 def _solve_linear_operator_circulant_circulant(linop_a, linop_b):
-  return linear_operator_circulant.LinearOperatorCirculant(
+  if not isinstance(linop_a, linop_b.__class__):
+    return _solve_linear_operator(linop_a, linop_b)
+
+  return linop_a.__class__(
       spectrum=linop_b.spectrum / linop_a.spectrum,
       is_non_singular=registrations_util.combined_non_singular_hint(
           linop_a, linop_b),
@@ -187,4 +188,27 @@ def _solve_linear_operator_circulant_circulant(linop_a, linop_b):
       is_positive_definite=(
           registrations_util.combined_commuting_positive_definite_hint(
               linop_a, linop_b)),
+      is_square=True)
+# pylint: enable=protected-access
+
+
+# Block Diag
+
+
+@linear_operator_algebra.RegisterSolve(
+    linear_operator_block_diag.LinearOperatorBlockDiag,
+    linear_operator_block_diag.LinearOperatorBlockDiag)
+def _solve_linear_operator_block_diag_block_diag(linop_a, linop_b):
+  return linear_operator_block_diag.LinearOperatorBlockDiag(
+      operators=[
+          o1.solve(o2) for o1, o2 in zip(
+              linop_a.operators, linop_b.operators)],
+      is_non_singular=registrations_util.combined_non_singular_hint(
+          linop_a, linop_b),
+      # In general, a solve of self-adjoint positive-definite block diagonal
+      # matrices is not self-=adjoint.
+      is_self_adjoint=None,
+      # In general, a solve of positive-definite block diagonal matrices is
+      # not positive-definite.
+      is_positive_definite=None,
       is_square=True)

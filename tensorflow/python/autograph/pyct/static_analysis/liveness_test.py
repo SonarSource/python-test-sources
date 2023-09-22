@@ -14,10 +14,6 @@
 # ==============================================================================
 """Tests for liveness module."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.python.autograph.pyct import anno
 from tensorflow.python.autograph.pyct import cfg
 from tensorflow.python.autograph.pyct import naming
@@ -242,7 +238,10 @@ class LivenessAnalyzerTest(LivenessAnalyzerTestBase):
     fn_body = node.body
 
     self.assertHasLiveOut(fn_body[0], ('a', 'b'))
+    #TODO(@bhack): replace this after deprecation
+    # https://github.com/tensorflow/tensorflow/issues/56089
     self.assertHasLiveOut(fn_body[2], ('foo',))
+    #self.assertHasLiveOut(fn_body[2], ('a', 'foo'))
 
   def test_live_out_nested_functions_hidden_by_argument(self):
 
@@ -551,6 +550,25 @@ class LivenessAnalyzerTest(LivenessAnalyzerTestBase):
     fn_body = node.body
     self.assertHasLiveOut(fn_body[2], ('global_b',))
     self.assertHasLiveIn(fn_body[2], ('global_a', 'c'))
+
+  def test_nonlocal_symbol(self):
+
+    nonlocal_a = 3
+    nonlocal_b = 13
+
+    def test_fn(c):
+      nonlocal nonlocal_a
+      nonlocal nonlocal_b
+      if nonlocal_a:
+        nonlocal_b = c
+      else:
+        nonlocal_b = c
+      return nonlocal_b
+
+    node = self._parse_and_analyze(test_fn)
+    fn_body = node.body
+    self.assertHasLiveOut(fn_body[2], ('nonlocal_b',))
+    self.assertHasLiveIn(fn_body[2], ('nonlocal_a', 'c'))
 
 
 if __name__ == '__main__':

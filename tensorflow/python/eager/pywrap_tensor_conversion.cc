@@ -38,10 +38,10 @@ TFE_TensorHandleCache* TFE_TensorHandleCache::Get() {
 }
 
 TFE_TensorHandle* TFE_TensorHandleCache::Lookup(
-    PyObject* value, tensorflow::DataType dtype,
+    PyObject* value, tensorflow::DataType dtype, TFE_Context* ctx,
     absl::string_view device_name) const {
   CHECK_NOTNULL(value);
-  const auto it = cache.find(Key{PyObjectPtr{value}, dtype, device_name});
+  const auto it = cache.find(Key{PyObjectPtr{value}, dtype, ctx, device_name});
   if (it == cache.end()) {
     scalar_cache_misses->GetCell()->IncrementBy(1);
     return nullptr;
@@ -49,15 +49,17 @@ TFE_TensorHandle* TFE_TensorHandleCache::Lookup(
 
   scalar_cache_hits->GetCell()->IncrementBy(1);
   auto* h = it->second;
-  return tensorflow::wrap(tensorflow::unwrap(h)->Copy());
+  tensorflow::unwrap(h)->Ref();
+  return h;
 }
 
 void TFE_TensorHandleCache::Insert(PyObject* value, tensorflow::DataType dtype,
+                                   TFE_Context* ctx,
                                    absl::string_view device_name,
                                    TFE_TensorHandle* h) {
   Py_INCREF(value);
-  cache.emplace(Key{PyObjectPtr{value}, dtype, device_name},
-                tensorflow::wrap(tensorflow::unwrap(h)->Copy()));
+  tensorflow::unwrap(h)->Ref();
+  cache.emplace(Key{PyObjectPtr{value}, dtype, ctx, device_name}, h);
 }
 
 void TFE_TensorHandleCache::Clear() {

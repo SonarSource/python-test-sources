@@ -14,10 +14,6 @@
 # ======================================
 """Operations for handling session logging and shutdown notifications."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import threading
 
 import time
@@ -106,7 +102,7 @@ class WorkerHeartbeatManager(object):
     self._session.run(self._ops,
                       {self._request_placeholder: message.SerializeToString()})
 
-  def ping(self, request=None, timeout_in_ms=5000):
+  def ping(self, request=None, timeout_in_ms=60000):
     """Ping all workers, returning the parsed status results."""
     if request is None:
       request = event_pb2.WorkerHeartbeatRequest()
@@ -276,7 +272,7 @@ class WatchdogManager(threading.Thread):
     # If we hit an exception, reset our session as it is likely broken.
     while self._running:
       try:
-        self._worker_manager.ping(request=None)
+        self._worker_manager.ping(request=None)  # pytype: disable=attribute-error
         time.sleep(self.ping_interval)
       except errors.OpError as e:
         # Catch any TF errors that occur so we don't stop sending heartbeats

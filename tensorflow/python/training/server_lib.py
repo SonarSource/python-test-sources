@@ -14,10 +14,6 @@
 # ==============================================================================
 """A Python interface for creating TensorFlow servers."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.core.protobuf import cluster_pb2
 from tensorflow.core.protobuf import device_filters_pb2
 from tensorflow.core.protobuf import tensorflow_server_pb2
@@ -97,7 +93,7 @@ def _make_server_def(server_or_cluster_def, job_name, task_index, protocol,
 
 @tf_export("distribute.Server", v1=["distribute.Server", "train.Server"])
 @deprecation.deprecated_endpoints("train.Server")
-class Server(object):
+class Server:
   """An in-process TensorFlow server, for use in distributed training.
 
   A `tf.distribute.Server` instance encapsulates a set of devices and a
@@ -244,7 +240,7 @@ class Server(object):
 
 
 @tf_export("train.ClusterSpec")
-class ClusterSpec(object):
+class ClusterSpec:
   """Represents a cluster as a set of "tasks", organized into "jobs".
 
   A `tf.train.ClusterSpec` represents the set of processes that
@@ -293,7 +289,7 @@ class ClusterSpec(object):
         if isinstance(tasks, (list, tuple)):
           job_tasks = {i: task for i, task in enumerate(tasks)}
         elif isinstance(tasks, dict):
-          job_tasks = {i: task for i, task in tasks.items()}
+          job_tasks = {int(i): task for i, task in tasks.items()}
         else:
           raise TypeError("The tasks for job %r must be a list or a dictionary "
                           "from integers to strings." % job_name)
@@ -319,11 +315,11 @@ class ClusterSpec(object):
                       "job names to lists of network addresses, or a "
                       "`ClusterDef` protocol buffer")
 
-  def __nonzero__(self):
+  def __bool__(self):
     return bool(self._cluster_spec)
 
-  # Python 3.x
-  __bool__ = __nonzero__
+  # Python 2.x
+  __nonzero__ = __bool__
 
   def __eq__(self, other):
     return self._cluster_spec == other
@@ -497,7 +493,7 @@ class ClusterSpec(object):
 
 
 @tf_export("config.experimental.ClusterDeviceFilters")
-class ClusterDeviceFilters(object):
+class ClusterDeviceFilters:
   """Represent a collection of device filters for the remote workers in cluster.
 
   NOTE: this is an experimental API and subject to changes.

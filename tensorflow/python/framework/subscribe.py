@@ -14,10 +14,6 @@
 # ==============================================================================
 """Subscribe function."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import contextlib
 import re
 
@@ -46,7 +42,7 @@ def _recursive_apply(tensors, apply_fn):
     `TypeError` if undefined type in the tensors structure.
   """
   tensors_type = type(tensors)
-  if tensors_type is ops.Tensor:
+  if isinstance(tensors, ops.Tensor):
     return apply_fn(tensors)
   elif isinstance(tensors, variables.Variable):
     return apply_fn(tensors.value())
@@ -60,12 +56,14 @@ def _recursive_apply(tensors, apply_fn):
   elif tensors_type is dict:
     return dict((k, _recursive_apply(v, apply_fn)) for k, v in tensors.items())
   else:
-    raise TypeError('_recursive_apply argument %r has invalid type %r' %
-                    (tensors, tensors_type))
+    raise TypeError(f'_recursive_apply argument {tensors!r} has invalid type '
+                    f'{tensors_type!r}')
 
 
 class _ControlOutputCache(object):
   """Helper class to manage calculating and caching control_outputs in graph."""
+
+  __slots__ = ['cache']
 
   def __init__(self):
     self.cache = {}

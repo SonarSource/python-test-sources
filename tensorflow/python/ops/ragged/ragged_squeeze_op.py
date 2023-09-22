@@ -14,21 +14,21 @@
 # ==============================================================================
 """Operator Squeeze for RaggedTensors."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import control_flow_assert
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops.ragged import ragged_tensor
 from tensorflow.python.ops.ragged.ragged_tensor import RaggedTensor
+from tensorflow.python.util import deprecation
+from tensorflow.python.util import dispatch
 
 
-def squeeze(input, axis=None, name=None):  # pylint: disable=redefined-builtin
+@dispatch.dispatch_for_api(array_ops.squeeze_v2)
+def squeeze(input: ragged_tensor.Ragged, axis=None, name=None):  # pylint: disable=redefined-builtin
   """Ragged compatible squeeze.
 
   If `input` is a `tf.Tensor`, then this calls `tf.squeeze`.
@@ -81,13 +81,13 @@ def squeeze(input, axis=None, name=None):  # pylint: disable=redefined-builtin
     for i, r in enumerate(input.nested_row_lengths()):
       if i + 1 in ragged_dims:
         assertion_list.append(
-            control_flow_ops.Assert(
+            control_flow_assert.Assert(
                 math_ops.reduce_all(math_ops.equal(r, scalar_tensor_one)),
                 ['the given axis (axis = %d) is not squeezable!' % (i + 1)]))
     if 0 in ragged_dims:
       scalar_tensor_two = constant_op.constant(2, dtype=dtypes.int32)
       assertion_list.append(
-          control_flow_ops.Assert(
+          control_flow_assert.Assert(
               math_ops.equal(
                   array_ops.size(input.row_splits), scalar_tensor_two),
               ['the given axis (axis = 0) is not squeezable!']))
@@ -120,3 +120,13 @@ def squeeze(input, axis=None, name=None):  # pylint: disable=redefined-builtin
       squeezed_rt = array_ops.squeeze(squeezed_rt, [0], name)
 
     return squeezed_rt
+
+
+@dispatch.dispatch_for_api(array_ops.squeeze)
+def _ragged_squeeze_v1(input: ragged_tensor.Ragged,  # pylint: disable=redefined-builtin
+                       axis=None,
+                       name=None,
+                       squeeze_dims=None):
+  axis = deprecation.deprecated_argument_lookup('axis', axis, 'squeeze_dims',
+                                                squeeze_dims)
+  return squeeze(input, axis, name)

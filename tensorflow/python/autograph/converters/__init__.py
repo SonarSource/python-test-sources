@@ -14,10 +14,6 @@
 # ==============================================================================
 """Code converters used by Autograph."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 # Naming conventions:
 #  * each converter should specialize on a single idiom; be consistent with
 #    the Python reference for naming
@@ -30,3 +26,5 @@ from __future__ import print_function
 #
 #   lists.py
 #     class ListTransformer(converter.Base)
+
+from tensorflow.python.autograph.converters import list_comprehensions

@@ -24,8 +24,8 @@ limitations under the License.
 #include <unordered_map>
 #include <vector>
 
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
+#include "pybind11/pybind11.h"  // from @pybind11
+#include "pybind11/stl.h"  // from @pybind11
 #include "tensorflow/core/framework/kernel_def.pb.h"
 #include "tensorflow/core/framework/memory_types.h"
 #include "tensorflow/core/framework/op_def.pb.h"
@@ -58,14 +58,14 @@ tensorflow::Status _GetOpPerformanceDataAndRunTime(
   if (!status.ok()) return status;
 
   tensorflow::RunMetadata run_metadata;
-  MaybeRaiseRegisteredFromStatus(
+  tsl::MaybeRaiseRegisteredFromStatus(
       cost_measure->PredictCosts(item.graph, &run_metadata, costs));
 
   if (op_performance_data) {
     *op_performance_data = tensorflow::grappler::CostGraphToOpPerformanceData(
         run_metadata.cost_graph(), item.graph);
   }
-  return tensorflow::Status::OK();
+  return ::tensorflow::OkStatus();
 }
 
 PYBIND11_MAKE_OPAQUE(tensorflow::grappler::Cluster);
@@ -89,7 +89,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
           cluster->DisableDetailedStats(disable_detailed_stats);
           cluster->AllowSoftPlacement(allow_soft_placement);
           cluster->SetNumWarmupSteps(10);
-          MaybeRaiseRegisteredFromStatus(cluster->Provision());
+          tsl::MaybeRaiseRegisteredFromStatus(cluster->Provision());
           return cluster.release();
         });
 
@@ -99,7 +99,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
           std::vector<tensorflow::NamedDevice> named_devices;
           for (const auto& s : serialized_named_devices) {
             tensorflow::NamedDevice named_device;
-            if (!named_device.ParseFromString(s)) {
+            if (!named_device.ParseFromString(std::string(s))) {
               throw std::invalid_argument(
                   "The NamedDevice could not be parsed as a valid protocol "
                   "buffer");
@@ -116,7 +116,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
           {
             // TODO(petebu): Do we need to hold the GIL here?
             py::gil_scoped_acquire acquire;
-            MaybeRaiseRegisteredFromStatus(cluster->Provision());
+            tsl::MaybeRaiseRegisteredFromStatus(cluster->Provision());
           }
           return cluster.release();
         });
@@ -124,7 +124,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
   m.def("TF_ShutdownCluster", [](tensorflow::grappler::Cluster* cluster) {
     // TODO(petebu): Do we need to hold the GIL here?
     py::gil_scoped_acquire acquire;
-    cluster->Shutdown();
+    (void)cluster->Shutdown();
   });
 
   m.def("TF_ListDevices",
@@ -146,6 +146,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
     std::vector<tensorflow::OpDef> ops;
     registry->GetRegisteredOps(&ops);
     std::vector<std::string> op_names;
+    op_names.reserve(ops.size());
     for (const tensorflow::OpDef& op : ops) {
       op_names.push_back(op.name());
     }
@@ -159,7 +160,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
          tensorflow::grappler::GrapplerItem* item)
           -> std::unordered_map<std::string, std::vector<std::string>> {
         if (cluster == nullptr || item == nullptr) {
-          MaybeRaiseRegisteredFromStatus(tensorflow::Status(
+          tsl::MaybeRaiseRegisteredFromStatus(tensorflow::Status(
               tensorflow::errors::Internal("You need both a cluster and an "
                                            "item to get supported devices.")));
         }
@@ -241,7 +242,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
 
   m.def("TF_EstimatePerformance", [](const py::bytes& serialized_device) {
     tensorflow::NamedDevice device;
-    if (!device.ParseFromString(serialized_device)) {
+    if (!device.ParseFromString(std::string(serialized_device))) {
       throw std::invalid_argument(
           "The NamedDevice could not be parsed as a valid protocol buffer");
     }
@@ -270,7 +271,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
           tensorflow::StepStats step_stats;
           if (generate_timeline) {
             tensorflow::RunMetadata metadata;
-            MaybeRaiseRegisteredFromStatus(
+            tsl::MaybeRaiseRegisteredFromStatus(
                 cluster->Run(item->graph, item->feed, item->fetch, &metadata));
             step_stats = metadata.step_stats();
           }
@@ -297,7 +298,7 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
           -> std::unordered_map<std::string,
                                 std::tuple<int64_t, std::vector<MemoryUsage>>> {
         if (item == nullptr || cluster == nullptr) {
-          MaybeRaiseRegisteredFromStatus(
+          tsl::MaybeRaiseRegisteredFromStatus(
               tensorflow::Status(tensorflow::errors::Internal(
                   "You need both a cluster and an item to determine peak "
                   "memory usage.")));
@@ -305,9 +306,9 @@ PYBIND11_MODULE(_pywrap_tf_cluster, m) {
         tensorflow::grappler::GraphMemory memory(*item);
 
         if (cluster->DetailedStatsEnabled()) {
-          MaybeRaiseRegisteredFromStatus(memory.InferDynamically(cluster));
+          tsl::MaybeRaiseRegisteredFromStatus(memory.InferDynamically(cluster));
         } else {
-          MaybeRaiseRegisteredFromStatus(
+          tsl::MaybeRaiseRegisteredFromStatus(
               memory.InferStatically(cluster->GetDevices()));
         }
 

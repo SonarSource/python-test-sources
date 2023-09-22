@@ -15,10 +15,6 @@
 # pylint: disable=g-short-docstring-punctuation
 """Asserts and Boolean Checks."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import collections
 
 import numpy as np
@@ -31,6 +27,8 @@ from tensorflow.python.framework import sparse_tensor
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.framework import tensor_util
 from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import cond
+from tensorflow.python.ops import control_flow_assert
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.util import compat
@@ -38,10 +36,12 @@ from tensorflow.python.util import deprecation
 from tensorflow.python.util import dispatch
 from tensorflow.python.util.tf_export import tf_export
 
-NUMERIC_TYPES = frozenset(
-    [dtypes.float32, dtypes.float64, dtypes.int8, dtypes.int16, dtypes.int32,
-     dtypes.int64, dtypes.uint8, dtypes.qint8, dtypes.qint32, dtypes.quint8,
-     dtypes.complex64])
+NUMERIC_TYPES = frozenset([
+    dtypes.float16, dtypes.float32, dtypes.float64, dtypes.int8, dtypes.int16,
+    dtypes.int32, dtypes.int64, dtypes.uint8, dtypes.uint16, dtypes.uint32,
+    dtypes.uint64, dtypes.qint8, dtypes.qint16, dtypes.qint32, dtypes.quint8,
+    dtypes.quint16, dtypes.complex64, dtypes.complex128, dtypes.bfloat16
+])
 
 __all__ = [
     'assert_negative',
@@ -146,7 +146,7 @@ def _unary_assert_doc(sym, sym_name):
 
     Raises:
       InvalidArgumentError: if the check can be performed immediately and
-        `x {sym}` is False. The check can be performed immediately during 
+        `x {sym}` is False. The check can be performed immediately during
         eager execution or if `x` is statically known.
     """.format(
         sym=sym, sym_name=cap_sym_name, opname=opname)
@@ -155,11 +155,13 @@ def _unary_assert_doc(sym, sym_name):
   return _decorator
 
 
-def _binary_assert_doc(sym):
+def _binary_assert_doc(sym, test_var):
   """Common docstring for most of the v1 assert_* ops that compare two tensors element-wise.
 
   Args:
     sym: Binary operation symbol, i.e. "=="
+    test_var: a string that represents the variable in the right-hand side of
+      binary operator of the test case
 
   Returns:
     Decorator that adds the appropriate docstring to the function for
@@ -203,16 +205,148 @@ def _binary_assert_doc(sym):
 
     Returns:
       Op that raises `InvalidArgumentError` if `x {sym} y` is False.
+
+    Raises:
+      InvalidArgumentError: if the check can be performed immediately and
+        `x {sym} y` is False. The check can be performed immediately during
+        eager execution or if `x` and `y` are statically known.
+
+    @compatibility(TF2)
+    `tf.compat.v1.{opname}` is compatible with eager execution and
+    `tf.function`.
+    Please use `tf.debugging.{opname}` instead when migrating to TF2. Apart
+    from `data`, all arguments are supported with the same argument name.
+
+    If you want to ensure the assert statements run before the
+    potentially-invalid computation, please use `tf.control_dependencies`,
+    as tf.function auto-control dependencies are insufficient for assert
+    statements.
+
+    #### Structural Mapping to Native TF2
+
+    Before:
+
+    ```python
+    tf.compat.v1.{opname}(
+      x=x, y=y, data=data, summarize=summarize,
+      message=message, name=name)
+    ```
+
+    After:
+
+    ```python
+    tf.debugging.{opname}(
+      x=x, y=y, message=message,
+      summarize=summarize, name=name)
+    ```
+
+    #### TF1 & TF2 Usage Example
+
+    TF1:
+
+    >>> g = tf.Graph()
+    >>> with g.as_default():
+    ...   a = tf.compat.v1.placeholder(tf.float32, [2])
+    ...   b = tf.compat.v1.placeholder(tf.float32, [2])
+    ...   result = tf.compat.v1.{opname}(a, b,
+    ...     message='"a {sym} b" does not hold for the given inputs')
+    ...   with tf.compat.v1.control_dependencies([result]):
+    ...     sum_node = a + b
+    >>> sess = tf.compat.v1.Session(graph=g)
+    >>> val = sess.run(sum_node, feed_dict={{a: [1, 2], b:{test_var}}})
+
+
+    TF2:
+
+    >>> a = tf.Variable([1, 2], dtype=tf.float32)
+    >>> b = tf.Variable({test_var}, dtype=tf.float32)
+    >>> assert_op = tf.debugging.{opname}(a, b, message=
+    ...   '"a {sym} b" does not hold for the given inputs')
+    >>> # When working with tf.control_dependencies
+    >>> with tf.control_dependencies([assert_op]):
+    ...   val = a + b
+
+    @end_compatibility
+    """.format(
+        sym=sym, opname=opname, test_var=test_var)
+    return func
+
+  return _decorator
+
+
+def _binary_assert_doc_v2(sym, opname, test_var):
+  """Common docstring for v2 assert_* ops that compare two tensors element-wise.
+
+  Args:
+    sym: Binary operation symbol, i.e. "=="
+    opname: Name for the symbol, i.e. "assert_equal"
+    test_var: A number used in the docstring example
+
+  Returns:
+    Decorator that adds the appropriate docstring to the function for
+  symbol `sym`.
+  """
+
+  def _decorator(func):
+    """Decorator that adds docstring to the function for symbol `sym`.
+
+    Args:
+      func: Function for a TensorFlow op
+
+    Returns:
+      A version of `func` with documentation attached.
+    """
+
+    func.__doc__ = """
+    Assert the condition `x {sym} y` holds element-wise.
+
+    This Op checks that `x[i] {sym} y[i]` holds for every pair of (possibly
+    broadcast) elements of `x` and `y`. If both `x` and `y` are empty, this is
+    trivially satisfied.
+
+    If `x` {sym} `y` does not hold, `message`, as well as the first `summarize`
+    entries of `x` and `y` are printed, and `InvalidArgumentError` is raised.
+
+    When using inside `tf.function`, this API takes effects during execution.
+    It's recommended to use this API with `tf.control_dependencies` to
+    ensure the correct execution order.
+
+    In the following example, without `tf.control_dependencies`, errors may
+    not be raised at all.
+    Check `tf.control_dependencies` for more details.
+
+    >>> def check_size(x):
+    ...   with tf.control_dependencies([
+    ...       tf.debugging.{opname}(tf.size(x), {test_var},
+    ...                       message='Bad tensor size')]):
+    ...     return x
+
+    >>> check_size(tf.ones([2, 3], tf.float32))
+    Traceback (most recent call last):
+       ...
+    InvalidArgumentError: ...
+
+    Args:
+      x:  Numeric `Tensor`.
+      y:  Numeric `Tensor`, same dtype as and broadcastable to `x`.
+      message: A string to prefix to the default message. (optional)
+      summarize: Print this many entries of each tensor. (optional)
+      name: A name for this operation (optional).  Defaults to "{opname}".
+
+    Returns:
+      Op that raises `InvalidArgumentError` if `x {sym} y` is False. This can
+        be used with `tf.control_dependencies` inside of `tf.function`s to
+        block followup computation until the check has executed.
       @compatibility(eager)
-        returns None
+      returns None
       @end_compatibility
 
     Raises:
       InvalidArgumentError: if the check can be performed immediately and
-        `x {sym} y` is False. The check can be performed immediately during 
-        eager execution or if `x` and `y` are statically known.
+        `x == y` is False. The check can be performed immediately during eager
+        execution or if `x` and `y` are statically known.
     """.format(
-        sym=sym, opname=opname)
+        sym=sym, opname=opname, test_var=test_var)
     return func
 
   return _decorator
@@ -370,7 +504,7 @@ def _binary_assert(sym, opname, op_func, static_func, x, y, data, summarize,
       if x_static is not None and y_static is not None:
         condition_static = np.all(static_func(x_static, y_static))
         _assert_static(condition_static, data)
-      return control_flow_ops.Assert(condition, data, summarize=summarize)
+      return control_flow_assert.Assert(condition, data, summarize=summarize)
 
 
 @tf_export(
@@ -443,7 +577,7 @@ def assert_negative_v2(x, message=None, summarize=None, name=None):
 @deprecation.deprecated_endpoints('assert_negative')
 @_unary_assert_doc('< 0', 'negative')
 def assert_negative(x, data=None, summarize=None, message=None, name=None):  # pylint: disable=missing-docstring
-  message = message or ''
+  message = _message_prefix(message)
   with ops.name_scope(name, 'assert_negative', [x, data]):
     x = ops.convert_to_tensor(x, name='x')
     if data is None:
@@ -497,7 +631,7 @@ def assert_positive_v2(x, message=None, summarize=None, name=None):
 @deprecation.deprecated_endpoints('assert_positive')
 @_unary_assert_doc('> 0', 'positive')
 def assert_positive(x, data=None, summarize=None, message=None, name=None):  # pylint: disable=missing-docstring
-  message = message or ''
+  message = _message_prefix(message)
   with ops.name_scope(name, 'assert_positive', [x, data]):
     x = ops.convert_to_tensor(x, name='x')
     if data is None:
@@ -552,7 +686,7 @@ def assert_non_negative_v2(x, message=None, summarize=None, name=None):
 @deprecation.deprecated_endpoints('assert_non_negative')
 @_unary_assert_doc('>= 0', 'non-negative')
 def assert_non_negative(x, data=None, summarize=None, message=None, name=None):  # pylint: disable=missing-docstring
-  message = message or ''
+  message = _message_prefix(message)
   with ops.name_scope(name, 'assert_non_negative', [x, data]):
     x = ops.convert_to_tensor(x, name='x')
     if data is None:
@@ -608,7 +742,7 @@ def assert_non_positive_v2(x, message=None, summarize=None, name=None):
 @deprecation.deprecated_endpoints('assert_non_positive')
 @_unary_assert_doc('<= 0', 'non-positive')
 def assert_non_positive(x, data=None, summarize=None, message=None, name=None):  # pylint: disable=missing-docstring
-  message = message or ''
+  message = _message_prefix(message)
   with ops.name_scope(name, 'assert_non_positive', [x, data]):
     x = ops.convert_to_tensor(x, name='x')
     if data is None:
@@ -625,43 +759,17 @@ def assert_non_positive(x, data=None, summarize=None, message=None, name=None): 
 
 
 @tf_export('debugging.assert_equal', 'assert_equal', v1=[])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
+@_binary_assert_doc_v2('==', 'assert_equal', 3)
 def assert_equal_v2(x, y, message=None, summarize=None, name=None):
-  """Assert the condition `x == y` holds element-wise.
-
-  This Op checks that `x[i] == y[i]` holds for every pair of (possibly
-  broadcast) elements of `x` and `y`. If both `x` and `y` are empty, this is
-  trivially satisfied.
-
-  If `x` and `y` are not equal, `message`, as well as the first `summarize`
-  entries of `x` and `y` are printed, and `InvalidArgumentError` is raised.
-
-  Args:
-    x:  Numeric `Tensor`.
-    y:  Numeric `Tensor`, same dtype as and broadcastable to `x`.
-    message: A string to prefix to the default message.
-    summarize: Print this many entries of each tensor.
-    name: A name for this operation (optional).  Defaults to "assert_equal".
-
-  Returns:
-    Op that raises `InvalidArgumentError` if `x == y` is False. This can be
-      used with `tf.control_dependencies` inside of `tf.function`s to block
-      followup computation until the check has executed.
-    @compatibility(eager)
-    returns None
-    @end_compatibility
-
-  Raises:
-    InvalidArgumentError: if the check can be performed immediately and
-      `x == y` is False. The check can be performed immediately during eager
-      execution or if `x` and `y` are statically known.
-  """
   return assert_equal(x=x, y=y, summarize=summarize, message=message, name=name)
 
 
 @tf_export(v1=['debugging.assert_equal', 'assert_equal'])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
-@_binary_assert_doc('==')
+@_binary_assert_doc('==', '[1, 2]')
 def assert_equal(x, y, data=None, summarize=None, message=None, name=None):  # pylint: disable=missing-docstring
   with ops.name_scope(name, 'assert_equal', [x, y, data]):
     # Short-circuit if x and y are the same tensor.
@@ -672,48 +780,19 @@ def assert_equal(x, y, data=None, summarize=None, message=None, name=None):  # p
 
 
 @tf_export('debugging.assert_none_equal', v1=[])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
+@_binary_assert_doc_v2('!=', 'assert_none_equal', 6)
 def assert_none_equal_v2(x, y, summarize=None, message=None, name=None):
-  """Assert the condition `x != y` holds for all elements.
-
-  This Op checks that `x[i] != y[i]` holds for every pair of (possibly
-  broadcast) elements of `x` and `y`. If both `x` and `y` are empty, this is
-  trivially satisfied.
-
-  If any elements of `x` and `y` are equal, `message`, as well as the first
-  `summarize` entries of `x` and `y` are printed, and `InvalidArgumentError`
-  is raised.
-
-  Args:
-    x:  Numeric `Tensor`.
-    y:  Numeric `Tensor`, same dtype as and broadcastable to `x`.
-    summarize: Print this many entries of each tensor.
-    message: A string to prefix to the default message.
-    name: A name for this operation (optional).  Defaults to
-    "assert_none_equal".
-
-  Returns:
-    Op that raises `InvalidArgumentError` if `x != y` is ever False. This can
-      be used with `tf.control_dependencies` inside of `tf.function`s to block
-      followup computation until the check has executed.
-    @compatibility(eager)
-    returns None
-    @end_compatibility
-
-  Raises:
-    InvalidArgumentError: if the check can be performed immediately and
-      `x != y` is False for any pair of elements in `x` and `y`. The check can
-      be performed immediately during eager execution or if `x` and `y` are
-      statically known.
-  """
   return assert_none_equal(x=x, y=y, summarize=summarize, message=message,
                            name=name)
 
 
 @tf_export(v1=['debugging.assert_none_equal', 'assert_none_equal'])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
 @deprecation.deprecated_endpoints('assert_none_equal')
-@_binary_assert_doc('!=')
+@_binary_assert_doc('!=', '[2, 1]')
 def assert_none_equal(
     x, y, data=None, summarize=None, message=None, name=None):
   return _binary_assert('!=', 'assert_none_equal', math_ops.not_equal,
@@ -721,6 +800,7 @@ def assert_none_equal(
 
 
 @tf_export('debugging.assert_near', v1=[])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
 def assert_near_v2(x, y, rtol=None, atol=None, message=None, summarize=None,
                    name=None):
@@ -775,6 +855,7 @@ def assert_near_v2(x, y, rtol=None, atol=None, message=None, summarize=None,
 
 
 @tf_export(v1=['debugging.assert_near', 'assert_near'])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
 @deprecation.deprecated_endpoints('assert_near')
 def assert_near(
@@ -823,7 +904,7 @@ def assert_near(
   `64bit`, and even `16bit` data.
   @end_compatibility
   """
-  message = message or ''
+  message = _message_prefix(message)
   with ops.name_scope(name, 'assert_near', [x, y, rtol, atol, data]):
     x = ops.convert_to_tensor(x, name='x')
     y = ops.convert_to_tensor(y, name='y', dtype=x.dtype)
@@ -854,186 +935,77 @@ def assert_near(
     tol = atol + rtol * math_ops.abs(y)
     diff = math_ops.abs(x - y)
     condition = math_ops.reduce_all(math_ops.less(diff, tol))
-    return control_flow_ops.Assert(condition, data, summarize=summarize)
+    return control_flow_assert.Assert(condition, data, summarize=summarize)
 
 
 @tf_export('debugging.assert_less', 'assert_less', v1=[])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
+@_binary_assert_doc_v2('<', 'assert_less', 3)
 def assert_less_v2(x, y, message=None, summarize=None, name=None):
-  """Assert the condition `x < y` holds element-wise.
-
-  This Op checks that `x[i] < y[i]` holds for every pair of (possibly
-  broadcast) elements of `x` and `y`. If both `x` and `y` are empty, this is
-  trivially satisfied.
-
-  If `x` is not less than `y` element-wise, `message`, as well as the first
-  `summarize` entries of `x` and `y` are printed, and `InvalidArgumentError` is
-  raised.
-
-  Args:
-    x:  Numeric `Tensor`.
-    y:  Numeric `Tensor`, same dtype as and broadcastable to `x`.
-    message: A string to prefix to the default message.
-    summarize: Print this many entries of each tensor.
-    name: A name for this operation (optional).  Defaults to "assert_less".
-
-  Returns:
-    Op that raises `InvalidArgumentError` if `x < y` is False.
-    This can be used with `tf.control_dependencies` inside of `tf.function`s
-    to block followup computation until the check has executed.
-    @compatibility(eager)
-    returns None
-    @end_compatibility
-
-  Raises:
-    InvalidArgumentError: if the check can be performed immediately and
-      `x < y` is False. The check can be performed immediately during eager
-      execution or if `x` and `y` are statically known.
-  """
   return assert_less(x=x, y=y, summarize=summarize, message=message, name=name)
 
 
 @tf_export(v1=['debugging.assert_less', 'assert_less'])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
-@_binary_assert_doc('<')
+@_binary_assert_doc('<', '[2, 3]')
 def assert_less(x, y, data=None, summarize=None, message=None, name=None):
   return _binary_assert('<', 'assert_less', math_ops.less, np.less, x, y, data,
                         summarize, message, name)
 
 
 @tf_export('debugging.assert_less_equal', v1=[])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
+@_binary_assert_doc_v2('<=', 'assert_less_equal', 3)
 def assert_less_equal_v2(x, y, message=None, summarize=None, name=None):
-  """Assert the condition `x <= y` holds element-wise.
-
-  This Op checks that `x[i] <= y[i]` holds for every pair of (possibly
-  broadcast) elements of `x` and `y`. If both `x` and `y` are empty, this is
-  trivially satisfied.
-
-  If `x` is not less or equal than `y` element-wise, `message`, as well as the
-  first `summarize` entries of `x` and `y` are printed, and
-  `InvalidArgumentError` is raised.
-
-  Args:
-    x:  Numeric `Tensor`.
-    y:  Numeric `Tensor`, same dtype as and broadcastable to `x`.
-    message: A string to prefix to the default message.
-    summarize: Print this many entries of each tensor.
-    name: A name for this operation (optional). Defaults to "assert_less_equal".
-
-  Returns:
-    Op that raises `InvalidArgumentError` if `x <= y` is False. This can be
-      used with `tf.control_dependencies` inside of `tf.function`s to block
-      followup computation until the check has executed.
-    @compatibility(eager)
-    returns None
-    @end_compatibility
-
-  Raises:
-    InvalidArgumentError: if the check can be performed immediately and
-      `x <= y` is False. The check can be performed immediately during eager
-      execution or if `x` and `y` are statically known.
-  """
   return assert_less_equal(x=x, y=y,
                            summarize=summarize, message=message, name=name)
 
 
 @tf_export(v1=['debugging.assert_less_equal', 'assert_less_equal'])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
 @deprecation.deprecated_endpoints('assert_less_equal')
-@_binary_assert_doc('<=')
+@_binary_assert_doc('<=', '[1, 3]')
 def assert_less_equal(x, y, data=None, summarize=None, message=None, name=None):
   return _binary_assert('<=', 'assert_less_equal', math_ops.less_equal,
                         np.less_equal, x, y, data, summarize, message, name)
 
 
 @tf_export('debugging.assert_greater', 'assert_greater', v1=[])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
+@_binary_assert_doc_v2('>', 'assert_greater', 9)
 def assert_greater_v2(x, y, message=None, summarize=None, name=None):
-  """Assert the condition `x > y` holds element-wise.
-
-  This Op checks that `x[i] > y[i]` holds for every pair of (possibly
-  broadcast) elements of `x` and `y`. If both `x` and `y` are empty, this is
-  trivially satisfied.
-
-  If `x` is not greater than `y` element-wise, `message`, as well as the first
-  `summarize` entries of `x` and `y` are printed, and `InvalidArgumentError` is
-  raised.
-
-  Args:
-    x:  Numeric `Tensor`.
-    y:  Numeric `Tensor`, same dtype as and broadcastable to `x`.
-    message: A string to prefix to the default message.
-    summarize: Print this many entries of each tensor.
-    name: A name for this operation (optional).  Defaults to "assert_greater".
-
-  Returns:
-    Op that raises `InvalidArgumentError` if `x > y` is False. This can be
-      used with `tf.control_dependencies` inside of `tf.function`s to block
-      followup computation until the check has executed.
-    @compatibility(eager)
-    returns None
-    @end_compatibility
-
-  Raises:
-    InvalidArgumentError: if the check can be performed immediately and
-      `x > y` is False. The check can be performed immediately during eager
-      execution or if `x` and `y` are statically known.
-  """
   return assert_greater(x=x, y=y, summarize=summarize, message=message,
                         name=name)
 
 
 @tf_export(v1=['debugging.assert_greater', 'assert_greater'])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
-@_binary_assert_doc('>')
+@_binary_assert_doc('>', '[0, 1]')
 def assert_greater(x, y, data=None, summarize=None, message=None, name=None):  # pylint: disable=missing-docstring
   return _binary_assert('>', 'assert_greater', math_ops.greater, np.greater, x,
                         y, data, summarize, message, name)
 
 
 @tf_export('debugging.assert_greater_equal', v1=[])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
+@_binary_assert_doc_v2('>=', 'assert_greater_equal', 9)
 def assert_greater_equal_v2(x, y, message=None, summarize=None, name=None):
-  """Assert the condition `x >= y` holds element-wise.
-
-  This Op checks that `x[i] >= y[i]` holds for every pair of (possibly
-  broadcast) elements of `x` and `y`. If both `x` and `y` are empty, this is
-  trivially satisfied.
-
-  If `x` is not greater or equal to `y` element-wise, `message`, as well as the
-  first `summarize` entries of `x` and `y` are printed, and
-  `InvalidArgumentError` is raised.
-
-  Args:
-    x:  Numeric `Tensor`.
-    y:  Numeric `Tensor`, same dtype as and broadcastable to `x`.
-    message: A string to prefix to the default message.
-    summarize: Print this many entries of each tensor.
-    name: A name for this operation (optional).  Defaults to
-    "assert_greater_equal".
-
-  Returns:
-    Op that raises `InvalidArgumentError` if `x >= y` is False. This can be
-      used with `tf.control_dependencies` inside of `tf.function`s to block
-      followup computation until the check has executed.
-    @compatibility(eager)
-    returns None
-    @end_compatibility
-
-  Raises:
-    InvalidArgumentError: if the check can be performed immediately and
-      `x >= y` is False. The check can be performed immediately during eager
-      execution or if `x` and `y` are statically known.
-  """
   return assert_greater_equal(x=x, y=y, summarize=summarize, message=message,
                               name=name)
 
 
 @tf_export(v1=['debugging.assert_greater_equal', 'assert_greater_equal'])
+@dispatch.register_binary_elementwise_assert_api
 @dispatch.add_dispatch_support
 @deprecation.deprecated_endpoints('assert_greater_equal')
-@_binary_assert_doc('>=')
+@_binary_assert_doc('>=', '[1, 0]')
 def assert_greater_equal(x, y, data=None, summarize=None, message=None,
                          name=None):
   return _binary_assert('>=', 'assert_greater_equal', math_ops.greater_equal,
@@ -1085,7 +1057,7 @@ def _assert_rank_condition(
     rank_check = assert_rank(rank, 0, data=this_data)
     condition = control_flow_ops.with_dependencies([rank_check], condition)
 
-  return control_flow_ops.Assert(condition, data, summarize=summarize)
+  return control_flow_assert.Assert(condition, data, summarize=summarize)
 
 
 @tf_export('debugging.assert_rank', 'assert_rank', v1=[])
@@ -1151,14 +1123,15 @@ def assert_rank(x, rank, data=None, summarize=None, message=None, name=None):
     ValueError:  If static checks determine `x` has wrong rank.
   """
   with ops.name_scope(name, 'assert_rank', (x, rank) + tuple(data or [])):
-    x = ops.convert_to_tensor(x, name='x')
+    if not isinstance(x, sparse_tensor.SparseTensor):
+      x = ops.convert_to_tensor(x, name='x')
     rank = ops.convert_to_tensor(rank, name='rank')
-    message = message or ''
+    message = _message_prefix(message)
 
     static_condition = lambda actual_rank, given_rank: actual_rank == given_rank
     dynamic_condition = math_ops.equal
 
-    if context.executing_eagerly():
+    if context.executing_eagerly() or isinstance(x, sparse_tensor.SparseTensor):
       name = ''
     else:
       name = x.name
@@ -1177,10 +1150,10 @@ def assert_rank(x, rank, data=None, summarize=None, message=None, name=None):
     except ValueError as e:
       if e.args[0] == 'Static rank condition failed':
         raise ValueError(
-            '%s.  Tensor %s must have rank %d.  Received rank %d, shape %s' %
+            '%sTensor %s must have rank %d.  Received rank %d, shape %s' %
             (message, name, e.args[2], e.args[1], x.get_shape()))
       else:
-        raise
+        raise ValueError(e.args[0])
 
   return assert_op
 
@@ -1254,7 +1227,7 @@ def assert_rank_at_least(
       name, 'assert_rank_at_least', (x, rank) + tuple(data or [])):
     x = ops.convert_to_tensor(x, name='x')
     rank = ops.convert_to_tensor(rank, name='rank')
-    message = message or ''
+    message = _message_prefix(message)
 
     static_condition = lambda actual_rank, given_rank: actual_rank >= given_rank
     dynamic_condition = math_ops.greater_equal
@@ -1278,7 +1251,7 @@ def assert_rank_at_least(
     except ValueError as e:
       if e.args[0] == 'Static rank condition failed':
         raise ValueError(
-            '%s.  Tensor %s must have rank at least %d.  Received rank %d, '
+            '%sTensor %s must have rank at least %d.  Received rank %d, '
             'shape %s' % (message, name, e.args[2], e.args[1], x.get_shape()))
       else:
         raise
@@ -1349,7 +1322,7 @@ def _assert_ranks_condition(
       rank_check = assert_rank(rank, 0, data=this_data)
       condition = control_flow_ops.with_dependencies([rank_check], condition)
 
-  return control_flow_ops.Assert(condition, data, summarize=summarize)
+  return control_flow_assert.Assert(condition, data, summarize=summarize)
 
 
 @tf_export('debugging.assert_rank_in', v1=[])
@@ -1418,11 +1391,12 @@ def assert_rank_in(
   """
   with ops.name_scope(
       name, 'assert_rank_in', (x,) + tuple(ranks) + tuple(data or [])):
-    x = ops.convert_to_tensor(x, name='x')
+    if not isinstance(x, sparse_tensor.SparseTensor):
+      x = ops.convert_to_tensor(x, name='x')
     ranks = tuple([ops.convert_to_tensor(rank, name='rank') for rank in ranks])
-    message = message or ''
+    message = _message_prefix(message)
 
-    if context.executing_eagerly():
+    if context.executing_eagerly() or isinstance(x, sparse_tensor.SparseTensor):
       name = ''
     else:
       name = x.name
@@ -1441,7 +1415,7 @@ def assert_rank_in(
     except ValueError as e:
       if e.args[0] == 'Static rank condition failed':
         raise ValueError(
-            '%s.  Tensor %s must have rank in %s.  Received rank %d, '
+            '%sTensor %s must have rank in %s.  Received rank %d, '
             'shape %s' % (message, name, e.args[2], e.args[1], x.get_shape()))
       else:
         raise
@@ -1494,7 +1468,6 @@ def assert_integer(x, message=None, name=None):
   Returns:
     A `no_op` that does nothing.  Type can be determined statically.
   """
-  message = message or ''
   with ops.name_scope(name, 'assert_integer', [x]):
     x = ops.convert_to_tensor(x, name='x')
     if not x.dtype.is_integer:
@@ -1503,8 +1476,8 @@ def assert_integer(x, message=None, name=None):
       else:
         name = x.name
       err_msg = (
-          '%s  Expected "x" to be integer type.  Found: %s of dtype %s'
-          % (message, name, x.dtype))
+          '%sExpected "x" to be integer type.  Found: %s of dtype %s'
+          % (_message_prefix(message), name, x.dtype))
       raise TypeError(err_msg)
 
     return control_flow_ops.no_op('statically_determined_was_integer')
@@ -1517,8 +1490,23 @@ def assert_type_v2(tensor, tf_type, message=None, name=None):
 
   This can always be checked statically, so this method returns nothing.
 
+  Example:
+
+  >>> a = tf.Variable(1.0)
+  >>> tf.debugging.assert_type(a, tf_type= tf.float32)
+
+  >>> b = tf.constant(21)
+  >>> tf.debugging.assert_type(b, tf_type=tf.bool)
+  Traceback (most recent call last):
+  ...
+  TypeError: ...
+
+  >>> c = tf.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2],
+  ...  dense_shape=[3, 4])
+  >>> tf.debugging.assert_type(c, tf_type= tf.int32)
+
   Args:
-    tensor: A `Tensor`.
+    tensor: A `Tensor`, `SparseTensor` or `tf.Variable` .
     tf_type: A tensorflow type (`dtypes.float32`, `tf.int64`, `dtypes.bool`,
       etc).
     message: A string to prefix to the default message.
@@ -1537,7 +1525,7 @@ def assert_type(tensor, tf_type, message=None, name=None):
   """Statically asserts that the given `Tensor` is of the specified type.
 
   Args:
-    tensor: A `Tensor`.
+    tensor: A `Tensor` or `SparseTensor`.
     tf_type: A tensorflow type (`dtypes.float32`, `tf.int64`, `dtypes.bool`,
       etc).
     message: A string to prefix to the default message.
@@ -1549,15 +1537,14 @@ def assert_type(tensor, tf_type, message=None, name=None):
   Returns:
     A `no_op` that does nothing.  Type can be determined statically.
   """
-  message = message or ''
+  tf_type = dtypes.as_dtype(tf_type)
   with ops.name_scope(name, 'assert_type', [tensor]):
-    tensor = ops.convert_to_tensor(tensor, name='tensor')
+    if not isinstance(tensor, sparse_tensor.SparseTensor):
+      tensor = ops.convert_to_tensor(tensor, name='tensor')
     if tensor.dtype != tf_type:
-      if context.executing_eagerly():
-        raise TypeError('%s tensor must be of type %s' % (message, tf_type))
-      else:
-        raise TypeError('%s  %s must be of type %s' % (message, tensor.name,
-                                                       tf_type))
+      raise TypeError(
+          f'{_message_prefix(message)}{getattr(tensor, "name", "tensor")}'
+          f' must be of type {tf_type!r}; got {tensor.dtype!r}')
 
     return control_flow_ops.no_op('statically_determined_correct_type')
 
@@ -1580,7 +1567,7 @@ def _dimension_sizes(x):
   rank = x.get_shape().rank
   rank_is_known = rank is not None
   if rank_is_known and rank == 0:
-    return tuple([1])
+    return (1,)
   if rank_is_known and rank > 0:
     static_shape = x.get_shape().as_list()
     sizes = [
@@ -1589,7 +1576,7 @@ def _dimension_sizes(x):
     ]
     return sizes
   has_rank_zero = math_ops.equal(array_ops.rank(x), 0)
-  return control_flow_ops.cond(
+  return cond.cond(
       has_rank_zero, lambda: array_ops.constant([1]), lambda: dynamic_shape)
 
 
@@ -1634,7 +1621,7 @@ def assert_shapes_v2(shapes, data=None, summarize=None, message=None,
   >>> n = 10
   >>> q = 3
   >>> d = 7
-  >>> x = tf.zeros([n,q]) 
+  >>> x = tf.zeros([n,q])
   >>> y = tf.ones([n,d])
   >>> param = tf.Variable([1.0, 2.0, 3.0])
   >>> scalar = 1.0
@@ -1644,9 +1631,9 @@ def assert_shapes_v2(shapes, data=None, summarize=None, message=None,
   ...  (param, ('Q',)),
   ...  (scalar, ()),
   ... ])
-  
+
   >>> tf.debugging.assert_shapes([
-  ...   (x, ('N', 'D')), 
+  ...   (x, ('N', 'D')),
   ...   (y, ('N', 'D'))
   ... ])
   Traceback (most recent call last):
@@ -1745,8 +1732,23 @@ def assert_shapes(shapes, data=None, summarize=None, message=None, name=None):
   prefix) are both treated as having a single dimension of size one.
 
   Args:
-    shapes: dictionary with (`Tensor` to shape) items, or a list of
-      (`Tensor`, shape) tuples. A shape must be an iterable.
+    shapes: A list of (`Tensor`, `shape`) tuples, wherein `shape` is the
+      expected shape of `Tensor`. See the example code above. The `shape` must
+      be an iterable. Each element of the iterable can be either a concrete
+      integer value or a string that abstractly represents the dimension.
+      For example,
+        - `('N', 'Q')` specifies a 2D shape wherein the first and second
+          dimensions of shape may or may not be equal.
+        - `('N', 'N', 'Q')` specifies a 3D shape wherein the first and second
+          dimensions are equal.
+        - `(1, 'N')` specifies a 2D shape wherein the first dimension is
+          exactly 1 and the second dimension can be any value.
+      Note that the abstract dimension letters take effect across different
+      tuple elements of the list. For example,
+      `tf.debugging.assert_shapes([(x, ('N', 'A')), (y, ('N', 'B'))]` asserts
+      that both `x` and `y` are rank-2 tensors and their first dimensions are
+      equal (`N`).
+      `shape` can also be a `tf.TensorShape`.
     data: The tensors to print out if the condition is False.  Defaults to error
       message and first few entries of the violating tensor.
     summarize: Print this many entries of the tensor.
@@ -1767,17 +1769,17 @@ def assert_shapes(shapes, data=None, summarize=None, message=None, name=None):
   if isinstance(shapes, dict):
     shapes = shapes.items()
 
-  message = message or ''
+  message_prefix = _message_prefix(message)
   with ops.name_scope(name, 'assert_shapes', [shapes, data]):
     # Shape specified as None implies no constraint
-    shape_constraints = [
-        (ops.convert_to_tensor(x), s) for x, s in shapes if s is not None
-    ]
+    shape_constraints = [(x if isinstance(x, sparse_tensor.SparseTensor) else
+                          ops.convert_to_tensor(x), s)
+                         for x, s in shapes if s is not None]
 
     executing_eagerly = context.executing_eagerly()
 
     def tensor_name(x):
-      if executing_eagerly:
+      if executing_eagerly or isinstance(x, sparse_tensor.SparseTensor):
         return _shape_and_dtype_str(x)
       return x.name
 
@@ -1789,11 +1791,11 @@ def assert_shapes(shapes, data=None, summarize=None, message=None, name=None):
       )
       if not is_iterable:
         raise ValueError(
-            '%s.  '
+            '%s'
             'Tensor %s.  Specified shape must be an iterable.  '
             'An iterable has the attribute `__iter__` or `__getitem__`.  '
             'Received specified shape: %s' %
-            (message, tensor_name(tensor), symbolic_shape))
+            (message_prefix, tensor_name(tensor), symbolic_shape))
 
       # We convert this into a tuple to handle strings, lists and numpy arrays
       symbolic_shape_tuple = tuple(symbolic_shape)
@@ -1805,11 +1807,11 @@ def assert_shapes(shapes, data=None, summarize=None, message=None, name=None):
 
         if i != 0:
           raise ValueError(
-              '%s.  '
+              '%s'
               'Tensor %s specified shape index %d.  '
               'Symbol `...` or `*` for a variable number of '
               'unspecified dimensions is only allowed as the first entry' %
-              (message, tensor_name(tensor), i))
+              (message_prefix, tensor_name(tensor), i))
 
         tensors_specified_innermost = True
 
@@ -1878,8 +1880,8 @@ def assert_shapes(shapes, data=None, summarize=None, message=None, name=None):
             specified_size = int(size_symbol)
             size_check_message = 'Specified explicitly'
           else:
-            specified_size, specified_by_y, specified_at_dim = \
-                size_specifications[size_symbol]
+            specified_size, specified_by_y, specified_at_dim = (
+                size_specifications[size_symbol])
             size_check_message = (
                 'Specified by tensor %s dimension %d' %
                 (tensor_name(specified_by_y), specified_at_dim))
@@ -1893,9 +1895,9 @@ def assert_shapes(shapes, data=None, summarize=None, message=None, name=None):
           if _has_known_value(actual_size) and _has_known_value(specified_size):
             if int(actual_size) != int(specified_size):
               raise ValueError(
-                  '%s.  %s.  Tensor %s dimension %s must have size %d.  '
+                  '%s%s.  Tensor %s dimension %s must have size %d.  '
                   'Received size %d, shape %s' %
-                  (message, size_check_message, tensor_name(sizes.x),
+                  (message_prefix, size_check_message, tensor_name(sizes.x),
                    tensor_dim, specified_size, actual_size,
                    sizes.x.get_shape()))
             # No dynamic assertion needed
@@ -1907,13 +1909,13 @@ def assert_shapes(shapes, data=None, summarize=None, message=None, name=None):
           data_ = data
           if data is None:
             data_ = [
-                message, size_check_message,
+                message_prefix, size_check_message,
                 'Tensor %s dimension' % tensor_name(sizes.x), tensor_dim,
                 'must have size', specified_size, 'Received shape: ',
                 array_ops.shape(sizes.x)
             ]
           size_assertions.append(
-              control_flow_ops.Assert(condition, data_, summarize=summarize))
+              control_flow_assert.Assert(condition, data_, summarize=summarize))
         else:
           # Not sure if actual_sizes is a constant, but for safety, guard
           # on rank. See explanation above about actual_sizes need for safety.
@@ -1942,7 +1944,7 @@ def _get_diff_for_monotonic_comparison(x):
   # With 2 or more elements, return x[1:] - x[:-1]
   s_len = array_ops.shape(x) - 1
   diff = lambda: array_ops.strided_slice(x, [1], [1] + s_len)- array_ops.strided_slice(x, [0], s_len)
-  return control_flow_ops.cond(is_shorter_than_two, short_result, diff)
+  return cond.cond(is_shorter_than_two, short_result, diff)
 
 
 @tf_export(
@@ -1954,6 +1956,7 @@ def is_numeric_tensor(tensor):
 
   Specifically, returns `True` if the dtype of `tensor` is one of the following:
 
+  * `tf.float16`
   * `tf.float32`
   * `tf.float64`
   * `tf.int8`
@@ -1961,10 +1964,17 @@ def is_numeric_tensor(tensor):
   * `tf.int32`
   * `tf.int64`
   * `tf.uint8`
+  * `tf.uint16`
+  * `tf.uint32`
+  * `tf.uint64`
   * `tf.qint8`
+  * `tf.qint16`
   * `tf.qint32`
   * `tf.quint8`
+  * `tf.quint16`
   * `tf.complex64`
+  * `tf.complex128`
+  * `tf.bfloat16`
 
   Returns `False` if `tensor` is of a non-numeric type or if `tensor` is not
   a `tf.Tensor` object.
@@ -2187,14 +2197,21 @@ def assert_scalar(tensor, name=None, message=None):
   with ops.name_scope(name, 'assert_scalar', [tensor]) as name_scope:
     tensor = ops.convert_to_tensor(tensor, name=name_scope)
     shape = tensor.get_shape()
+    message = _message_prefix(message)
     if shape.ndims != 0:
       if context.executing_eagerly():
         raise ValueError('%sExpected scalar shape, saw shape: %s.'
-                         % (message or '', shape,))
+                         % (message, shape,))
       else:
         raise ValueError('%sExpected scalar shape for %s, saw shape: %s.'
-                         % (message or '', tensor.name, shape))
+                         % (message, tensor.name, shape))
     return tensor
+
+
+def _message_prefix(message):
+  if message:
+    return '%s.  ' % message
+  return ''
 
 
 @tf_export('ensure_shape')
@@ -2202,17 +2219,58 @@ def assert_scalar(tensor, name=None, message=None):
 def ensure_shape(x, shape, name=None):
   """Updates the shape of a tensor and checks at runtime that the shape holds.
 
-  With eager execution this is a shape assertion, that returns the input:
+  When executed, this operation asserts that the input tensor `x`'s shape
+  is compatible with the `shape` argument.
+  See `tf.TensorShape.is_compatible_with` for details.
 
-  >>> x = tf.constant([1,2,3])
-  >>> print(x.shape)
-  (3,)
-  >>> x = tf.ensure_shape(x, [3])
+  >>> x = tf.constant([[1, 2, 3],
+  ...                  [4, 5, 6]])
+  >>> x = tf.ensure_shape(x, [2, 3])
+
+  Use `None` for unknown dimensions:
+
+  >>> x = tf.ensure_shape(x, [None, 3])
+  >>> x = tf.ensure_shape(x, [2, None])
+
+  If the tensor's shape is not compatible with the `shape` argument, an error
+  is raised:
+
   >>> x = tf.ensure_shape(x, [5])
   Traceback (most recent call last):
   ...
   tf.errors.InvalidArgumentError: Shape of tensor dummy_input [3] is not
     compatible with expected shape [5]. [Op:EnsureShape]
+
+  During graph construction (typically tracing a `tf.function`),
+  `tf.ensure_shape` updates the static-shape of the **result** tensor by
+  merging the two shapes. See `tf.TensorShape.merge_with` for details.
+
+  This is most useful when **you** know a shape that can't be determined
+  statically by TensorFlow.
+
+  The following trivial `tf.function` prints the input tensor's
+  static-shape before and after `ensure_shape` is applied.
+
+  >>> @tf.function
+  ... def f(tensor):
+  ...   print("Static-shape before:", tensor.shape)
+  ...   tensor = tf.ensure_shape(tensor, [None, 3])
+  ...   print("Static-shape after:", tensor.shape)
+  ...   return tensor
+
+  This lets you see the effect of `tf.ensure_shape` when the function is traced:
+  >>> cf = f.get_concrete_function(tf.TensorSpec([None, None]))
+  Static-shape before: (None, None)
+  Static-shape after: (None, 3)
+
+  >>> cf(tf.zeros([3, 3])) # Passes
+  >>> cf(tf.constant([1, 2, 3])) # fails
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError:  Shape of tensor x [3] is not compatible with expected shape [3,3].
+
+  The above example raises `tf.errors.InvalidArgumentError`, because `x`'s
+  shape, `(3,)`, is not compatible with the `shape` argument, `(None, 3)`
 
   Inside a `tf.function` or `v1.Graph` context it checks both the buildtime and
   runtime shapes. This is stricter than `tf.Tensor.set_shape` which only
@@ -2288,8 +2346,10 @@ def ensure_shape(x, shape, name=None):
     name: A name for this operation (optional). Defaults to "EnsureShape".
 
   Returns:
-    A `Tensor`. Has the same type and contents as `x`. At runtime, raises a
-    `tf.errors.InvalidArgumentError` if `shape` is incompatible with the shape
+    A `Tensor`. Has the same type and contents as `x`.
+
+  Raises:
+    tf.errors.InvalidArgumentError: If `shape` is incompatible with the shape
     of `x`.
   """
   if not isinstance(shape, tensor_shape.TensorShape):

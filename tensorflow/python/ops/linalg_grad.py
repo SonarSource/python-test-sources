@@ -33,14 +33,11 @@ References:
     [Ionescu et al., 2015](https://arxiv.org/abs/1509.07838)
     ([pdf](https://arxiv.org/pdf/1509.07838.pdf))
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
-from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.ops import array_ops_stack
+from tensorflow.python.ops import cond
 from tensorflow.python.ops import gen_linalg_ops
 from tensorflow.python.ops import linalg_ops
 from tensorflow.python.ops import math_ops
@@ -51,8 +48,12 @@ from tensorflow.python.ops.linalg import linalg_impl as _linalg
 def _MatrixInverseGrad(op, grad):
   """Gradient for MatrixInverse."""
   ainv = op.outputs[0]
-  return -math_ops.matmul(
-      ainv, math_ops.matmul(grad, ainv, adjoint_b=True), adjoint_a=True)
+  op_adjoint = op.get_attr("adjoint")
+  return -math_ops.matmul(  # pylint: disable=invalid-unary-operand-type
+      ainv,
+      math_ops.matmul(grad, ainv, adjoint_a=op_adjoint,
+                      adjoint_b=not op_adjoint),
+      adjoint_a=not op_adjoint)
 
 
 @ops.RegisterGradient("Einsum")
@@ -137,7 +138,8 @@ def _EinsumGrad(op, grad):
     # labels. If the same label appears multiple times, get the left-most axis.
     reduced_axes = [_GetAxisFromLabel(subscripts, s) for s in reduced_subs]
     # Get the corresponding dimensions for each reduced axis.
-    reduced_dims = array_ops.stack([input_shape[ax] for ax in reduced_axes])
+    reduced_dims = array_ops_stack.stack(
+        [input_shape[ax] for ax in reduced_axes])
     return reduced_subs, reduced_dims, reduced_axes
 
   def _GetGradReduced(output_grad, output_subs, input_subs, input_shape,
@@ -487,21 +489,22 @@ def _CholeskyGrad(op, grad):
 @ops.RegisterGradient("Qr")
 def _QrGrad(op, dq, dr):
   """Gradient for Qr."""
+
+  # The methodology is explained in detail in https://arxiv.org/abs/2009.10071
+  # QR and LQ Decomposition Matrix Backpropagation Algorithms for
+  # Square, Wide, and Deep, Real and Complex, Matrices and Their Software
+  # Implementation
   q, r = op.outputs
-  if q.dtype.is_complex:
-    raise NotImplementedError("QrGrad not implemented for dtype: %s" % q.dtype)
   if (r.shape.ndims is None or r.shape.as_list()[-2] is None or
       r.shape.as_list()[-1] is None):
-    raise NotImplementedError("QrGrad not implemented with dynamic shapes.")
-  if r.shape.dims[-2].value != r.shape.dims[-1].value:
-    raise NotImplementedError("QrGrad not implemented when ncols > nrows "
-                              "or full_matrices is true and ncols != nrows.")
-
-  qdq = math_ops.matmul(q, dq, adjoint_a=True)
-  qdq_ = qdq - _linalg.adjoint(qdq)
-  rdr = math_ops.matmul(r, dr, adjoint_b=True)
-  rdr_ = rdr - _linalg.adjoint(rdr)
-  tril = array_ops.matrix_band_part(qdq_ + rdr_, -1, 0)
+    raise NotImplementedError("QrGrad not implemented with dynamic shapes. "
+                              f"Received r.shape: {r.shape}")
+  if (r.shape.dims[-2].value > r.shape.dims[-1].value and
+      q.shape.dims[-2].value == q.shape.dims[-1].value):
+    raise NotImplementedError("QrGrad not implemented when nrows > ncols "
+                              "and full_matrices is true. Received r.shape="
+                              f"{r.shape} with nrows={r.shape.dims[-2]}"
+                              f"and ncols={r.shape.dims[-1]}.")
 
   def _TriangularSolve(x, r):
     """Equiv to matmul(x, adjoint(matrix_inverse(r))) if r is upper-tri."""
@@ -509,9 +512,46 @@ def _QrGrad(op, dq, dr):
         linalg_ops.matrix_triangular_solve(
             r, _linalg.adjoint(x), lower=False, adjoint=False))
 
-  grad_a = math_ops.matmul(q, dr + _TriangularSolve(tril, r))
-  grad_b = _TriangularSolve(dq - math_ops.matmul(q, qdq), r)
-  return grad_a + grad_b
+  def _QrGradSquareAndDeepMatrices(q, r, dq, dr):
+    """Gradient for matrix orders num_rows >= num_cols
+    and full_matrices is false.
+    """
+    qdq = math_ops.matmul(q, dq, adjoint_a=True)
+    qdq_ = qdq - _linalg.adjoint(qdq)
+    rdr = math_ops.matmul(r, dr, adjoint_b=True)
+    rdr_ = rdr - _linalg.adjoint(rdr)
+    tril = array_ops.matrix_band_part(qdq_ + rdr_, -1, 0)
+
+    grad_a = math_ops.matmul(q, dr + _TriangularSolve(tril, r))
+    grad_b = _TriangularSolve(dq - math_ops.matmul(q, qdq), r)
+    ret = grad_a + grad_b
+
+    if q.dtype.is_complex:
+      # need to add a correction to the gradient formula for complex case
+      m = rdr - _linalg.adjoint(qdq)
+      eyem = _linalg.set_diag(array_ops.zeros_like(m), _linalg.diag_part(m))
+      correction = eyem - math_ops.cast(math_ops.real(eyem), q.dtype)
+      ret = ret + _TriangularSolve(
+          math_ops.matmul(q, _linalg.adjoint(correction)), r)
+
+    return ret
+
+  num_rows, num_cols = q.shape.dims[-2].value, r.shape.dims[-1]
+
+  if num_rows >= num_cols:
+    return _QrGradSquareAndDeepMatrices(q, r, dq, dr)
+
+  # Partition a = [x, y], r = [u, v] and reduce to the square case
+  a = op.inputs[0]
+  y = a[..., :, num_rows:]
+  u = r[..., :, :num_rows]
+  dv = dr[..., :, num_rows:]
+  du = dr[..., :, :num_rows]
+  dy = math_ops.matmul(q, dv)
+  dx = _QrGradSquareAndDeepMatrices(q, u,
+                                    dq + math_ops.matmul(y, dv, adjoint_b=True),
+                                    du)
+  return array_ops.concat([dx, dy], axis=-1)
 
 
 @ops.RegisterGradient("MatrixSolve")
@@ -522,9 +562,9 @@ def _MatrixSolveGrad(op, grad):
   c = op.outputs[0]
   grad_b = linalg_ops.matrix_solve(a, grad, adjoint=not adjoint_a)
   if adjoint_a:
-    grad_a = -math_ops.matmul(c, grad_b, adjoint_b=True)
+    grad_a = -math_ops.matmul(c, grad_b, adjoint_b=True)  # pylint: disable=invalid-unary-operand-type
   else:
-    grad_a = -math_ops.matmul(grad_b, c, adjoint_b=True)
+    grad_a = -math_ops.matmul(grad_b, c, adjoint_b=True)  # pylint: disable=invalid-unary-operand-type
   return (grad_a, grad_b)
 
 
@@ -559,7 +599,7 @@ def _MatrixSolveLsGrad(op, grad):
     z = linalg_ops.cholesky_solve(chol, grad)
     xzt = math_ops.matmul(x, z, adjoint_b=True)
     zx_sym = xzt + array_ops.matrix_transpose(xzt)
-    grad_a = -math_ops.matmul(a, zx_sym) + math_ops.matmul(b, z, adjoint_b=True)
+    grad_a = -math_ops.matmul(a, zx_sym) + math_ops.matmul(b, z, adjoint_b=True)  # pylint: disable=invalid-unary-operand-type
     grad_b = math_ops.matmul(a, z)
     return (grad_a, grad_b, None)
 
@@ -583,7 +623,7 @@ def _MatrixSolveLsGrad(op, grad):
     # Temporary tmp = (A * A^T + lambda * I)^{-1} * B.
     tmp = linalg_ops.cholesky_solve(chol, b)
     a1 = math_ops.matmul(tmp, a, adjoint_a=True)
-    a1 = -math_ops.matmul(grad_b, a1)
+    a1 = -math_ops.matmul(grad_b, a1)  # pylint: disable=invalid-unary-operand-type
     a2 = grad - math_ops.matmul(a, grad_b, adjoint_a=True)
     a2 = math_ops.matmul(tmp, a2, adjoint_b=True)
     grad_a = a1 + a2
@@ -602,9 +642,42 @@ def _MatrixSolveLsGrad(op, grad):
     # We have to defer determining the shape to runtime and use
     # conditional execution of the appropriate graph.
     matrix_shape = array_ops.shape(op.inputs[0])[-2:]
-    return control_flow_ops.cond(matrix_shape[-2] >= matrix_shape[-1],
-                                 lambda: _Overdetermined(op, grad),
-                                 lambda: _Underdetermined(op, grad))
+    return cond.cond(matrix_shape[-2] >= matrix_shape[-1],
+                     lambda: _Overdetermined(op, grad),
+                     lambda: _Underdetermined(op, grad))
+
+
+@ops.RegisterGradient("BandedTriangularSolve")
+def _BandedTriangularSolveGrad(op, grad):
+  """Gradient for BandedTriangularSolve."""
+  a = op.inputs[0]
+  b = op.inputs[1]
+  num_bands = array_ops.shape(a)[-2]
+  adjoint_a = op.get_attr("adjoint")
+  lower_a = op.get_attr("lower")
+  c = op.outputs[0]
+  grad_b = linalg_ops.banded_triangular_solve(
+      a, grad, lower=lower_a, adjoint=not adjoint_a)
+  if adjoint_a:
+    grad_a = -math_ops.matmul(c, grad_b, adjoint_b=True)  # pylint: disable=invalid-unary-operand-type
+  else:
+    grad_a = -math_ops.matmul(grad_b, c, adjoint_b=True)  # pylint: disable=invalid-unary-operand-type
+  if lower_a:
+    grad_a = array_ops.matrix_diag_part(
+        grad_a, k=(-(num_bands - 1), 0), align="LEFT_RIGHT")
+  else:
+    grad_a = array_ops.matrix_diag_part(
+        grad_a, k=(0, num_bands - 1), align="LEFT_RIGHT")
+  # If the static batch shapes are equal, we don't need to unbroadcast.
+  if (a.shape.is_fully_defined() and b.shape.is_fully_defined() and
+      a.shape[:-2] == b.shape[:-2]):
+    return grad_a, grad_b
+  a_shape = array_ops.shape(a)
+  b_shape = array_ops.shape(b)
+  ra, rb = array_ops.broadcast_gradient_args(a_shape[:-2], b_shape[:-2])
+  grad_a = array_ops.reshape(math_ops.reduce_sum(grad_a, axis=ra), a_shape)
+  grad_b = array_ops.reshape(math_ops.reduce_sum(grad_b, axis=rb), b_shape)
+  return grad_a, grad_b
 
 
 @ops.RegisterGradient("MatrixTriangularSolve")
@@ -618,9 +691,9 @@ def _MatrixTriangularSolveGrad(op, grad):
   grad_b = linalg_ops.matrix_triangular_solve(
       a, grad, lower=lower_a, adjoint=not adjoint_a)
   if adjoint_a:
-    grad_a = -math_ops.matmul(c, grad_b, adjoint_b=True)
+    grad_a = -math_ops.matmul(c, grad_b, adjoint_b=True)  # pylint: disable=invalid-unary-operand-type
   else:
-    grad_a = -math_ops.matmul(grad_b, c, adjoint_b=True)
+    grad_a = -math_ops.matmul(grad_b, c, adjoint_b=True)  # pylint: disable=invalid-unary-operand-type
   if lower_a:
     grad_a = array_ops.matrix_band_part(grad_a, -1, 0)
   else:
@@ -799,7 +872,8 @@ def _SvdGrad(op, grad_s, grad_u, grad_v):
     if full_matrices and abs(m - n) > 1:
       raise NotImplementedError(
           "svd gradient is not implemented for abs(m - n) > 1 "
-          "when full_matrices is True")
+          f"when full_matrices is True. Received: m={m} and n={n} from "
+          f"op input={a} with shape={a_shape}.")
     s_mat = array_ops.matrix_diag(s)
     s2 = math_ops.square(s)
 
@@ -914,6 +988,7 @@ def _TridiagonalSolveGrad(op, grad):
   diags = op.inputs[0]
   x = op.outputs[0]
   partial_pivoting = op.get_attr("partial_pivoting")
+  perturb_singular = op.get_attr("perturb_singular")
 
   # Transposing the matrix within tridiagonal_solve kernel by interchanging
   # superdiagonal and subdiagonal wouldn't work on GPU due to mismatch with
@@ -921,9 +996,12 @@ def _TridiagonalSolveGrad(op, grad):
   # So constructing the transposed matrix in Python.
   diags_transposed = _TransposeTridiagonalMatrix(diags)
 
-  grad_rhs = linalg_ops.tridiagonal_solve(diags_transposed, grad,
-                                          partial_pivoting=partial_pivoting)
-  grad_diags = -_MatmulExtractingThreeDiagonals(grad_rhs, x)
+  grad_rhs = linalg_ops.tridiagonal_solve(
+      diags_transposed,
+      grad,
+      partial_pivoting=partial_pivoting,
+      perturb_singular=perturb_singular)
+  grad_diags = -_MatmulExtractingThreeDiagonals(grad_rhs, x)  # pylint: disable=invalid-unary-operand-type
   return grad_diags, grad_rhs
 
 
@@ -955,7 +1033,7 @@ def _TransposeTridiagonalMatrix(diags):
     subdiag_pad = array_ops.concat((zeros, array_ops.constant([[1, 0]])),
                                    axis=0)
     subdiag = array_ops.pad(diags[..., 0, :-1], subdiag_pad)
-  return array_ops.stack([superdiag, diag, subdiag], axis=-2)
+  return array_ops_stack.stack([superdiag, diag, subdiag], axis=-2)
 
 
 def _MatmulExtractingThreeDiagonals(x, y_tr):
@@ -994,4 +1072,4 @@ def _MatmulExtractingThreeDiagonals(x, y_tr):
         (zeros, array_ops.constant([[1, 0], [0, 0]])), axis=0)
     subdiag = math_ops.reduce_sum(
         x * array_ops.pad(y_tr[..., :-1, :], subdiag_pad), axis=-1)
-  return array_ops.stack([superdiag, diag, subdiag], axis=-2)
+  return array_ops_stack.stack([superdiag, diag, subdiag], axis=-2)

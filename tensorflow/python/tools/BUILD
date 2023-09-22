@@ -1,15 +1,14 @@
 # Description:
 #   Tools for manipulating TensorFlow graphs.
 
-load("//tensorflow:tensorflow.bzl", "if_xla_available", "py_binary", "py_test", "tf_cc_test")
+load("//tensorflow:tensorflow.bzl", "if_google", "if_xla_available", "py_binary", "py_test", "tf_cc_test")
 load("//tensorflow/python/tools:tools.bzl", "saved_model_compile_aot")
 
 package(
+    # copybara:uncomment default_applicable_licenses = ["//tensorflow:license"],
     default_visibility = ["//visibility:public"],
-    licenses = ["notice"],  # Apache 2.0
+    licenses = ["notice"],
 )
-
-exports_files(["LICENSE"])
 
 # Transitive dependencies of this target will be included in the pip package.
 py_library(
@@ -25,6 +24,7 @@ py_library(
         # Include the TF upgrade script to users can run it directly after install TF
         "//tensorflow/tools/compatibility:tf_upgrade_v2",
     ],
+    srcs_version = "PY3",
     deps = [
         ":saved_model_aot_compile",
         ":saved_model_utils",
@@ -41,7 +41,7 @@ py_library(
 py_library(
     name = "saved_model_utils",
     srcs = ["saved_model_utils.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
 )
 
 py_test(
@@ -49,7 +49,7 @@ py_test(
     size = "small",
     srcs = ["saved_model_utils_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     tags = ["no_windows"],  # TODO: needs investigation on Windows
     visibility = ["//visibility:private"],
     deps = [
@@ -62,7 +62,7 @@ py_test(
 py_library(
     name = "freeze_graph_lib",
     srcs = ["freeze_graph.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":saved_model_utils",
         "//tensorflow/core:protos_all_py",
@@ -70,10 +70,10 @@ py_library(
         "//tensorflow/python:framework",
         "//tensorflow/python:no_contrib",  # TODO(b/34059704): remove when fixed
         "//tensorflow/python:parsing_ops",
-        "//tensorflow/python:platform",
         "//tensorflow/python:py_checkpoint_reader",
         "//tensorflow/python:training",
         "//tensorflow/python/estimator:estimator_py",
+        "//tensorflow/python/platform:gfile",
         "//tensorflow/python/saved_model:loader",
         "@six_archive//:six",
     ],
@@ -83,16 +83,17 @@ py_binary(
     name = "freeze_graph",
     srcs = ["freeze_graph.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [":freeze_graph_main_lib"],
 )
 
 py_library(
     name = "freeze_graph_main_lib",
     srcs = ["freeze_graph.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":freeze_graph_lib",
+        "//tensorflow/python/platform:gfile",
     ],
 )
 
@@ -100,22 +101,21 @@ py_binary(
     name = "import_pb_to_tensorboard",
     srcs = ["import_pb_to_tensorboard.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [":import_pb_to_tensorboard_lib"],
 )
 
 py_library(
     name = "import_pb_to_tensorboard_lib",
     srcs = ["import_pb_to_tensorboard.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         "//tensorflow/core:protos_all_py",
         "//tensorflow/python",
         "//tensorflow/python:client",
         "//tensorflow/python:framework",
         "//tensorflow/python:framework_ops",
-        "//tensorflow/python:platform",
-        "//tensorflow/python:summary",
+        "//tensorflow/python/summary:summary_py",
     ],
 )
 
@@ -124,7 +124,7 @@ py_test(
     size = "small",
     srcs = ["freeze_graph_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":freeze_graph_lib",
         "//tensorflow/core:protos_all_py",
@@ -135,6 +135,7 @@ py_test(
         "//tensorflow/python:framework_test_lib",
         "//tensorflow/python:math_ops",
         "//tensorflow/python:training",
+        "//tensorflow/python:variable_v1",
         "//tensorflow/python:variables",
         "@absl_py//absl/testing:parameterized",
     ],
@@ -144,47 +145,46 @@ py_binary(
     name = "inspect_checkpoint",
     srcs = ["inspect_checkpoint.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [":inspect_checkpoint_lib"],
 )
 
 py_library(
     name = "inspect_checkpoint_lib",
     srcs = ["inspect_checkpoint.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         "//tensorflow/python",  # TODO(b/34059704): remove when fixed
-        "//tensorflow/python:platform",
         "//tensorflow/python:py_checkpoint_reader",
+        "//tensorflow/python/platform:flags",
     ],
 )
 
 py_library(
     name = "strip_unused_lib",
     srcs = ["strip_unused_lib.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         "//tensorflow/core:protos_all_py",
         "//tensorflow/python:framework",
-        "//tensorflow/python:platform",
+        "//tensorflow/python/platform:gfile",
     ],
 )
 
 py_library(
     name = "module_util",
     srcs = ["module_util.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
 )
 
 py_binary(
     name = "strip_unused",
     srcs = ["strip_unused.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":strip_unused_lib",
         "//tensorflow/python:framework_for_generated_wrappers",
-        "//tensorflow/python:platform",
         "@six_archive//:six",
     ],
 )
@@ -194,7 +194,7 @@ py_test(
     size = "small",
     srcs = ["strip_unused_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     tags = ["notap"],
     deps = [
         ":strip_unused_lib",
@@ -211,13 +211,14 @@ py_test(
 py_library(
     name = "optimize_for_inference_lib",
     srcs = ["optimize_for_inference_lib.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":strip_unused_lib",
         "//tensorflow/core:protos_all_py",
         "//tensorflow/python:framework",
         "//tensorflow/python:framework_for_generated_wrappers",
-        "//tensorflow/python:platform",
+        "//tensorflow/python/platform:flags",
+        "//tensorflow/python/platform:tf_logging",
         "//third_party/py/numpy",
         "@six_archive//:six",
     ],
@@ -227,21 +228,21 @@ py_binary(
     name = "optimize_for_inference",
     srcs = ["optimize_for_inference.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [":optimize_for_inference_main_lib"],
 )
 
 py_library(
     name = "optimize_for_inference_main_lib",
     srcs = ["optimize_for_inference.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":optimize_for_inference_lib",
         "//tensorflow/core:protos_all_py",
         "//tensorflow/python",  # TODO(b/34059704): remove when fixed
         "//tensorflow/python:framework",
         "//tensorflow/python:framework_for_generated_wrappers",
-        "//tensorflow/python:platform",
+        "//tensorflow/python/platform:gfile",
         "@six_archive//:six",
     ],
 )
@@ -251,7 +252,7 @@ py_test(
     size = "small",
     srcs = ["optimize_for_inference_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":optimize_for_inference_lib",
         "//tensorflow/core:protos_all_py",
@@ -270,12 +271,13 @@ py_test(
 py_library(
     name = "selective_registration_header_lib",
     srcs = ["selective_registration_header_lib.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
         "//tensorflow/python",  # TODO(b/34059704): remove when fixed
-        "//tensorflow/python:_pywrap_kernel_registry",
-        "//tensorflow/python:platform",
+        "//tensorflow/python/platform:gfile",
+        "//tensorflow/python/platform:tf_logging",
+        "//tensorflow/python/util:_pywrap_kernel_registry",
     ],
 )
 
@@ -283,7 +285,7 @@ py_binary(
     name = "print_selective_registration_header",
     srcs = ["print_selective_registration_header.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [":print_selective_registration_header_lib"],
 )
@@ -291,11 +293,10 @@ py_binary(
 py_library(
     name = "print_selective_registration_header_lib",
     srcs = ["print_selective_registration_header.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
         ":selective_registration_header_lib",
-        "//tensorflow/python:platform",
     ],
 )
 
@@ -303,11 +304,11 @@ py_test(
     name = "print_selective_registration_header_test",
     srcs = ["print_selective_registration_header_test.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":selective_registration_header_lib",
         "//tensorflow/python:client_testlib",
-        "//tensorflow/python:platform",
+        "//tensorflow/python/platform:gfile",
     ],
 )
 
@@ -315,14 +316,14 @@ py_binary(
     name = "saved_model_cli",
     srcs = ["saved_model_cli.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [":saved_model_cli_lib"],
 )
 
 py_library(
     name = "saved_model_cli_lib",
     srcs = ["saved_model_cli.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         # Note: if you make any changes here, make corresponding changes to the
         # deps of the "tools_pip" target in this file.  Otherwise release builds
@@ -330,18 +331,27 @@ py_library(
         # broken saved_model_cli.
         ":saved_model_aot_compile",
         ":saved_model_utils",
+        "@absl_py//absl/flags:argparse_flags",
         "//tensorflow/python",
-        "//tensorflow/python/debug:local_cli_wrapper",
-    ],
+        "//tensorflow/python/client:session",
+        "//tensorflow/python/debug/wrappers:local_cli_wrapper",
+        "//tensorflow/python/platform:tf_logging",
+    ] + if_google([
+        "//tensorflow/core/tfrt/tfrt_session",
+        "//tensorflow_text:tensorflow_text",
+    ]),
 )
 
 py_library(
     name = "saved_model_aot_compile",
     srcs = ["saved_model_aot_compile.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         "//tensorflow/python",
         "//tensorflow/python:tf_optimizer",
+        "//tensorflow/python/platform:client_testlib",
+        "//tensorflow/python/platform:sysconfig",
+        "//tensorflow/python/platform:tf_logging",
     ] + if_xla_available(
         ["//tensorflow/compiler/tf2xla:tf2xla_proto_py"],
     ),
@@ -354,18 +364,81 @@ py_test(
         "//tensorflow/cc/saved_model:saved_model_half_plus_two",
     ],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
-    tags = [
-        "manual",
-        "no-internal-py3",
-        "nosan",
-    ],
+    srcs_version = "PY3",
     deps = [
         ":saved_model_cli_lib",
         "//tensorflow/core:protos_all_py",
         "//tensorflow/python:client_testlib",
+        "//tensorflow/python/platform:tf_logging",
         "@absl_py//absl/testing:parameterized",
     ],
+)
+
+py_binary(
+    name = "make_aot_compile_models",
+    srcs = ["make_aot_compile_models.py"],
+    python_version = "PY3",
+    deps = [
+        "//tensorflow/core:protos_all_py",
+        "//tensorflow/python:array_ops",
+        "//tensorflow/python:framework",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python/eager:def_function",
+        "//tensorflow/python/saved_model",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+        "@six_archive//:six",
+    ],
+)
+
+EMITTED_AOT_SAVE_MODEL_OBJECTS = [
+    "x_matmul_y_large/saved_model.pb",
+    "x_matmul_y_large/variables/variables.index",
+    "x_matmul_y_small/saved_model.pb",
+    "x_matmul_y_small/variables/variables.index",
+]
+
+genrule(
+    name = "create_models_for_aot_compile",
+    outs = EMITTED_AOT_SAVE_MODEL_OBJECTS,
+    cmd = (
+        "$(location :make_aot_compile_models) --out_dir $(@D)"
+    ),
+    tags = ["no_rocm"],
+    tools = [":make_aot_compile_models"],
+)
+
+filegroup(
+    name = "aot_saved_models",
+    srcs = EMITTED_AOT_SAVE_MODEL_OBJECTS,
+)
+
+saved_model_compile_aot(
+    name = "aot_compiled_x_matmul_y_large",
+    cpp_class = "XMatmulYLarge",
+    directory = "//tensorflow/python/tools:x_matmul_y_large",
+    filegroups = [":aot_saved_models"],
+    force_without_xla_support_flag = False,
+    tags = ["no_rocm"],
+)
+
+saved_model_compile_aot(
+    name = "aot_compiled_x_matmul_y_large_multithreaded",
+    cpp_class = "XMatmulYLargeMultithreaded",
+    directory = "//tensorflow/python/tools:x_matmul_y_large",
+    filegroups = [":aot_saved_models"],
+    force_without_xla_support_flag = False,
+    multithreading = True,
+    tags = ["no_rocm"],
+)
+
+saved_model_compile_aot(
+    name = "aot_compiled_x_matmul_y_small",
+    cpp_class = "XMatmulYSmall",
+    directory = "//tensorflow/python/tools:x_matmul_y_small",
+    filegroups = [":aot_saved_models"],
+    force_without_xla_support_flag = False,
+    tags = ["no_rocm"],
 )
 
 saved_model_compile_aot(
@@ -376,7 +449,6 @@ saved_model_compile_aot(
         "//tensorflow/cc/saved_model:saved_model_half_plus_two",
     ],
     force_without_xla_support_flag = False,
-    tags = ["no_rocm"],
 )
 
 saved_model_compile_aot(
@@ -387,7 +459,6 @@ saved_model_compile_aot(
         "//tensorflow/cc/saved_model:saved_model_half_plus_two",
     ],
     force_without_xla_support_flag = False,
-    tags = ["no_rocm"],
 )
 
 saved_model_compile_aot(
@@ -398,8 +469,35 @@ saved_model_compile_aot(
         "//tensorflow/cc/saved_model:saved_model_half_plus_two",
     ],
     force_without_xla_support_flag = False,
-    tags = ["no_rocm"],
     variables_to_feed = "variable_x",
+)
+
+sh_test(
+    name = "large_matmul_no_multithread_test",
+    srcs = if_xla_available(
+        ["no_xla_multithread_symbols_test.sh"],
+        if_false = ["skip_test.sh"],
+    ),
+    args = if_xla_available(["$(location :aot_compiled_x_matmul_y_large.o)"]),
+    data = if_xla_available([":aot_compiled_x_matmul_y_large.o"]),
+    tags = ["no_windows"],  # TODO(b/171875345)
+)
+
+sh_test(
+    name = "large_matmul_yes_multithread_test",
+    srcs = if_xla_available(
+        [
+            "xla_multithread_symbols_test.sh",
+        ],
+        if_false = ["skip_test.sh"],
+    ),
+    args = if_xla_available(
+        ["$(location :aot_compiled_x_matmul_y_large_multithreaded.o)"],
+    ),
+    data = if_xla_available(
+        [":aot_compiled_x_matmul_y_large_multithreaded.o"],
+    ),
+    tags = ["no_windows"],  # TODO(b/171875345)
 )
 
 tf_cc_test(
@@ -407,14 +505,27 @@ tf_cc_test(
     srcs = if_xla_available([
         "aot_compiled_test.cc",
     ]),
-    tags = ["no_rocm"],
     deps = [
         "//tensorflow/core:test_main",
     ] + if_xla_available([
+        # LINT.IfChange
         ":aot_compiled_vars_and_arithmetic",
         ":aot_compiled_vars_and_arithmetic_frozen",
+        ":aot_compiled_x_matmul_y_large",
+        ":aot_compiled_x_matmul_y_large_multithreaded",
+        ":aot_compiled_x_matmul_y_small",
         ":aot_compiled_x_plus_y",
+        # LINT.ThenChange(//tensorflow/tools/pip_package/xla_build/pip_test/run_xla_aot_test.sh)
+        "//tensorflow/compiler/xla/service/cpu:runtime_matmul_acl",
         "//tensorflow/core:test",
         "//tensorflow/core/platform:logging",
+        "//third_party/eigen3",
     ]),
 )
+
+# copybara:uncomment_begin(google-only)
+# gensignature(
+#     name = "inspect_checkpoint.par_sig",
+#     srcs = [":inspect_checkpoint.par"],
+# )
+# copybara:uncomment_end

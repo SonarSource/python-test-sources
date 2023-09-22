@@ -18,10 +18,6 @@ NOTE: At this time, functions are experimental and subject to change!. Proceed
 with caution.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import collections
 import hashlib
 
@@ -42,8 +38,37 @@ from tensorflow.python.util import tf_contextlib
 from tensorflow.python.util import tf_inspect
 
 
+# TODO(b/136040013): Drop support for Defun.
 class Defun(object):
-  """Decorator used to define TensorFlow functions.
+  """Obsolete. Slated for deletion. Please use tf.function instead.
+
+  Known feature gaps while migrating to tf.function (could be outdated):
+  - tf.function doesn’t support Send/Recv capability since it doesn’t share
+    rendezvous with the main graph but always creates a new one.
+  - tf.function doesn’t support custom gradient function directly, instead you
+    need to define the function inside a tf.custom_gradient wrapper together
+    with the gradient function.
+  - Unlike Defun, Keras layers used inside a tf.function need to be created only
+    once to avoid variable recreation.
+  - Defun respects the device assignments and applies them to the function body
+    but tf.function needs it to be done manually.
+  - Defun might prune out unused ops automatically but tf.function doesn't.
+
+  Limitations of Defun:
+  - Original source locations are not preserved so errors do not include
+    full/valid stack traces.
+  - Only supports linear sequence of arguments and return values, putting the
+    burden on the caller to pack/unpack everything across a Defun boundary into
+    tuples (as opposed to passing list and dict-like structures directly).
+  - Does not support overloading or late-bound specializations.
+  - Has its own way for defining gradient overrides which does not follow
+    current conventions.
+  - Cannot support imperative control flow or automatic control dependencies.
+  - Does not reflect statefulness in the graph and has a calling convention that
+    differs from how more modern tools interact.
+  - Is only compatible with graph building mode.
+
+  Decorator used to define TensorFlow functions.
 
   Use this decorator to make a Python function usable directly as a TensorFlow
   function.
@@ -130,15 +155,15 @@ class Defun(object):
   def __call__(self, func):
     # Various sanity checks on the callable func.
     if not callable(func):
-      raise ValueError("function %s must be callable" % func)
+      raise ValueError(f"Function {func} must be a callable.")
 
     # Func should not use kwargs and defaults.
     argspec = tf_inspect.getargspec(func)
     if argspec.keywords or argspec.defaults:
       raise ValueError(
-          "function with argument defaults or keywords arguments are not"
-          " supported. {} has defaults {} and keywords {}.".format(
-              func, argspec.defaults, argspec.keywords))
+          "Functions with argument defaults or keywords arguments are not "
+          f"supported. {func} has defaults {argspec.defaults} and keywords "
+          f"{argspec.keywords}.")
 
     # Computes how many arguments 'func' has.
     min_args = len(argspec.args)
@@ -157,8 +182,10 @@ class Defun(object):
       num = len(self._input_types)
       if num < min_args or num > max_args:
         raise ValueError(
-            "The function has fewer arguments than the number of specified "
-            "input types.")
+            "The number of tf.function input types is not compatible with the "
+            f"allowed arguments of {func}. The tf.function have {num} input "
+            f"types, while the python function allows minimum {min_args} and "
+            f"maximum {max_args} arguments.")
       return _DefinedFunction(
           func,
           argnames,
@@ -194,6 +221,8 @@ class Defun(object):
 class _DefinedFunctionDeleter(object):
   """Unregister function from eager context."""
 
+  __slots__ = ["name"]
+
   def __init__(self, name):
     self.name = name
 
@@ -219,6 +248,7 @@ class _DefinedFunction(object):
   Attributes:
     name: The function name.
     definition: The definition of this function. A FunctionDef proto.
+    cached_definition: Same as definition. Needed to match AtomicFunction API.
     grad_func_name: If not None, the name of this function's gradient function.
     python_grad_func: A python callable implementing the gradient of
       the function python-side.
@@ -234,7 +264,7 @@ class _DefinedFunction(object):
                out_names=None,
                shape_func=None,
                capture_by_value=False,
-               whitelisted_stateful_ops=None,
+               allowlisted_stateful_ops=None,
                capture_resource_var_by_value=True,
                **kwargs):
     """Creates _DefinedFunction.
@@ -256,7 +286,7 @@ class _DefinedFunction(object):
         output shapes.
       capture_by_value: Boolean (defaults to False). If True, captured values
         will be copied into the function body.
-      whitelisted_stateful_ops: A set of ops that if stateful we ignore and
+      allowlisted_stateful_ops: A set of ops that if stateful we ignore and
         copy into the function body, when `capture_by_value` is True.
       capture_resource_var_by_value: Boolean (defaults to True). If False,
         captured resource variable returns the handle instead of value.
@@ -275,9 +305,9 @@ class _DefinedFunction(object):
     self._out_names = out_names
     self._shape_func = shape_func
     self._capture_by_value = capture_by_value
-    self._whitelisted_stateful_ops = whitelisted_stateful_ops
-    if self._whitelisted_stateful_ops is None:
-      self._whitelisted_stateful_ops = set()
+    self._allowlisted_stateful_ops = allowlisted_stateful_ops
+    if self._allowlisted_stateful_ops is None:
+      self._allowlisted_stateful_ops = set()
     self._capture_resource_var_by_value = capture_resource_var_by_value
     self._extra_kwargs = kwargs
     # Constructed only when C API is disabled, lazily
@@ -311,20 +341,25 @@ class _DefinedFunction(object):
     return self._func_name
 
   @property
+  def cached_definition(self):
+    return self.definition
+
+  @property
   def definition(self):
     """Function definition proto."""
     self._create_definition_if_needed()
     if self._c_func:
       with c_api_util.tf_buffer() as buf:
-        c_api.TF_FunctionToFunctionDef(self._c_func.func, buf)
-        fdef = function_pb2.FunctionDef()
-        proto_data = c_api.TF_GetBuffer(buf)
-        fdef.ParseFromString(compat.as_bytes(proto_data))
-        with ops.init_scope():
-          if context.executing_eagerly():
-            context.add_function(self._c_func.func)
-            self._function_deleter = _DefinedFunctionDeleter(
-                fdef.signature.name)
+        with self._c_func.get() as func:
+          c_api.TF_FunctionToFunctionDef(func, buf)
+          fdef = function_pb2.FunctionDef()
+          proto_data = c_api.TF_GetBuffer(buf)
+          fdef.ParseFromString(compat.as_bytes(proto_data))
+          with ops.init_scope():
+            if context.executing_eagerly():
+              context.add_c_function(func)
+              self._function_deleter = _DefinedFunctionDeleter(
+                  fdef.signature.name)
       return fdef
     return self._definition
 
@@ -387,13 +422,9 @@ class _DefinedFunction(object):
     variable_keys.extend(ops.GraphKeys._VARIABLE_COLLECTIONS)  # pylint: disable=protected-access
     variable_keys.append(vs._VARSTORE_KEY)  # pylint: disable=protected-access
 
-    collections_ref = {}
-    parent_collections_ref = ops.get_default_graph()._collections  # pylint: disable=protected-access
-    for key in variable_keys:
-      if key not in parent_collections_ref:
-        parent_collections_ref[key] = collections_ref[key] = []
-      else:
-        collections_ref[key] = parent_collections_ref[key]
+    parent_graph = ops.get_default_graph()
+    collections_ref = {
+        key: parent_graph.get_collection_ref(key) for key in variable_keys}
 
     temp_graph = func_graph_from_py_func(
         self._func,
@@ -403,7 +434,7 @@ class _DefinedFunction(object):
         self._capture_by_value,
         self._caller_device,
         collections_ref=collections_ref,
-        whitelisted_stateful_ops=self._whitelisted_stateful_ops,
+        allowlisted_stateful_ops=self._allowlisted_stateful_ops,
         capture_resource_var_by_value=self._capture_resource_var_by_value)
 
     self._extra_inputs = temp_graph.extra_inputs
@@ -420,6 +451,7 @@ class _DefinedFunction(object):
         base_func_name += ("_%s" % self._grad_func.name)
     kwargs_attr = _parse_kwargs_as_attrs(base_func_name, **self._extra_kwargs)
 
+    # FIXME(feyu): C API is always enabled now. The if-true branch never runs.
     if not temp_graph._c_graph:  # pylint: disable=protected-access
       # Build the FunctionDef
       self._definition = graph_to_function_def.graph_to_function_def(
@@ -451,19 +483,20 @@ class _DefinedFunction(object):
                       if self._out_names else [])
       description = self._func.__doc__ or None
       # pylint: disable=protected-access
-      c_func = c_api.TF_GraphToFunction_wrapper(
-          temp_graph._c_graph,
-          base_func_name,
-          self._func_name is None,  # append_hash_to_fn_name
-          None,  # opers
-          [t._as_tf_output() for t in temp_graph.inputs],
-          [t._as_tf_output() for t in temp_graph.outputs],
-          output_names,
-          [], # control_outputs
-          [], # control_output_names
-          None,  # opts
-          description)
-      self._c_func = c_api_util.ScopedTFFunction(c_func)
+      with temp_graph._c_graph.get() as c_graph:
+        c_func = c_api.TF_GraphToFunction_wrapper(
+            c_graph,
+            base_func_name,
+            self._func_name is None,  # append_hash_to_fn_name
+            None,  # opers
+            [t._as_tf_output() for t in temp_graph.inputs],
+            [t._as_tf_output() for t in temp_graph.outputs],
+            output_names,
+            [],  # control_outputs
+            [],  # control_output_names
+            None,  # opts
+            description)
+      self._c_func = c_api_util.ScopedTFFunction(c_func, base_func_name)
       # pylint: enable=protected-access
       self._set_c_attrs(kwargs_attr)
 
@@ -490,8 +523,9 @@ class _DefinedFunction(object):
       serialized = attr_value.SerializeToString()
       # TODO(skyewm): this creates and deletes a new TF_Status for every attr.
       # It might be worth creating a convenient way to re-use the same status.
-      c_api.TF_FunctionSetAttrValueProto(self._c_func.func, compat.as_str(name),
-                                         serialized)
+      with self._c_func.get() as func:
+        c_api.TF_FunctionSetAttrValueProto(func, compat.as_str(name),
+                                           serialized)
 
   def _create_hash_str(self, input_arg, output_arg, node_def):
     """Creates an 8-character string unique to this input.
@@ -553,7 +587,7 @@ class _DefinedFunction(object):
 
     # Ensures related sub-routines are defined in 'g', too.
     for f in self._sub_functions.values():
-      f.add_to_graph(g)
+      g._add_function_recursive(f)  # pylint: disable=protected-access
 
     # Adds its gradient function, too.
     if self._grad_func:
@@ -572,8 +606,9 @@ class _DefinedFunction(object):
     if self._shape_func is not None:
       shapes = self._shape_func(op)
       if len(shapes) != len(op.outputs):
-        raise ValueError("shape_func produced %d shapes for %d outputs" %
-                         (len(shapes), len(op.outputs)))
+        raise ValueError(f"shape_func {self._shape_func} produced "
+                         f"{len(shapes):d} shapes, which does not match "
+                         f"{len(op.outputs)} outputs.")
       for (t, shape) in zip(op.outputs, shapes):
         t.set_shape(shape)
     return ret
@@ -672,7 +707,7 @@ class _OverloadedFunction(object):
     for (i, x) in enumerate(args):
       x = ops.convert_to_tensor(x)
       if not isinstance(x, ops.Tensor):
-        raise ValueError("Expect a Tensor but get ", x)
+        raise ValueError(f"Expected a Tensor but got {x} with type {type(x)}.")
       input_types.append(x.dtype)
       args[i] = x
     return self.instantiate(input_types)(*args, **kwargs)
@@ -690,11 +725,11 @@ class _FuncGraph(ops.Graph):
   function argument and the caller passes in the captured tensor.
   """
 
-  def __init__(self, name, capture_by_value, whitelisted_stateful_ops,
+  def __init__(self, name, capture_by_value, allowlisted_stateful_ops,
                capture_resource_var_by_value, *args, **kwargs):
     super(_FuncGraph, self).__init__(*args, **kwargs)
     self._capture_by_value = capture_by_value
-    self._whitelisted_stateful_ops = whitelisted_stateful_ops
+    self._allowlisted_stateful_ops = allowlisted_stateful_ops
     self._capture_resource_var_by_value = capture_resource_var_by_value
     self._building_function = True
     self._outer_graph = ops.get_default_graph()
@@ -856,12 +891,14 @@ class _FuncGraph(ops.Graph):
       if handle_data:
         handle_data = handle_data.SerializeToString()
     else:
-      handle_data = c_api.GetHandleShapeAndType(tensor.graph._c_graph,
-                                                tensor._as_tf_output())
+      with tensor.graph._c_graph.get() as c_graph:
+        handle_data = c_api.GetHandleShapeAndType(c_graph,
+                                                  tensor._as_tf_output())
 
     if handle_data:
-      c_api.SetHandleShapeAndType(ph.graph._c_graph, ph._as_tf_output(),
-                                  compat.as_bytes(handle_data))
+      with ph.graph._c_graph.get() as c_graph:
+        c_api.SetHandleShapeAndType(c_graph, ph._as_tf_output(),
+                                    compat.as_bytes(handle_data))
     # pylint: enable=protected-access
     self.inputs.append(ph)
     self._captured[tensor.ref()] = ph
@@ -879,12 +916,12 @@ class _FuncGraph(ops.Graph):
   def _add_op_and_parents(self, op):
     # pylint: disable=protected-access
     op_def = graph_to_function_def._get_op_def(op)
-    if op._is_stateful and op not in self._whitelisted_stateful_ops:
-      raise ValueError("Cannot capture a stateful node (name:%s, type:%s) "
-                       "by value." % (op.name, op.type))
+    if op._is_stateful and op not in self._allowlisted_stateful_ops:
+      raise ValueError(f"Cannot capture a stateful node (name:{op.name}, "
+                       f"type:{op.type}) by value.")
     elif op.type in ("Placeholder", "PlaceholderV2"):
-      raise ValueError("Cannot capture a placeholder (name:%s, type:%s) "
-                       "by value." % (op.name, op.type))
+      raise ValueError(f"Cannot capture a placeholder (name:{op.name}, "
+                       f"type:{op.type}) by value.")
     # pylint: enable=protected-access
 
     captured_inputs = [self._add_tensor_and_parents(x) for x in op.inputs]
@@ -912,7 +949,7 @@ def func_graph_from_py_func(func,
                             container=None,
                             collections_ref=None,
                             arg_shapes=None,
-                            whitelisted_stateful_ops=None,
+                            allowlisted_stateful_ops=None,
                             capture_resource_var_by_value=True):
   """Returns a _FuncGraph generated from `func`.
 
@@ -931,7 +968,7 @@ def func_graph_from_py_func(func,
     collections_ref: A reference to a collections dict the _FuncGraph should
       use internally.
     arg_shapes: A sequence of the function's argument shapes.
-    whitelisted_stateful_ops: A set of ops that if stateful we ignore and
+    allowlisted_stateful_ops: A set of ops that if stateful we ignore and
       re-create.
     capture_resource_var_by_value: Boolean (defaults to True). If False,
       captured resource variable returns the handle instead of value.
@@ -944,7 +981,7 @@ def func_graph_from_py_func(func,
   """
   if not name:
     name = function_utils.get_func_name(func)
-  func_graph = _FuncGraph(name, capture_by_value, whitelisted_stateful_ops,
+  func_graph = _FuncGraph(name, capture_by_value, allowlisted_stateful_ops,
                           capture_resource_var_by_value)
 
   with func_graph.as_default(), ops.device(device):
@@ -983,7 +1020,7 @@ def func_graph_from_py_func(func,
       if not isinstance(outputs, (list, tuple)):
         outputs = (outputs,)
       if any(_ is None for _ in outputs):
-        raise ValueError("Function %s can not return None." % name)
+        raise ValueError(f"Function {name} can not return None.")
     # Ensures each output is a Tensor in the function graph.
     outputs = [ops.convert_to_tensor(t) for t in outputs]
     outputs = [func_graph.capture(t) if t.graph is not func_graph else t
@@ -1074,8 +1111,8 @@ def _call(sig, *inputs, **kwargs):
     ValueError: if the arguments are invalid.
   """
   if len(inputs) != len(sig.input_arg):
-    raise ValueError("Expected number of arguments: %d, received: %d" % (len(
-        sig.input_arg), len(inputs)))
+    raise ValueError(f"Expected {len(sig.input_arg):d} arguments, got "
+                     f"{len(inputs):d}.")
   name = kwargs.pop("name", None)
   g = ops.get_default_graph()
   func_name = sig.name
@@ -1125,7 +1162,7 @@ def _from_definition(fdef, grad_func=None):
   # pylint: disable=protected-access
   serialized = fdef.SerializeToString()
   c_func = c_api.TF_FunctionImportFunctionDef(serialized)
-  result._c_func = c_api_util.ScopedTFFunction(c_func)
+  result._c_func = c_api_util.ScopedTFFunction(c_func, func_name)
   result._extra_inputs = []
   result._op_def = fdef.signature
   # pylint: enable=protected-access
@@ -1157,11 +1194,11 @@ def from_library(lib):
   # Validate that all references function names have function defs
   for g in lib.gradient:
     if g.function_name not in funcs:
-      raise ValueError("FunctionDefLibrary missing '%s' FunctionDef\n%s" %
-                       (g.function_name, str(lib)))
+      raise ValueError(f"FunctionDefLibrary missing '{g.function_name}' "
+                       f"FunctionDef\n{lib}")
     if g.gradient_func not in funcs:
-      raise ValueError("FunctionDefLibrary missing '%s' FunctionDef\n%s" %
-                       (g.gradient_func, str(lib)))
+      raise ValueError(f"FunctionDefLibrary missing '{g.gradient_func}' "
+                       f"FunctionDef\n{lib}")
 
   # function name -> gradient function name
   func_to_grad = collections.defaultdict(lambda: None)
@@ -1178,7 +1215,7 @@ def from_library(lib):
   ]
   if not ready:
     raise ValueError(
-        "FunctionDefLibrary contains cyclic gradient functions!\n" + str(lib))
+        f"FunctionDefLibrary contains cyclic gradient functions!\n{lib}")
   # function name -> _DefinedFunction
   initialized = {}
 
@@ -1208,8 +1245,8 @@ def _get_experimental_kwarg_as_attr(attr_name, value):
   elif isinstance(value, str):
     return attr_value_pb2.AttrValue(s=compat.as_bytes(value))
   else:
-    raise ValueError("Unsupported attribute type for %s with type %s" %
-                     (attr_name, type(value)))
+    raise ValueError(f"Attribute {attr_name} must be bool, int, float, or "
+                     f"str. Got {type(value)}.")
 
 
 def _get_kwarg_as_str_attr(attr_name, value):
@@ -1217,8 +1254,7 @@ def _get_kwarg_as_str_attr(attr_name, value):
   if isinstance(value, str):
     return attr_value_pb2.AttrValue(s=compat.as_bytes(value))
   else:
-    raise ValueError("Unsupported attribute type for %s with type %s" %
-                     (attr_name, type(value)))
+    raise ValueError(f"Attribute {attr_name} must be str. Got {type(value)}.")
 
 
 def _parse_kwargs_as_attrs(func_name, **kwargs):
@@ -1258,7 +1294,7 @@ def _parse_kwargs_as_attrs(func_name, **kwargs):
       attrs[key] = _get_kwarg_as_str_attr(key, kwargs[key])
       del kwargs[key]
   if kwargs:
-    raise ValueError("Unknown keyword arguments: %s" % kwargs.keys())
+    raise ValueError(f"Unknown keyword arguments: {kwargs.keys()}.")
   return attrs
 
 
@@ -1311,7 +1347,10 @@ def get_extra_args():
 
 def _type_list_to_str(types):
   if any(_ not in _DTYPE_TO_STR for _ in types):
-    raise ValueError("Unsupported dtypes: %s" % types)
+    unsupported_types = [type_ for type_ in types if type_ not in _DTYPE_TO_STR]
+    raise ValueError(f"Unsupported dtypes {unsupported_types} in "
+                     "`types`. Supported dtypes are "
+                     f"{_DTYPE_TO_STR.keys()}.")
   return "".join(_DTYPE_TO_STR[_] for _ in types)
 
 
@@ -1337,15 +1376,7 @@ _DTYPE_TO_STR = {
     dtypes.qint16: "qi16",
     dtypes.quint16: "qu16",
     dtypes.qint32: "qi32",
-    dtypes.bfloat16: "b16"
+    dtypes.bfloat16: "b16",
+    dtypes.float8_e5m2: "f8e5m2",
+    dtypes.float8_e4m3fn: "f8e4m3fn"
 }
-
-
-def function_def_from_tf_function(c_func):
-  """Converts a SWIG-wrapped TF_Function* to a FunctionDef proto."""
-  with c_api_util.tf_buffer() as buf:
-    c_api.TF_FunctionToFunctionDef(c_func, buf)
-    data = c_api.TF_GetBuffer(buf)
-  fdef = function_pb2.FunctionDef()
-  fdef.ParseFromString(compat.as_bytes(data))
-  return fdef

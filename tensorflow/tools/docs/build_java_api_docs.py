@@ -1,4 +1,3 @@
-# Lint as: python3
 # Copyright 2018 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 """Generate Java reference docs for TensorFlow.org."""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import pathlib
 import shutil
 import subprocess
@@ -62,6 +57,13 @@ def main(unused_argv):
   shutil.copytree(SOURCE_PATH, merged_source / 'java')
 
   if FLAGS.gen_ops:
+    # `$ yes | configure`
+    yes = subprocess.Popen(['yes', ''], stdout=subprocess.PIPE)
+    configure = subprocess.Popen([TENSORFLOW_ROOT / 'configure'],
+                                 stdin=yes.stdout,
+                                 cwd=TENSORFLOW_ROOT)
+    configure.communicate()
+
     subprocess.check_call(
         ['bazel', 'build', '//tensorflow/java:java_op_gen_sources'],
         cwd=TENSORFLOW_ROOT)
