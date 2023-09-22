@@ -51,15 +51,18 @@ Or,
 
 Note these examples only show the first 50 bases to keep the output short.
 """
-
+from typing import Iterator
 
 from Bio.SeqRecord import SeqRecord
 from Bio.Sequencing import Phd
-from Bio.SeqIO import QualityIO
+
+from .QualityIO import _get_phred_quality
 from .Interfaces import SequenceWriter
+from .Interfaces import _TextIOSource
+from .Interfaces import _IOSource
 
 
-def PhdIterator(source):
+def PhdIterator(source: _TextIOSource) -> Iterator[SeqRecord]:
     """Return SeqRecord objects from a PHD file.
 
     Arguments:
@@ -100,7 +103,7 @@ def PhdIterator(source):
 class PhdWriter(SequenceWriter):
     """Class to write Phd format files."""
 
-    def __init__(self, handle):
+    def __init__(self, handle: _IOSource) -> None:
         """Initialize the class."""
         super().__init__(handle)
 
@@ -109,7 +112,7 @@ class PhdWriter(SequenceWriter):
         assert record.seq, "No sequence present in SeqRecord"
         # This method returns the 'phred_quality' scores or converted
         # 'solexa_quality' scores if present, else raises a value error
-        phred_qualities = QualityIO._get_phred_quality(record)
+        phred_qualities = _get_phred_quality(record)
         peak_locations = record.letter_annotations.get("peak_location")
         if len(record.seq) != len(phred_qualities):
             raise ValueError(
@@ -123,11 +126,11 @@ class PhdWriter(SequenceWriter):
                 )
         if None in phred_qualities:
             raise ValueError("A quality value of None was found")
-        if record.description.startswith("%s " % record.id):
+        if record.description.startswith(f"{record.id} "):
             title = record.description
         else:
-            title = "%s %s" % (record.id, record.description)
-        self.handle.write("BEGIN_SEQUENCE %s\nBEGIN_COMMENT\n" % self.clean(title))
+            title = f"{record.id} {record.description}"
+        self.handle.write(f"BEGIN_SEQUENCE {self.clean(title)}\nBEGIN_COMMENT\n")
         for annot in [k.lower() for k in Phd.CKEYWORDS]:
             value = None
             if annot == "trim":
@@ -135,11 +138,11 @@ class PhdWriter(SequenceWriter):
                     value = "%s %s %.4f" % record.annotations["trim"]
             elif annot == "trace_peak_area_ratio":
                 if record.annotations.get("trace_peak_area_ratio"):
-                    value = "%.4f" % record.annotations["trace_peak_area_ratio"]
+                    value = f"{record.annotations['trace_peak_area_ratio']:.4f}"
             else:
                 value = record.annotations.get(annot)
             if value or value == 0:
-                self.handle.write("%s: %s\n" % (annot.upper(), value))
+                self.handle.write(f"{annot.upper()}: {value}\n")
 
         self.handle.write("END_COMMENT\nBEGIN_DNA\n")
         for i, site in enumerate(record.seq):

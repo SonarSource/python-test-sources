@@ -29,7 +29,7 @@ Direct MSMS interface, typical use::
     from Bio.PDB.ResidueDepth import get_surface
     surface = get_surface(model)
 
-The surface is a Numeric array with all the surface vertices.
+The surface is a NumPy array with all the surface vertices.
 
 Distance to surface::
 
@@ -50,13 +50,12 @@ in a residue)::
 
 """
 
-
 import os
+import subprocess
 import tempfile
 import warnings
-import subprocess
 
-import numpy
+import numpy as np
 
 from Bio.PDB import PDBParser
 from Bio.PDB import Selection
@@ -64,18 +63,7 @@ from Bio.PDB.AbstractPropertyMap import AbstractPropertyMap
 from Bio.PDB.Polypeptide import is_aa
 
 from Bio import BiopythonWarning
-from Bio import BiopythonDeprecationWarning
 
-# PDB_TO_XYZR is a BASH script and will not run on Windows
-# Since it only reads atmtypenumbers to a mapping structure we can replicate
-# that functionality here and avoid this dependency altogether.
-#
-# Description of PDB_TO_XYZR
-# Maps residue type and atom name pairs into Connolly ".atm" numeric codes
-#  as used in MS and AMS, and into actual radius values
-#
-# In case of missing radius, use 0.01
-#
 # Table 1: Atom Type to radius
 _atomic_radii = {
     #   atom num dist  Rexplicit Runited-atom
@@ -135,7 +123,7 @@ def _get_atom_radius(atom, rtype="united"):
         typekey = 2
     else:
         raise ValueError(
-            "Radius type (%r) not understood. Must be 'explicit' or 'united'" % rtype
+            f"Radius type ({rtype!r}) not understood. Must be 'explicit' or 'united'"
         )
 
     resname = atom.parent.resname
@@ -304,7 +292,7 @@ def _get_atom_radius(atom, rtype="united"):
         return _atomic_radii[2][typekey]
     elif resname == "VAL" and at_name in {"CG1", "CG2"}:
         return _atomic_radii[9][typekey]
-    elif at_name in {"CD", "CD"}:
+    elif at_name == "CD":
         return _atomic_radii[8][typekey]
     # Co-factors, and other weirdos
     elif (
@@ -505,70 +493,72 @@ def _get_atom_radius(atom, rtype="united"):
 
 
 def _read_vertex_array(filename):
-    """Read the vertex list into a Numeric array (PRIVATE)."""
+    """Read the vertex list into a NumPy array (PRIVATE)."""
     with open(filename) as fp:
         vertex_list = []
-        for l in fp:
-            sl = l.split()
+        for line in fp:
+            sl = line.split()
             if len(sl) != 9:
                 # skip header
                 continue
             vl = [float(x) for x in sl[0:3]]
             vertex_list.append(vl)
-    return numpy.array(vertex_list)
+    return np.array(vertex_list)
 
 
-def get_surface(model, PDB_TO_XYZR=None, MSMS="msms"):
+def get_surface(model, MSMS="msms"):
     """Represent molecular surface as a vertex list array.
 
-    Return a Numpy array that represents the vertex list of the
+    Return a NumPy array that represents the vertex list of the
     molecular surface.
 
     Arguments:
-     - PDB_TO_XYZR - deprecated, ignore this.
+     - model - BioPython PDB model object (used to get atoms for input model)
      - MSMS - msms executable (used as argument to subprocess.call)
 
     """
-    # Issue warning if PDB_TO_XYZR is given
-    if PDB_TO_XYZR is not None:
-        warnings.warn(
-            "PDB_TO_XYZR argument will be deprecated soon in favor of an internal "
-            "mapping algorithm.",
-            BiopythonDeprecationWarning,
-        )
-
     # Replace pdb_to_xyzr
     # Make x,y,z,radius file
     atom_list = Selection.unfold_entities(model, "A")
 
-    xyz_tmp = tempfile.mktemp()
+    xyz_tmp = tempfile.NamedTemporaryFile(delete=False).name
     with open(xyz_tmp, "w") as pdb_to_xyzr:
         for atom in atom_list:
             x, y, z = atom.coord
             radius = _get_atom_radius(atom, rtype="united")
             pdb_to_xyzr.write(f"{x:6.3f}\t{y:6.3f}\t{z:6.3f}\t{radius:1.2f}\n")
 
-    # make surface
-    surface_tmp = tempfile.mktemp()
-    MSMS = MSMS + " -probe_radius 1.5 -if %s -of %s > " + tempfile.mktemp()
+    # Make surface
+    surface_tmp = tempfile.NamedTemporaryFile(delete=False).name
+    msms_tmp = tempfile.NamedTemporaryFile(delete=False).name
+    MSMS = MSMS + " -probe_radius 1.5 -if %s -of %s > " + msms_tmp
     make_surface = MSMS % (xyz_tmp, surface_tmp)
     subprocess.call(make_surface, shell=True)
+    face_file = surface_tmp + ".face"
     surface_file = surface_tmp + ".vert"
     if not os.path.isfile(surface_file):
         raise RuntimeError(
-            "Failed to generate surface file using command:\n%s" % make_surface
+            f"Failed to generate surface file using command:\n{make_surface}"
         )
 
-    # read surface vertices from vertex file
+    # Read surface vertices from vertex file
     surface = _read_vertex_array(surface_file)
+
+    # Remove temporary files
+    for fn in [xyz_tmp, surface_tmp, msms_tmp, face_file, surface_file]:
+        try:
+            os.remove(fn)
+        except OSError:
+            pass
+
     return surface
 
 
 def min_dist(coord, surface):
     """Return minimum distance between coord and surface."""
     d = surface - coord
-    d2 = numpy.sum(d * d, 1)
-    return numpy.sqrt(min(d2))
+    d2 = np.sum(d * d, 1)
+    return np.sqrt(min(d2))
 
 
 def residue_depth(residue, surface):
@@ -598,15 +588,10 @@ def ca_depth(residue, surface):
 class ResidueDepth(AbstractPropertyMap):
     """Calculate residue and CA depth for all residues."""
 
-    def __init__(self, model, pdb_file=None):
+    def __init__(self, model, msms_exec=None):
         """Initialize the class."""
-        # Issue warning if pdb_file is given
-        if pdb_file is not None:
-            warnings.warn(
-                "ResidueDepth no longer requires a pdb file. This argument will be "
-                "removed in a future release of Biopython.",
-                BiopythonDeprecationWarning,
-            )
+        if msms_exec is None:
+            msms_exec = "msms"
 
         depth_dict = {}
         depth_list = []
@@ -614,7 +599,7 @@ class ResidueDepth(AbstractPropertyMap):
         # get_residue
         residue_list = Selection.unfold_entities(model, "R")
         # make surface from PDB file using MSMS
-        surface = get_surface(model)
+        surface = get_surface(model, MSMS=msms_exec)
         # calculate rdepth for each residue
         for residue in residue_list:
             if not is_aa(residue):

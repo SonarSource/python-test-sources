@@ -17,15 +17,10 @@ Functions:
 """
 
 
-from Bio.SeqFeature import (
-    SeqFeature,
-    FeatureLocation,
-    ExactPosition,
-    BeforePosition,
-    AfterPosition,
-    UncertainPosition,
-    UnknownPosition,
-)
+import io
+import re
+
+from Bio.SeqFeature import SeqFeature, SimpleLocation, Position
 
 
 class SwissProtParserError(ValueError):
@@ -50,7 +45,8 @@ class Record:
      - sequence_update   A tuple of (date, release).
      - annotation_update A tuple of (date, release).
      - description       Free-format description.
-     - gene_name         Gene name.  See userman.txt for description.
+     - gene_name         A list of dictionaries with keys 'Name', 'Synonyms',
+                         'OrderedLocusNames' and 'ORFNames'.
      - organism          The source of the sequence.
      - organelle         The origin of the sequence.
      - organism_classification  The taxonomy classification.  List of strings.
@@ -72,21 +68,21 @@ class Record:
     Examples
     --------
     >>> from Bio import SwissProt
-    >>> example_filename = "SwissProt/sp008"
+    >>> example_filename = "SwissProt/P68308.txt"
     >>> with open(example_filename) as handle:
     ...     records = SwissProt.parse(handle)
     ...     for record in records:
     ...         print(record.entry_name)
-    ...         print(",".join(record.accessions))
+    ...         print(record.accessions)
     ...         print(record.keywords)
-    ...         print(repr(record.organism))
+    ...         print(record.organism)
     ...         print(record.sequence[:20] + "...")
     ...
-    1A02_HUMAN
-    P01892,P06338,P30514,P30444,P30445,P30446,Q29680,Q29899,Q95352,Q29837,Q95380
-    ['MHC I', 'Transmembrane', 'Glycoprotein', 'Signal', 'Polymorphism', '3D-structure']
-    'Homo sapiens (Human).'
-    MAVMAPRTLVLLLSGALALT...
+    NU3M_BALPH
+    ['P68308', 'P24973']
+    ['Electron transport', 'Membrane', 'Mitochondrion', 'Mitochondrion inner membrane', 'NAD', 'Respiratory chain', 'Translocase', 'Transmembrane', 'Transmembrane helix', 'Transport', 'Ubiquinone']
+    Balaenoptera physalus (Fin whale) (Balaena physalus).
+    MNLLLTLLTNTTLALLLVFI...
 
     """
 
@@ -103,7 +99,7 @@ class Record:
         self.annotation_update = None
 
         self.description = []
-        self.gene_name = ""
+        self.gene_name = []
         self.organism = []
         self.organelle = ""
         self.organism_classification = []
@@ -154,7 +150,7 @@ class FeatureTable(SeqFeature):
     attributes are used as follows:
 
      - ``location``: location of the feature on the canonical or isoform
-       sequence; the location is stored as an instance of FeatureLocation,
+       sequence; the location is stored as an instance of SimpleLocation,
        defined in Bio.SeqFeature, with the ref attribute set to the isoform
        ID referring to the canonical or isoform sequence on which the feature
        is defined
@@ -216,7 +212,7 @@ class FeatureTable(SeqFeature):
           frameshifting
         - ZN_FING:  zinc finger region
 
-     - qualifiers   A dictionary of additional information, which may include
+     - ``qualifiers``: a dictionary of additional information, which may include
        the feature evidence and free-text notes. While SwissProt includes the
        feature identifier code (FTId) as a qualifier, it is stored as the
        attribute ID of the FeatureTable object.
@@ -273,11 +269,14 @@ def read(source):
 def _open(source):
     try:
         handle = open(source)
+        return handle
     except TypeError:
         handle = source
-        if handle.read(0) != "":
-            raise ValueError("SwissProt files must be opened in text mode.") from None
-    return handle
+        if handle.read(0) == "":
+            # handle is text; assume the encoding is compatible with ASCII
+            return handle
+        # handle is binary; SwissProt encoding is always ASCII
+        return io.TextIOWrapper(handle, encoding="ASCII")
 
 
 def _read(handle):
@@ -306,9 +305,12 @@ def _read(handle):
         elif key == "DE":
             record.description.append(value.strip())
         elif key == "GN":
-            if record.gene_name:
-                record.gene_name += " "
-            record.gene_name += value
+            if value == "and":
+                record.gene_name.append("")
+            else:
+                if len(record.gene_name) == 0:
+                    record.gene_name.append("")
+                record.gene_name[-1] += value + " "
         elif key == "OS":
             record.organism.append(value)
         elif key == "OG":
@@ -366,12 +368,13 @@ def _read(handle):
             _read_ft(record, line)
         elif key == "SQ":
             cols = value.split()
-            assert len(cols) == 7, "I don't understand SQ line %s" % line
+            assert len(cols) == 7, f"I don't understand SQ line {line}"
             # Do more checking here?
             record.seqinfo = int(cols[1]), int(cols[3]), cols[5]
         elif key == "  ":
             _sequence_lines.append(value.replace(" ", "").rstrip())
         elif key == "//":
+            _read_gn(record)
             # Join multiline data into one string
             record.description = " ".join(record.description)
             record.organism = " ".join(record.organism)
@@ -403,9 +406,25 @@ def _read(handle):
             # **HA SAM; Annotated by PicoHamap 1.88; MF_01138.1; 09-NOV-2003.
             pass
         else:
-            raise SwissProtParserError("Unknown keyword '%s' found" % key, line=line)
+            raise SwissProtParserError(f"Unknown keyword {key!r} found", line=line)
     if record:
         raise ValueError("Unexpected end of stream.")
+
+
+def _read_gn(record):
+    for i, text in enumerate(record.gene_name):
+        tokens = text.rstrip("; ").split("; ")
+        gene_name = {}
+        for token in tokens:
+            # value may include an equals sign, e.g.
+            # GN   Name=Lacc1=POX4 {ECO:0000313|EMBL:KDQ27217.1};
+            key, value = token.strip().split("=", 1)
+            if key == "Name":
+                gene_name["Name"] = value
+            else:
+                assert key in ("Synonyms", "OrderedLocusNames", "ORFNames")
+                gene_name[key] = value.split(", ")
+        record.gene_name[i] = gene_name
 
 
 def _read_id(record, line):
@@ -430,13 +449,13 @@ def _read_id(record, line):
     # check if the data class is one of the allowed values
     allowed = ("STANDARD", "PRELIMINARY", "IPI", "Reviewed", "Unreviewed")
     if record.data_class not in allowed:
-        message = "Unrecognized data class '%s'" % record.data_class
+        message = f"Unrecognized data class {record.data_class!r}"
         raise SwissProtParserError(message, line=line)
 
     # molecule_type should be 'PRT' for PRoTein
     # Note that has been removed in recent releases (set to None)
     if record.molecule_type not in (None, "PRT"):
-        message = "Unrecognized molecule type '%s'" % record.molecule_type
+        message = f"Unrecognized molecule type {record.molecule_type!r}"
         raise SwissProtParserError(message, line=line)
 
 
@@ -469,7 +488,7 @@ def _read_dt(record, line):
         for index in range(len(uprcols)):
             if "REL." in uprcols[index]:
                 rel_index = index
-        assert rel_index >= 0, "Could not find Rel. in DT line: %s" % line
+        assert rel_index >= 0, f"Could not find Rel. in DT line: {line}"
         version_index = rel_index + 1
         # get the version information
         str_version = cols[version_index].rstrip(",")
@@ -527,7 +546,7 @@ def _read_dt(record, line):
         date = cols[0].rstrip(",")
 
         # Re-use the historical property names, even though
-        # the meaning has changed slighty:
+        # the meaning has changed slightly:
         if "INTEGRATED" in uprline:
             record.created = date, version
         elif "SEQUENCE VERSION" in uprline:
@@ -560,13 +579,13 @@ def _read_ox(record, line):
         ids = line[5:].rstrip().rstrip(";")
     else:
         descr, ids = line[5:].rstrip().rstrip(";").split("=")
-        assert descr == "NCBI_TaxID", "Unexpected taxonomy type %s" % descr
+        assert descr == "NCBI_TaxID", f"Unexpected taxonomy type {descr}"
     record.taxonomy_id.extend(ids.split(", "))
 
 
 def _read_oh(record, line):
     # Line type OH (Organism Host) for viral hosts
-    assert line[5:].startswith("NCBI_TaxID="), "Unexpected %s" % line
+    assert line[5:].startswith("NCBI_TaxID="), f"Unexpected {line}"
     line = line[16:].rstrip()
     assert line[-1] == "." and line.count(";") == 1, line
     taxid, name = line[:-1].split(";")
@@ -581,15 +600,13 @@ def _read_rn(reference, rn):
     # RN   [1] {ECO:0000313|EMBL:AEX14553.1}
     words = rn.split(None, 1)
     number = words[0]
-    assert number.startswith("[") and number.endswith("]"), (
-        "Missing brackets %s" % number
-    )
+    assert number.startswith("[") and number.endswith("]"), f"Missing brackets {number}"
     reference.number = int(number[1:-1])
     if len(words) > 1:
         evidence = words[1]
-        assert evidence.startswith("{") and evidence.endswith("}"), (
-            "Missing braces %s" % evidence
-        )
+        assert evidence.startswith("{") and evidence.endswith(
+            "}"
+        ), f"Missing braces {evidence}"
         reference.evidence = evidence[1:-1].split("|")
 
 
@@ -610,7 +627,7 @@ def _read_rc(reference, value):
             reference.comments.append(comment)
         else:
             comment = reference.comments[-1]
-            comment = "%s %s" % (comment, col)
+            comment = f"{comment} {col}"
             reference.comments[-1] = comment
     return unread
 
@@ -643,7 +660,7 @@ def _read_rx(reference, value):
             if len(x) != 2 or x == ("DOI", "DOI"):
                 warn = True
                 break
-            assert len(x) == 2, "I don't understand RX line %s" % value
+            assert len(x) == 2, f"I don't understand RX line {value}"
             reference.references.append((x[0], x[1].rstrip(";")))
     # otherwise we assume we have the type 'RX   MEDLINE; 85132727.'
     else:
@@ -657,7 +674,7 @@ def _read_rx(reference, value):
         import warnings
         from Bio import BiopythonParserWarning
 
-        warnings.warn("Possibly corrupt RX line %r" % value, BiopythonParserWarning)
+        warnings.warn(f"Possibly corrupt RX line {value!r}", BiopythonParserWarning)
 
 
 def _read_cc(record, line):
@@ -693,11 +710,11 @@ def _read_kw(record, value):
     # KW   Monooxygenase {ECO:0000313|EMBL:AEX14553.1};
     # KW   Oxidoreductase {ECO:0000313|EMBL:AEX14553.1}.
     # For now to match the XML parser, drop the evidence codes.
-    for value in value.rstrip(";.").split("; "):
-        if value.endswith("}"):
+    for val in value.rstrip(";.").split("; "):
+        if val.endswith("}"):
             # Discard the evidence code
-            value = value.rsplit("{", 1)[0]
-        record.keywords.append(value.strip())
+            val = val.rsplit("{", 1)[0]
+        record.keywords.append(val.strip())
 
 
 def _read_ft(record, line):
@@ -721,32 +738,12 @@ def _read_ft(record, line):
             isoform_id = None
             description = line[34:75].rstrip()
             qualifiers = {"description": description}
-        if from_res == "?":
-            from_res = UnknownPosition()
-        elif from_res.startswith("?"):
-            position = int(from_res[1:]) - 1  # Python zero-based counting
-            from_res = UncertainPosition(position)
-        elif from_res.startswith("<"):
-            position = int(from_res[1:]) - 1  # Python zero-based counting
-            from_res = BeforePosition(position)
-        else:
-            position = int(from_res) - 1  # Python zero-based counting
-            from_res = ExactPosition(position)
+        from_res = Position.fromstring(from_res, -1)
         if to_res == "":
-            position = from_res + 1
-            to_res = ExactPosition(position)
-        elif to_res == "?":
-            to_res = UnknownPosition()
-        elif to_res.startswith("?"):
-            position = int(to_res[1:])
-            to_res = UncertainPosition(position)
-        elif to_res.startswith(">"):
-            position = int(to_res[1:])
-            to_res = AfterPosition(position)
+            to_res = from_res + 1
         else:
-            position = int(to_res)
-            to_res = ExactPosition(position)
-        location = FeatureLocation(from_res, to_res, ref=isoform_id)
+            to_res = Position.fromstring(to_res)
+        location = SimpleLocation(from_res, to_res, ref=isoform_id)
         feature = FeatureTable(
             location=location, type=name, id=None, qualifiers=qualifiers
         )
@@ -763,9 +760,9 @@ def _read_ft(record, line):
         # this line is a continuation of the description of the previous feature
         old_description = feature.qualifiers["description"]
         if old_description.endswith("-"):
-            description = "%s%s" % (old_description, description)
+            description = f"{old_description}{description}"
         else:
-            description = "%s %s" % (old_description, description)
+            description = f"{old_description} {description}"
 
         if feature.type in ("VARSPLIC", "VAR_SEQ"):  # special case
             # Remove unwanted spaces in sequences.
@@ -793,32 +790,26 @@ def _read_ft(record, line):
         feature.qualifiers["description"] = description
     else:  # new-style FT line
         value = line[21:].rstrip()
-        if value.startswith("/id="):
-            qualifier_type = "id"
-            value = value[4:]
-            assert value.startswith('"')
-            assert value.endswith('"')
-            feature.id = value[1:-1]
-            return
-        elif value.startswith("/evidence="):
-            value = value[10:]
-            assert value.startswith('"')
-            if value.endswith('"'):
-                value = value[1:-1]
-            else:  # continues on the next line
-                value = value[1:]
-            assert "evidence" not in feature.qualifiers
-            feature.qualifiers["evidence"] = value
-            return
-        elif value.startswith("/note="):
-            value = value[6:]
-            assert value.startswith('"')
-            if value.endswith('"'):
-                value = value[1:-1]
-            else:  # continues on the next line
-                value = value[1:]
-            assert "note" not in feature.qualifiers
-            feature.qualifiers["note"] = value
+        match = re.match(r"^/([a-z_]+)=", value)
+        if match:
+            qualifier_type = match.group(1)
+            value = value[len(match.group(0)) :]
+            if not value.startswith('"'):
+                raise ValueError("Missing starting quote in feature")
+            if qualifier_type == "id":
+                if not value.endswith('"'):
+                    raise ValueError("Missing closing quote for id")
+                feature.id = value[1:-1]
+            else:
+                if value.endswith('"'):
+                    value = value[1:-1]
+                else:  # continues on the next line
+                    value = value[1:]
+                if qualifier_type in feature.qualifiers:
+                    raise ValueError(
+                        f"Feature qualifier {qualifier_type!r} already exists for feature"
+                    )
+                feature.qualifiers[qualifier_type] = value
             return
         # this line is a continuation of the description of the previous feature
         keys = list(feature.qualifiers.keys())
@@ -826,9 +817,9 @@ def _read_ft(record, line):
         description = value.rstrip('"')
         old_description = feature.qualifiers[key]
         if key == "evidence" or old_description.endswith("-"):
-            description = "%s%s" % (old_description, description)
+            description = f"{old_description}{description}"
         else:
-            description = "%s %s" % (old_description, description)
+            description = f"{old_description} {description}"
         if feature.type == "VAR_SEQ":  # see VARSPLIC above
             try:
                 first_seq, second_seq = description.split(" -> ")

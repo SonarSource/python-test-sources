@@ -9,7 +9,7 @@
 """Fast atom neighbor lookup using a KD tree (implemented in C)."""
 
 
-import numpy
+import numpy as np
 
 from Bio.PDB.PDBExceptions import PDBException
 from Bio.PDB.Selection import unfold_entities, entity_levels, uniqueify
@@ -44,7 +44,7 @@ class NeighborSearch:
         # get the coordinates
         coord_list = [a.get_coord() for a in atom_list]
         # to Nx3 array of type float
-        self.coords = numpy.array(coord_list, dtype="d")
+        self.coords = np.array(coord_list, dtype="d")
         assert bucket_size > 1
         assert self.coords.shape[1] == 3
         self.kdt = KDTree(self.coords, bucket_size)
@@ -81,14 +81,14 @@ class NeighborSearch:
         M=models, S=structures).
 
         Arguments:
-         - center - Numeric array
+         - center - NumPy array
          - radius - float
          - level - char (A, R, C, M, S)
 
         """
         if level not in entity_levels:
-            raise PDBException("%s: Unknown level" % level)
-        center = numpy.require(center, dtype="d", requirements="C")
+            raise PDBException(f"{level}: Unknown level")
+        center = np.require(center, dtype="d", requirements="C")
         if center.shape != (3,):
             raise Exception("Expected a 3-dimensional NumPy array")
         points = self.kdt.search(center, radius)
@@ -110,7 +110,7 @@ class NeighborSearch:
 
         """
         if level not in entity_levels:
-            raise PDBException("%s: Unknown level" % level)
+            raise PDBException(f"{level}: Unknown level")
         neighbors = self.kdt.neighbor_search(radius)
         atom_list = self.atom_list
         atom_pair_list = []
@@ -124,29 +124,7 @@ class NeighborSearch:
             # return atoms
             return atom_pair_list
         next_level_pair_list = atom_pair_list
-        for l in ["R", "C", "M", "S"]:
+        for next_level in ["R", "C", "M", "S"]:
             next_level_pair_list = self._get_unique_parent_pairs(next_level_pair_list)
-            if level == l:
+            if level == next_level:
                 return next_level_pair_list
-
-
-if __name__ == "__main__":
-
-    from numpy.random import random
-
-    class Atom:
-        """Define atom class for testing."""
-
-        def __init__(self):
-            """Initialize the class."""
-            self.coord = 100 * random(3)
-
-        def get_coord(self):
-            """Return coordinates."""
-            return self.coord
-
-    for i in range(0, 20):
-        # Make a list of 100 atoms
-        al = [Atom() for j in range(100)]
-        ns = NeighborSearch(al)
-        print("Found %i" % len(ns.search_all(5.0)))

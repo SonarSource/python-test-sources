@@ -22,9 +22,9 @@ from Bio import File
 def _get_journal(inl):
     # JRNL        AUTH   L.CHEN,M.DOI,F.S.MATHEWS,A.Y.CHISTOSERDOV,           2BBK   7
     journal = ""
-    for l in inl:
-        if re.search(r"\AJRNL", l):
-            journal += l[19:72].lower()
+    for line in inl:
+        if re.search(r"\AJRNL", line):
+            journal += line[19:72].lower()
     journal = re.sub(r"\s\s+", " ", journal)
     return journal
 
@@ -34,16 +34,16 @@ def _get_references(inl):
     # REMARK   1  AUTH   W.BODE,E.PAPAMOKOS,D.MUSIL                           1CSE  12
     references = []
     actref = ""
-    for l in inl:
-        if re.search(r"\AREMARK   1", l):
-            if re.search(r"\AREMARK   1 REFERENCE", l):
+    for line in inl:
+        if re.search(r"\AREMARK   1", line):
+            if re.search(r"\AREMARK   1 REFERENCE", line):
                 if actref != "":
                     actref = re.sub(r"\s\s+", " ", actref)
                     if actref != " ":
                         references.append(actref)
                     actref = ""
             else:
-                actref += l[19:72].lower()
+                actref += line[19:72].lower()
 
     if actref != "":
         actref = re.sub(r"\s\s+", " ", actref)
@@ -121,12 +121,12 @@ def parse_pdb_header(infile):
     """
     header = []
     with File.as_handle(infile) as f:
-        for l in f:
-            record_type = l[0:6]
+        for line in f:
+            record_type = line[0:6]
             if record_type in ("ATOM  ", "HETATM", "MODEL "):
                 break
             else:
-                header.append(l)
+                header.append(line)
     return _parse_pdb_header_list(header)
 
 
@@ -150,7 +150,7 @@ def _parse_remark_465(line):
         (\d+\s[\sA-Z][\sA-Z][A-Z] |   # Either model number + residue name
             [A-Z]{1,3})               # Or only residue name with 1 (RNA) to 3 letters
         \s ([A-Za-z0-9])              # A single character chain
-        \s+(\d+[A-Za-z]?)$            # Residue number: A digit followed by an optional
+        \s+(-?\d+[A-Za-z]?)$          # Residue number: A digit followed by an optional
                                       # insertion code (Hetero-flags make no sense in
                                       # context with missing res)
         """,
@@ -186,7 +186,7 @@ def _parse_pdb_header_list(header):
         "deposition_date": "1909-01-08",
         "release_date": "1909-01-08",
         "structure_method": "unknown",
-        "resolution": 0.0,
+        "resolution": None,
         "structure_reference": "unknown",
         "journal_reference": "unknown",
         "author": "",
@@ -322,6 +322,7 @@ def _parse_pdb_header_list(header):
             # print(key)
             pass
     if pdbh_dict["structure_method"] == "unknown":
-        if pdbh_dict["resolution"] > 0.0:
+        res = pdbh_dict["resolution"]
+        if res is not None and res > 0.0:
             pdbh_dict["structure_method"] = "x-ray diffraction"
     return pdbh_dict

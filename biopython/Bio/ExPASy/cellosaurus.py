@@ -18,20 +18,30 @@ Classes:
 
 Examples
 --------
-You need to download the Cellosaurus database for this examples to
-run, e.g. from ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
+This example downloads the Cellosaurus database and parses it. Note that
+urlopen returns a stream of bytes, while the parser expects a stream of plain
+string, so we use TextIOWrapper to convert bytes to string using the UTF-8
+encoding. This is not needed if you download the cellosaurus.txt file in
+advance and open it (see the comment below).
 
-    >> from Bio.ExPASy import cellosaurus
-    >> with open('cellosaurus.txt') as handle:
-    ...    records = cellosaurus.parse(handle)
-    ...    for record in records:
-    ...        if 'Homo sapiens' in record['OX'][0]:
-    ...            print(record['ID'])
+    >>> from urllib.request import urlopen
+    >>> from io import TextIOWrapper
+    >>> from Bio.ExPASy import cellosaurus
+    >>> url = "ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt"
+    >>> bytestream = urlopen(url)
+    >>> textstream = TextIOWrapper(bytestream, "UTF-8")
+    >>> # alternatively, use
+    >>> # textstream = open("cellosaurus.txt")
+    >>> # if you downloaded the cellosaurus.txt file in advance.
+    >>> records = cellosaurus.parse(textstream)
+    >>> for record in records:
+    ...     if 'Homo sapiens' in record['OX'][0]:
+    ...         print(record['ID'])  # doctest:+ELLIPSIS
     ...
     #15310-LN
     #W7079
     (L)PC6
-    00136
+    0.5alpha
     ...
 
 """
@@ -119,15 +129,17 @@ class Record(dict):
         self["CA"] = ""
 
     def __repr__(self):
+        """Return the canonical string representation of the Record object."""
         if self["ID"]:
             if self["AC"]:
-                return "%s (%s, %s)" % (self.__class__.__name__, self["ID"], self["AC"])
+                return f"{self.__class__.__name__} ({self['ID']}, {self['AC']})"
             else:
-                return "%s (%s)" % (self.__class__.__name__, self["ID"])
+                return f"{self.__class__.__name__} ({self['ID']})"
         else:
-            return "%s ( )" % (self.__class__.__name__)
+            return f"{self.__class__.__name__} ( )"
 
     def __str__(self):
+        """Return a readable string representation of the Record object."""
         output = "ID: " + self["ID"]
         output += " AC: " + self["AC"]
         output += " AS: " + self["AS"]
@@ -186,3 +198,9 @@ def __read(handle):
                 continue
     if record:
         raise ValueError("Unexpected end of stream")
+
+
+if __name__ == "__main__":
+    from Bio._utils import run_doctest
+
+    run_doctest()
