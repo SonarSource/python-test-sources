@@ -13,6 +13,7 @@
 
 #include "utils/clustering.hpp"
 #include "utils/matrix.hpp"
+#include "utils/mmap_hashmap.hpp"
 #include "utils/tfidf.hpp"
 #include "utils/parallel.hpp"
 #include "xmc/inference.hpp"
@@ -35,6 +36,17 @@ extern "C" {
         pecos::layer_type_t type = static_cast<pecos::layer_type_t>(weight_matrix_type);
         auto model = new pecos::HierarchicalMLModel(model_path, type);
         return static_cast<void*>(model);
+    }
+
+    void* c_xlinear_load_mmap_model_from_disk(const char* model_path, const bool lazy_load) {
+        auto model = new pecos::HierarchicalMLModel(model_path, lazy_load);
+        return static_cast<void*>(model);
+    }
+
+    void c_xlinear_compile_mmap_model(const char* model_path, const char* mmap_model_path) {
+        // Only implemented for bin_search_chunked
+        auto model = new pecos::HierarchicalMLModel(model_path, pecos::layer_type_t::LAYER_TYPE_BINARY_SEARCH_CHUNKED);
+        model->save_mmap(mmap_model_path);
     }
 
     void c_xlinear_destruct_model(void* ptr) {
@@ -234,38 +246,37 @@ extern "C" {
     C_SPARSE_MATMUL(_csr_f32, ScipyCsrF32, pecos::csr_t)
 
 
-    #define C_SPARSE_INNER_PRODUCTS(SUFFIX, PY_MAT, C_MAT) \
+    #define C_SPARSE_INNER_PRODUCTS(SUFFIX, PX_MAT, CX_MAT, PW_MAT, CW_MAT) \
     void c_sparse_inner_products ## SUFFIX( \
-        const PY_MAT *pX, \
-        const ScipyCscF32 *pW, \
+        const PX_MAT *pX, \
+        const PW_MAT *pW, \
         uint64_t len, \
         uint32_t *X_row_idx, \
         uint32_t *W_col_idx, \
         float32_t *val, \
         int threads) { \
-        C_MAT X(pX); \
-        pecos::csc_t W(pW); \
+        CX_MAT X(pX); \
+        CW_MAT W(pW); \
         compute_sparse_entries_from_rowmajored_X_and_colmajored_M( \
             X, W, len, X_row_idx, W_col_idx, val, threads \
         ); \
     }
-    C_SPARSE_INNER_PRODUCTS(_csr_f32, ScipyCsrF32, pecos::csr_t)
-    C_SPARSE_INNER_PRODUCTS(_drm_f32, ScipyDrmF32, pecos::drm_t)
+    C_SPARSE_INNER_PRODUCTS(_csr2csc_f32, ScipyCsrF32, pecos::csr_t, ScipyCscF32, pecos::csc_t)
+    C_SPARSE_INNER_PRODUCTS(_drm2csc_f32, ScipyDrmF32, pecos::drm_t, ScipyCscF32, pecos::csc_t)
+    C_SPARSE_INNER_PRODUCTS(_csr2dcm_f32, ScipyCsrF32, pecos::csr_t, ScipyDcmF32, pecos::dcm_t)
+    C_SPARSE_INNER_PRODUCTS(_drm2dcm_f32, ScipyDrmF32, pecos::drm_t, ScipyDcmF32, pecos::dcm_t)
 
     // ==== C Interface of Clustering ====
 
     #define C_RUN_CLUSTERING(SUFFIX, PY_MAT, C_MAT) \
     void c_run_clustering ## SUFFIX( \
         const PY_MAT* py_mat_ptr, \
-        uint32_t depth, \
-        uint32_t partition_algo, \
-        int seed, \
-        uint32_t max_iter, \
-        int threads, \
+        size_t depth, \
+        pecos::clustering::ClusteringParam* param_ptr, \
         uint32_t* label_codes) { \
         C_MAT feat_mat(py_mat_ptr); \
         pecos::clustering::Tree tree(depth); \
-        tree.run_clustering(feat_mat, partition_algo, seed, label_codes, max_iter, threads); \
+        tree.run_clustering(feat_mat, param_ptr, label_codes); \
     }
     C_RUN_CLUSTERING(_csr_f32, ScipyCsrF32, pecos::csr_t)
     C_RUN_CLUSTERING(_drm_f32, ScipyDrmF32, pecos::drm_t)
@@ -370,9 +381,9 @@ extern "C" {
     C_ANN_HNSW_TRAIN(_drm_l2_f32, ScipyDrmF32, pecos::drm_t, hnsw_drm_l2_t)
 
     #define C_ANN_HNSW_LOAD(SUFFIX, HNSW_T) \
-    void* c_ann_hnsw_load ## SUFFIX(const char* model_dir) { \
+    void* c_ann_hnsw_load ## SUFFIX(const char* model_dir, const bool lazy_load) { \
         HNSW_T *model_ptr = new HNSW_T(); \
-        model_ptr->load(model_dir); \
+        model_ptr->load(model_dir, lazy_load); \
         return static_cast<void*>(model_ptr); \
     }
     C_ANN_HNSW_LOAD(_drm_ip_f32, hnsw_drm_ip_t)
@@ -464,4 +475,73 @@ extern "C" {
     C_ANN_HNSW_PREDICT(_csr_ip_f32, ScipyCsrF32, pecos::csr_t, hnsw_csr_ip_t)
     C_ANN_HNSW_PREDICT(_csr_l2_f32, ScipyCsrF32, pecos::csr_t, hnsw_csr_l2_t)
 
+    // ==== C Interface of Memory-mappable Hashmap ====
+
+    typedef pecos::mmap_hashmap::Str2IntMap mmap_hashmap_str2int;
+    typedef pecos::mmap_hashmap::Int2IntMap mmap_hashmap_int2int;
+
+    // New
+    #define MMAP_MAP_NEW(SUFFIX) \
+    void* mmap_hashmap_new_ ## SUFFIX () { \
+    return static_cast<void*>(new mmap_hashmap_ ## SUFFIX()); }
+    MMAP_MAP_NEW(str2int)
+    MMAP_MAP_NEW(int2int)
+
+    // Destruct
+    #define MMAP_MAP_DESTRUCT(SUFFIX) \
+    void mmap_hashmap_destruct_ ## SUFFIX (void* map_ptr) { \
+    delete static_cast<mmap_hashmap_ ## SUFFIX *>(map_ptr); }
+    MMAP_MAP_DESTRUCT(str2int)
+    MMAP_MAP_DESTRUCT(int2int)
+
+    // Save
+    #define MMAP_MAP_SAVE(SUFFIX) \
+    void mmap_hashmap_save_ ## SUFFIX (void* map_ptr, const char* map_dir) { \
+    static_cast<mmap_hashmap_ ## SUFFIX *>(map_ptr)->save(map_dir); }
+    MMAP_MAP_SAVE(str2int)
+    MMAP_MAP_SAVE(int2int)
+
+    // Load
+    #define MMAP_MAP_LOAD(SUFFIX) \
+    void* mmap_hashmap_load_ ## SUFFIX (const char* map_dir, const bool lazy_load) { \
+    mmap_hashmap_ ## SUFFIX * map_ptr = new mmap_hashmap_ ## SUFFIX(); \
+    map_ptr->load(map_dir, lazy_load); \
+    return static_cast<void *>(map_ptr); }
+    MMAP_MAP_LOAD(str2int)
+    MMAP_MAP_LOAD(int2int)
+
+    // Size
+    #define MMAP_MAP_SIZE(SUFFIX) \
+    size_t mmap_hashmap_size_ ## SUFFIX (void* map_ptr) { \
+    return static_cast<mmap_hashmap_ ## SUFFIX *>(map_ptr)->size(); }
+    MMAP_MAP_SIZE(str2int)
+    MMAP_MAP_SIZE(int2int)
+
+    // Insert
+    #define KEY_SINGLE_ARG(A,B) A,B
+    #define MMAP_MAP_INSERT(SUFFIX, KEY, FUNC_CALL_KEY) \
+    void mmap_hashmap_insert_  ## SUFFIX (void* map_ptr, KEY, uint64_t val) { \
+        static_cast<mmap_hashmap_ ## SUFFIX *>(map_ptr)->insert(FUNC_CALL_KEY, val); }
+    MMAP_MAP_INSERT(str2int, KEY_SINGLE_ARG(const char* key, uint32_t key_len), KEY_SINGLE_ARG(key, key_len))
+    MMAP_MAP_INSERT(int2int, uint64_t key, key)
+
+    // Get
+    #define MMAP_MAP_GET(SUFFIX, KEY, FUNC_CALL_KEY) \
+    uint64_t mmap_hashmap_get_  ## SUFFIX (void* map_ptr, KEY) { \
+        return static_cast<mmap_hashmap_ ## SUFFIX *>(map_ptr)->get(FUNC_CALL_KEY); }
+    MMAP_MAP_GET(str2int, KEY_SINGLE_ARG(const char* key, uint32_t key_len), KEY_SINGLE_ARG(key, key_len))
+    MMAP_MAP_GET(int2int, uint64_t key, key)
+
+    #define MMAP_MAP_GET_W_DEFAULT(SUFFIX, KEY, FUNC_CALL_KEY) \
+    uint64_t mmap_hashmap_get_w_default_  ## SUFFIX (void* map_ptr, KEY, uint64_t def_val) { \
+        return static_cast<mmap_hashmap_ ## SUFFIX *>(map_ptr)->get_w_default(FUNC_CALL_KEY, def_val); }
+    MMAP_MAP_GET_W_DEFAULT(str2int, KEY_SINGLE_ARG(const char* key, uint32_t key_len), KEY_SINGLE_ARG(key, key_len))
+    MMAP_MAP_GET_W_DEFAULT(int2int, uint64_t key, key)
+
+    // Contains
+    #define MMAP_MAP_CONTAINS(SUFFIX, KEY, FUNC_CALL_KEY) \
+    bool mmap_hashmap_contains_  ## SUFFIX (void* map_ptr, KEY) { \
+        return static_cast<mmap_hashmap_ ## SUFFIX *>(map_ptr)->contains(FUNC_CALL_KEY); }
+    MMAP_MAP_CONTAINS(str2int, KEY_SINGLE_ARG(const char* key, uint32_t key_len), KEY_SINGLE_ARG(key, key_len))
+    MMAP_MAP_CONTAINS(int2int, uint64_t key, key)
 }

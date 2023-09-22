@@ -25,6 +25,7 @@ from ctypes import (
     c_int32,
     c_uint32,
     c_uint64,
+    c_size_t,
     c_void_p,
     cast,
 )
@@ -137,7 +138,6 @@ class TfidfVectorizerParam(ctypes.Structure):
     ]
 
     def __init__(self, base_vect_param_list, norm_p):
-
         self.num_base_vect = len(base_vect_param_list)
         self.c_base_params = (TfidfBaseVectorizerParam * self.num_base_vect)()
         for i, base_vect_param in enumerate(base_vect_param_list):
@@ -146,6 +146,27 @@ class TfidfVectorizerParam(ctypes.Structure):
         self.base_param_ptr = cast(self.c_base_params, POINTER(TfidfBaseVectorizerParam))
         self.num_base_vect = c_int32(self.num_base_vect)
         self.norm_p = c_int32(norm_p)
+
+
+class ClusteringParam(ctypes.Structure):
+    """
+    python class for handling struct ClusteringParam in clustering.hpp
+    """
+
+    _fields_ = [
+        ("partition_algo", c_uint64),
+        ("seed", c_int),
+        ("kmeans_max_iter", c_uint64),
+        ("threads", c_int),
+        ("max_sample_rate", c_float),
+        ("min_sample_rate", c_float),
+        ("warmup_ratio", c_float),
+    ]
+
+    def __init__(self, params):
+        name2type = dict(ClusteringParam._fields_)
+        for name in name2type:
+            setattr(self, name, name2type[name](getattr(params, name)))
 
 
 class ScipyCscF32(ctypes.Structure):
@@ -511,6 +532,7 @@ class corelib(object):
         self.link_clustering()
         self.link_tfidf_vectorizer()
         self.link_ann_hnsw_methods()
+        self.link_mmap_hashmap_methods()
 
     def link_xlinear_methods(self):
         """
@@ -608,6 +630,15 @@ class corelib(object):
             self.clib_float32.c_xlinear_load_model_from_disk_ext, res_list, arg_list
         )
 
+        res_list = c_void_p
+        arg_list = [c_char_p, c_bool]
+        corelib.fillprototype(
+            self.clib_float32.c_xlinear_load_mmap_model_from_disk, res_list, arg_list
+        )
+
+        arg_list = [c_char_p, c_char_p]
+        corelib.fillprototype(self.clib_float32.c_xlinear_compile_mmap_model, None, arg_list)
+
         # c interface for per-layer prediction
         arg_list = [
             POINTER(ScipyCsrF32),
@@ -681,6 +712,39 @@ class corelib(object):
         res_list = c_int
         arg_list = [c_void_p, c_int]
         corelib.fillprototype(self.clib_float32.c_xlinear_get_layer_type, res_list, arg_list)
+
+    def xlinear_compile_mmap_model(self, npz_folder, mmap_folder):
+        """
+        Compile xlinear model from npz format to memory-mapped format
+        for faster loading.
+        Args:
+            npz_folder (str): The source folder path for xlinear npz model.
+            mmap_folder (str): The destination folder path for xlinear mmap model.
+        """
+        self.clib_float32.c_xlinear_compile_mmap_model(
+            c_char_p(npz_folder.encode("utf-8")), c_char_p(mmap_folder.encode("utf-8"))
+        )
+
+    def xlinear_load_mmap(
+        self,
+        folder,
+        lazy_load=False,
+    ):
+        """
+        Load xlinear model in read-only mmap mode for prediction.
+
+        Args:
+            folder (str): The folder path for xlinear model.
+            lazy_load (bool): Whether to lazy-load, i.e. load when needed(True)
+                or fully load model before returning(False).
+
+        Return:
+            cmodel (ptr): The pointer to xlinear model.
+        """
+        cmodel = self.clib_float32.c_xlinear_load_mmap_model_from_disk(
+            c_char_p(folder.encode("utf-8")), c_bool(lazy_load)
+        )
+        return cmodel
 
     def xlinear_load_predict_only(
         self,
@@ -1111,14 +1175,24 @@ class corelib(object):
             c_int,  # threads
         ]
         corelib.fillprototype(
-            self.clib_float32.c_sparse_inner_products_csr_f32,
+            self.clib_float32.c_sparse_inner_products_csr2csc_f32,
             None,
-            [POINTER(ScipyCsrF32)] + arg_list[1:],
+            [POINTER(ScipyCsrF32), POINTER(ScipyCscF32)] + arg_list[2:],
         )
         corelib.fillprototype(
-            self.clib_float32.c_sparse_inner_products_drm_f32,
+            self.clib_float32.c_sparse_inner_products_drm2csc_f32,
             None,
-            [POINTER(ScipyDrmF32)] + arg_list[1:],
+            [POINTER(ScipyDrmF32), POINTER(ScipyCscF32)] + arg_list[2:],
+        )
+        corelib.fillprototype(
+            self.clib_float32.c_sparse_inner_products_csr2dcm_f32,
+            None,
+            [POINTER(ScipyCsrF32), POINTER(ScipyDcmF32)] + arg_list[2:],
+        )
+        corelib.fillprototype(
+            self.clib_float32.c_sparse_inner_products_drm2dcm_f32,
+            None,
+            [POINTER(ScipyDrmF32), POINTER(ScipyDcmF32)] + arg_list[2:],
         )
 
     def sparse_matmul(self, X, Y, eliminate_zeros=False, sorted_indices=True, threads=-1):
@@ -1197,17 +1271,17 @@ class corelib(object):
 
         return pred_alloc.get()
 
-    def sparse_inner_products(self, pX, pW, X_row_idx, W_col_idx, pred_values=None, threads=-1):
+    def sparse_inner_products(self, X, W, X_row_idx, W_col_idx, pred_values=None, threads=-1):
         """
         Sparse-Sparse matrix batch inner product with multithreading (shared-memory).
         Do inner product for rows from `pX` indicated by `X_row_idx`, and columns from `pW` indicated by `W_col_idx`.
         Results will be written in `pred_values` if provided; Otherwise, create a new array for results.
 
         Args:
-            pX (ScipyCsrF32, ScipyDrmF32): The first sparse matrix.
-            pW (ScipyCscF32, ScipyDcmF32): The second sparse matrix.
-            X_row_idx (ndarray): Row indexes for `pX`.
-            W_col_idx (ndarray): Column indexes for `pW`.
+            X (smat.csr_matrix, or np.ndarray): The first row-majored sparse/dense matrix, w/ dtype of np.float32.
+            W (smat.csc_matrix, or np.ndarray): The second col-majored sparse/dense matrix, w/ dtype of np.float32.
+            X_row_idx (ndarray): Row indexes for `X` matrix, w/ dtype of np.uint32.
+            W_col_idx (ndarray): Column indexes for `W` matrix, w/ dtype of np.uint32.
             pred_values (ndarray, optional): The inner product result array.
             threads (int, optional): The number of threads. Default -1 to use all cores.
 
@@ -1219,16 +1293,24 @@ class corelib(object):
 
         nnz = len(X_row_idx)
         assert nnz == len(W_col_idx)
+        assert X.shape[1] == W.shape[0]
 
-        if not isinstance(pW, ScipyCscF32):
-            raise NotImplementedError("type(pW) = {} no implemented".format(type(pW)))
-
-        if isinstance(pX, ScipyCsrF32):
-            c_sparse_inner_products = clib.c_sparse_inner_products_csr_f32
-        elif isinstance(pX, ScipyDrmF32):
-            c_sparse_inner_products = clib.c_sparse_inner_products_drm_f32
+        if isinstance(X, smat.csr_matrix) and isinstance(W, smat.csc_matrix):
+            pX, pW = ScipyCsrF32.init_from(X), ScipyCscF32.init_from(W)
+            c_sparse_inner_products = clib.c_sparse_inner_products_csr2csc_f32
+        elif isinstance(X, np.ndarray) and isinstance(W, smat.csc_matrix):
+            pX, pW = ScipyDrmF32.init_from(X), ScipyCscF32.init_from(W)
+            c_sparse_inner_products = clib.c_sparse_inner_products_drm2csc_f32
+        elif isinstance(X, smat.csr_matrix) and isinstance(W, np.ndarray):
+            pX, pW = ScipyCsrF32.init_from(X), ScipyDcmF32.init_from(W)
+            c_sparse_inner_products = clib.c_sparse_inner_products_csr2dcm_f32
+        elif isinstance(X, np.ndarray) and isinstance(W, np.ndarray):
+            pX, pW = ScipyDrmF32.init_from(X), ScipyDcmF32.init_from(W)
+            c_sparse_inner_products = clib.c_sparse_inner_products_drm2dcm_f32
         else:
-            raise NotImplementedError("type(pX) = {} no implemented".format(type(pX)))
+            raise NotImplementedError(
+                "type(X)={} and type(W)={} no implemented".format(type(X), type(W))
+            )
 
         if pred_values is None or len(pred_values) != nnz or pred_values.dtype != np.float32:
             pred_values = np.zeros(nnz, pW.dtype)
@@ -1250,11 +1332,8 @@ class corelib(object):
         """
         arg_list = [
             POINTER(ScipyCsrF32),
-            c_uint32,
-            c_uint32,
-            c_int,
-            c_uint32,
-            c_int,
+            c_uint64,
+            POINTER(ClusteringParam),
             POINTER(c_uint32),
         ]
         corelib.fillprototype(
@@ -1267,24 +1346,16 @@ class corelib(object):
     def run_clustering(
         self,
         py_feat_mat,
-        depth,
-        algo,
-        seed,
+        train_params,
         codes=None,
-        kmeans_max_iter=20,
-        threads=-1,
     ):
         """
         Run clustering with given label embedding matrix and parameters in C++.
 
         Args:
             py_feat_mat (ScipyCsrF32, ScipyDrmF32): label embedding matrix. (num_labels x num_features).
-            depth (int): Depth of K-means clustering N-nary tree.
-            algo (str): The algorithm for clustering, either `KMEANS` or `SKMEANS`.
-            seed (int): Randoms seed.
+            train_params (HierarchicalKMeans.TrainParams): Parameter class defined in pecos.xmc.base.HierarchicalKMeans.TrainParams.
             codes (ndarray, optional): Label clustering results.
-            kmeans_max_iter (int, optional): Maximum number of iter for reordering each node based on score.
-            threads (int, optional): The number of threads. Default -1 to use all cores.
 
         Return:
             codes (ndarray): The clustering result.
@@ -1302,13 +1373,12 @@ class corelib(object):
 
         if codes is None or len(codes) != py_feat_mat.shape[0] or codes.dtype != np.uint32:
             codes = np.zeros(py_feat_mat.rows, dtype=np.uint32)
+        depth = train_params.depth
+        train_params = ClusteringParam(train_params)
         run_clustering(
             byref(py_feat_mat),
             depth,
-            algo,
-            seed,
-            kmeans_max_iter,
-            threads,
+            train_params,
             codes.ctypes.data_as(POINTER(c_uint32)),
         )
         return codes
@@ -1558,7 +1628,10 @@ class corelib(object):
                 c_fn_name = f"c_ann_hnsw_{fn_name}_{data_type}_{metric_type}_f32"
                 local_fn_dict[fn_name] = getattr(self.clib_float32, c_fn_name)
                 res_list = c_void_p  # pointer to C/C++ pecos::ann::HNSW
-                arg_list = [c_char_p]  # pointer to char* model_dir
+                arg_list = [
+                    c_char_p,  # pointer to C/C++ pecos:ann::hnsw
+                    c_bool,  # bool for lazy_load of mmap files
+                ]
                 corelib.fillprototype(local_fn_dict[fn_name], res_list, arg_list)
 
                 fn_name = "save"
@@ -1627,6 +1700,85 @@ class corelib(object):
                 "data_type={} and metric_type={} is not implemented".format(data_type, metric_type)
             )
         return self.ann_hnsw_fn_dict[data_type, metric_type]
+
+    def link_mmap_hashmap_methods(self):
+        """
+        Specify C-lib's Memory-mappable Hashmap methods arguments and return types.
+        """
+        fn_prefix = "mmap_hashmap"
+        map_type_list = ["str2int", "int2int"]
+        key_args_dict = {
+            "str2int": [
+                c_char_p,  # pointer of key string
+                c_uint32,  # length of key string
+            ],
+            "int2int": [
+                c_uint64,  # key int64
+            ],
+        }
+        self.mmap_map_fn_dict = {}
+
+        for map_type in map_type_list:
+            local_fn_dict = {}
+
+            fn_name = "new"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(local_fn_dict[fn_name], c_void_p, None)
+
+            fn_name = "destruct"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(local_fn_dict[fn_name], None, [c_void_p])
+
+            fn_name = "save"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(local_fn_dict[fn_name], None, [c_void_p, c_char_p])
+
+            fn_name = "load"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(local_fn_dict[fn_name], c_void_p, [c_char_p, c_bool])
+
+            fn_name = "size"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(local_fn_dict[fn_name], c_size_t, [c_void_p])
+
+            # Fill insert & get
+            fn_name = "insert"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(
+                local_fn_dict[fn_name], None, [c_void_p] + key_args_dict[map_type] + [c_uint64]
+            )
+
+            fn_name = "get"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(
+                local_fn_dict[fn_name], c_uint64, [c_void_p] + key_args_dict[map_type]
+            )
+
+            fn_name = "get_w_default"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(
+                local_fn_dict[fn_name], c_uint64, [c_void_p] + key_args_dict[map_type] + [c_uint64]
+            )
+
+            fn_name = "contains"
+            local_fn_dict[fn_name] = getattr(self.clib_float32, f"{fn_prefix}_{fn_name}_{map_type}")
+            corelib.fillprototype(
+                local_fn_dict[fn_name], c_bool, [c_void_p] + key_args_dict[map_type]
+            )
+
+            self.mmap_map_fn_dict[map_type] = local_fn_dict
+
+    def mmap_hashmap_init(self, map_type):
+        """Python to C/C++ interface for Memory-mappable Hashmap initialization
+        Args:
+            map_type (string): Type of Hashmap.
+        Returns:
+            mmap_map_fn_dict (dict): a dictionary that holds clib's C/C++ functions for Python to call
+        """
+
+        if map_type not in self.mmap_map_fn_dict:
+            raise NotImplementedError(f"map_type={map_type} is not implemented.")
+        return self.mmap_map_fn_dict[map_type]
 
 
 clib = corelib(os.path.join(os.path.dirname(os.path.abspath(pecos.__file__)), "core"), "libpecos")

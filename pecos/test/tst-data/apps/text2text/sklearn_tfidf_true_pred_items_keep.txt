@@ -1,0 +1,2 @@
+{"schema": ["output_item", "score"], "data": [["sugar container", 0.045081], ["womens columbia boots", 0.0389], ["diet pills that work fast for women", 0.012682], ["liquid foundation", 0.010925], ["appetite suppressant", 0.0017479]]}
+{"schema": ["output_item", "score"], "data": [["liquid foundation", 0.009507], ["womens columbia boots", 0.0089232], ["diet pills that work fast for women", 0.0073458], ["sugar container", 0.0028143], ["appetite suppressant", 0.0017479]]}

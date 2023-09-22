@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "mmap_util.hpp"
 #include "parallel.hpp"
 #include "scipy_loader.hpp"
 
@@ -72,6 +73,83 @@ extern "C" {
 } // end of extern C
 
 namespace pecos {
+    // ===== Container for sparse-dense vectors =====
+    // For sparse vectors computational acceleration
+    template<class IDX_T=uint32_t, class VAL_T=float32_t>
+    struct sdvec_t {
+        typedef IDX_T index_type;
+        typedef VAL_T value_type;
+
+        struct entry_t {
+            value_type val;
+            bool touched;
+            entry_t(value_type val=0, bool touched=0): val(val), touched(touched) {}
+        };
+
+        struct container_t {
+            index_type len;
+            index_type nr_touch;
+            std::vector<entry_t> entries;
+            std::vector<index_type> touched_indices;
+
+            container_t(index_type len=0) : len(len), nr_touch(0) {
+                entries.resize(len);
+                touched_indices.resize(len);
+            }
+
+            void resize(index_type len_) {
+                len = len_;
+                // if len_ >= len, nr_touch remains unchanged, otherwise delete indices >= len
+                if(len_ < len) {
+                    index_type write_pos = 0;
+                    for(size_t i = 0; i < nr_touch; i++) {
+                        if(touched_indices[i] < len) {
+                            touched_indices[write_pos] = touched_indices[i];
+                            write_pos += 1;
+                        } 
+                    }
+                    nr_touch = write_pos;
+                }
+                entries.resize(len);
+                touched_indices.resize(len);
+            }
+        };
+
+        index_type& len;
+        index_type& nr_touch;
+        std::vector<entry_t>& entries;
+        std::vector<index_type>& touched_indices;
+
+        sdvec_t(container_t& cont) : len(cont.len), nr_touch(cont.nr_touch), entries(cont.entries), touched_indices(cont.touched_indices) {}
+
+        value_type& add_nonzero_at(index_type idx, value_type v) {
+            entries[idx].val += static_cast<value_type>(v);
+            if(!entries[idx].touched) {
+                entries[idx].touched = 1;
+                touched_indices[nr_touch++] = static_cast<index_type>(idx);
+            }
+            return entries[idx].val;
+        }
+
+        void sort_nz_indices() {
+            std::sort(touched_indices.data(), touched_indices.data() + nr_touch);
+        }
+
+        value_type& operator[](size_t i) { return add_nonzero_at(i, 0.0); }
+        const value_type& operator[](size_t i) const { return entries[i].val; }
+
+        void fill_zeros() {
+            if(nr_touch < (len >> 1)) {
+                for(size_t t = 0; t < nr_touch; t++) {
+                    entries[touched_indices[t]].val = 0;
+                    entries[touched_indices[t]].touched = 0;
+                }
+            } else {
+                memset(static_cast<void*>(entries.data()), 0, sizeof(entry_t) * len);
+            }
+            nr_touch = 0;
+        }
+    };
 
     // ===== Wrapper for sparse/dense vectors =====
     template<class IDX_T=uint32_t, class VAL_T=float32_t>
@@ -104,6 +182,7 @@ namespace pecos {
         const value_type& at(size_t i) const { return val[i]; }
 
         uint64_t get_nnz() const { return len; }
+        void fill_zeros() const{ std::fill(val, val + len, 0); }
     };
 
     // ===== Wrapper for sparse/dense matrices =====
@@ -148,6 +227,24 @@ namespace pecos {
             row_ptr(py->row_ptr),
             col_idx(py->col_idx),
             val(py->val) { }
+
+        // Save/load mmap
+        // Signature for symmetry, not implemented
+        void save_to_mmap_store(mmap_util::MmapStore& mmap_s) const {
+            throw std::runtime_error("Not implemented yet.");
+        }
+
+        void load_from_mmap_store(mmap_util::MmapStore& mmap_s) {
+            throw std::runtime_error("Not implemented yet.");
+        }
+
+        void save_mmap(const std::string& file_name) const {
+            throw std::runtime_error("Not implemented yet.");
+        }
+
+        void load_mmap(const std::string& file_name, const bool lazy_load) {
+            throw std::runtime_error("Not implemented yet.");
+        }
 
         bool is_empty() const {
             return val == nullptr;
@@ -195,7 +292,7 @@ namespace pecos {
             csr_t res;
             res.allocate(rows, cols, nnz);
             std::memcpy(res.col_idx, col_idx, sizeof(index_type) * nnz);
-            std::memcpy(res.val, val, sizeof(float) * nnz);
+            std::memcpy(res.val, val, sizeof(value_type) * nnz);
             std::memcpy(res.row_ptr, row_ptr, sizeof(mem_index_type) * (rows + 1));
             return res;
         }
@@ -268,6 +365,9 @@ namespace pecos {
             value_type *data;
         };
 
+        // mmap
+        std::shared_ptr<mmap_util::MmapStore> mmap_store_ptr = nullptr;
+
         csc_t() :
             rows(0),
             cols(0),
@@ -281,6 +381,44 @@ namespace pecos {
             col_ptr(py->col_ptr),
             row_idx(py->row_idx),
             val(py->val) { }
+
+        // Save/load mmap
+        void save_to_mmap_store(mmap_util::MmapStore& mmap_s) const {
+            auto nnz = get_nnz();
+            // scalars
+            mmap_s.fput_one<index_type>(rows);
+            mmap_s.fput_one<index_type>(cols);
+            mmap_s.fput_one<mem_index_type>(nnz);
+            // arrays
+            mmap_s.fput_multiple<mem_index_type>(col_ptr, cols + 1);
+            mmap_s.fput_multiple<index_type>(row_idx, nnz);
+            mmap_s.fput_multiple<value_type>(val, nnz);
+        }
+
+        void load_from_mmap_store(mmap_util::MmapStore& mmap_s) {
+            // scalars
+            rows = mmap_s.fget_one<index_type>();
+            cols = mmap_s.fget_one<index_type>();
+            auto nnz = mmap_s.fget_one<mem_index_type>();
+            // arrays
+            col_ptr = mmap_s.fget_multiple<mem_index_type>(cols + 1);
+            row_idx = mmap_s.fget_multiple<index_type>(nnz);
+            val = mmap_s.fget_multiple<value_type>(nnz);
+        }
+
+        void save_mmap(const std::string& file_name) const {
+            mmap_util::MmapStore mmap_s = mmap_util::MmapStore();
+            mmap_s.open(file_name, "w");
+            save_to_mmap_store(mmap_s);
+            mmap_s.close();
+        }
+
+        void load_mmap(const std::string& file_name, const bool lazy_load) {
+            free_underlying_memory(); // Clear any existing memory
+            mmap_store_ptr = std::make_shared<mmap_util::MmapStore>(); // Create instance
+            mmap_store_ptr->open(file_name, lazy_load?"r_lazy":"r");
+            load_from_mmap_store(*mmap_store_ptr);
+        }
 
         bool is_empty() const {
             return val == nullptr;
@@ -303,18 +441,25 @@ namespace pecos {
         // Every function in the inference code that returns a matrix has allocated memory, and
         // therefore one should call this function to free that memory.
         void free_underlying_memory() {
-            if (col_ptr) {
-                delete[] col_ptr;
-                col_ptr = nullptr;
+            if (mmap_store_ptr) { // mmap case, no need to check and free other pointers
+                mmap_store_ptr.reset(); // decrease reference count
+            } else { // memory case
+                if (col_ptr) {
+                    delete[] col_ptr;
+                }
+                if (row_idx) {
+                    delete[] row_idx;
+                }
+                if (val) {
+                    delete[] val;
+                }
             }
-            if (row_idx) {
-                delete[] row_idx;
-                row_idx = nullptr;
-            }
-            if (val) {
-                delete[] val;
-                val = nullptr;
-            }
+            mmap_store_ptr = nullptr;
+            col_ptr = nullptr;
+            row_idx = nullptr;
+            val = nullptr;
+            rows = 0;
+            cols = 0;
         }
 
         csr_t transpose() const ;
@@ -324,16 +469,22 @@ namespace pecos {
         // This allocates memory, so one should call free_underlying_memory on the copy when
         // one is finished using it.
         csc_t deep_copy() const {
+            if (mmap_store_ptr) {
+                throw std::runtime_error("Cannot deep copy for mmap instance.");
+            }
             mem_index_type nnz = col_ptr[cols];
             csc_t res;
             res.allocate(rows, cols, nnz);
             std::memcpy(res.row_idx, row_idx, sizeof(index_type) * nnz);
-            std::memcpy(res.val, val, sizeof(float) * nnz);
+            std::memcpy(res.val, val, sizeof(value_type) * nnz);
             std::memcpy(res.col_ptr, col_ptr, sizeof(mem_index_type) * (cols + 1));
             return res;
         }
 
         void allocate(index_type rows, index_type cols, mem_index_type nnz) {
+            if (mmap_store_ptr) {
+                throw std::runtime_error("Cannot allocate for mmap instance.");
+            }
             this->rows = rows;
             this->cols = cols;
             col_ptr = new mem_index_type[cols + 1];
@@ -343,6 +494,9 @@ namespace pecos {
 
         // Construct a csc_t object with shape _rows x _cols filled by 1.
         void fill_ones(index_type _rows, index_type _cols) {
+            if (mmap_store_ptr) {
+                throw std::runtime_error("Cannot fill ones for mmap instance.");
+            }
             mem_index_type nnz = (mem_index_type) _rows * _cols;
             this->free_underlying_memory();
             this->allocate(_rows, _cols, nnz);
@@ -382,6 +536,10 @@ namespace pecos {
         }
 
         dcm_t transpose() const ;
+
+        mem_index_type get_nnz() const {
+            return static_cast<mem_index_type>(rows) * static_cast<mem_index_type>(cols);
+        }
     };
 
     struct dcm_t { // Dense Column Majored Matrix
@@ -406,6 +564,10 @@ namespace pecos {
         col_vec_t get_col(index_type idx) const {
             return col_vec_t(cols,
                 &val[static_cast<mem_index_type>(rows) * static_cast<mem_index_type>(idx)]);
+        }
+
+        mem_index_type get_nnz() const {
+            return static_cast<mem_index_type>(rows) * static_cast<mem_index_type>(cols);
         }
     };
 
@@ -607,6 +769,23 @@ namespace pecos {
     template<> inline float copy(ptrdiff_t *len, float *x, ptrdiff_t *xinc, float *y, ptrdiff_t *yinc) { return scopy_(len,x,xinc,y,yinc); }
 
     // ===== do_dot_product =====
+    template<class IX, class VX, class IY, class VY>
+    float32_t do_dot_product(const sparse_vec_t<IX, VX>& x, const sdvec_t<IY, VY>& y) {
+        float32_t ret = 0;
+        for(size_t s = 0; s < x.nnz; s++) {
+            auto &idx = x.idx[s];
+            if(y.entries[idx].touched)
+                ret += y.entries[idx].val * x.val[s];
+        }
+        return ret;
+    }
+
+    template<class IX, class VX, class IY, class VY>
+    float32_t do_dot_product(const sdvec_t<IX, VX>& x, const sparse_vec_t<IY, VY>& y) {
+        return do_dot_product(y, x);
+    }
+
+
     template<typename val_type>
     val_type do_dot_product(const val_type *x, const val_type *y, size_t size) {
         // This uses a BLAS implementation
@@ -662,6 +841,43 @@ namespace pecos {
 
     template<class IX, class VX, class VY>
     float32_t do_dot_product(const sparse_vec_t<IX, VX>& x, const dense_vec_t<VY>& y) {
+        return do_dot_product(y, x);
+    }
+
+
+    template<class IX, class VX, class IY, class VY>
+    float32_t do_dot_product(const sdvec_t<IX, VX>& x, const sdvec_t<IY, VY>& y) {
+        if(x.nr_touch > y.nr_touch) {
+            return do_dot_product(y, x);
+        }
+        float32_t ret = 0;
+        for(size_t s = 0; s < x.nr_touch; s++) {
+            auto &idx = x.touched_indices[s];
+            if(y.entries[idx].touched)
+                ret += y.entries[idx].val * x.entries[idx].val;
+        }
+        return static_cast<float32_t>(ret);
+    }
+
+    template<class IX, class VX, class VY>
+    float32_t do_dot_product(const sdvec_t<IX, VX>& x, const dense_vec_t<VY>& y) {
+        float32_t ret = 0;
+        if(x.nr_touch > (x.len >> 1) ) {
+            for(size_t i = 0; i < y.len; i++) {
+                ret += x.entries[i].val * y[i];
+            }
+        }
+        else {
+            for(size_t s = 0; s < x.nr_touch; s++) {
+                auto &idx = x.touched_indices[s];
+                ret += x.entries[idx].val * y[idx];
+            }
+        }
+        return static_cast<float32_t>(ret);
+    }
+
+    template<class VX, class IY, class VY>
+    float32_t do_dot_product(const dense_vec_t<VX>& x, const sdvec_t<IY, VY>& y) {
         return do_dot_product(y, x);
     }
 
@@ -727,6 +943,36 @@ namespace pecos {
         return do_axpy(alpha, x, dense_vec_t<VY>(y));
     }
 
+    template<class IX, class VX, class IY, class VY, typename T>
+    void do_axpy(T alpha, const sparse_vec_t<IX, VX>& x, sdvec_t<IY, VY>& y) {
+        for(size_t s = 0; s < x.nnz; s++) {
+            y.add_nonzero_at(x.idx[s], x.val[s] * alpha);
+        }
+    }
+
+
+    template<class IX, class VX, class IY, class VY, typename T>
+    void do_axpy(T alpha, const sdvec_t<IX, VX>& x, sdvec_t<IY, VY>& y) {
+        for(size_t s = 0; s < x.nr_touch; s++) {
+            auto &idx = x.touched_indices[s];
+            y.add_nonzero_at(idx, x.entries[idx].val * alpha);
+        }
+    }
+
+
+    template<class VX, class IY, class VY, typename T>
+    void do_axpy(T alpha, const dense_vec_t<VX>& x, sdvec_t<IY, VY>& y) {
+        if(y.nr_touch == x.len)
+            for(size_t i = 0; i < x.len; i++) {
+                y.entries[i].val += alpha * x[i];
+            }
+        else {
+            for(size_t i = 0; i < x.len; i++) {
+                y.add_nonzero_at(i, alpha * x[i]);
+            }
+        }
+    }
+
     // ===== do_scale =====
     template<class val_type, class T>
     void do_scale(T alpha, val_type *x, size_t size) {
@@ -752,6 +998,14 @@ namespace pecos {
     void do_scale(T alpha, sparse_vec_t<VX>& x) {
         for(size_t s = 0; s < x.nnz; s++) {
             x.val[s] *= alpha;
+        }
+    }
+
+    template<class IX, class VX, typename T>
+    void do_scale(T alpha, sdvec_t<IX, VX>& x) {
+        for(size_t s = 0; s < x.nr_touch; s++) {
+            auto &idx = x.touched_indices[s];
+            x.entries[idx].val = x.entries[idx].val * alpha;
         }
     }
 
