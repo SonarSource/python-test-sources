@@ -1,0 +1,1621 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# bentengshan <zhhqng@gmail.com>, 2012
+# Fabian Braun <fsbraun@gmx.de>, 2022
+# kochin <kochinc@outlook.com>, 2013
+# kochin <kochinc@outlook.com>, 2013
+# Wei Ming Liao <bone@ms8.hinet.net>, 2014
+# bentengshan <zhhqng@gmail.com>, 2012
+msgid ""
+msgstr ""
+"Project-Id-Version: django CMS\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-05 17:55+0200\n"
+"PO-Revision-Date: 2010-11-30 06:47+0000\n"
+"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2022\n"
+"Language-Team: Chinese (Taiwan) (http://app.transifex.com/divio/django-cms/language/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Copy permissions"
+msgstr "複製權限"
+
+msgid "Title"
+msgstr "標題"
+
+msgid "The default title"
+msgstr "預設標題"
+
+msgid "Slug"
+msgstr "簡略標題"
+
+msgid "The part of the title that is used in the URL"
+msgstr "在 URL 中使用的部分標題"
+
+msgid "Menu Title"
+msgstr "選單標題"
+
+msgid "Overwrite what is displayed in the menu"
+msgstr "取代在選單中的顯示標題"
+
+msgid "Page Title"
+msgstr "網頁標題"
+
+msgid ""
+"Overwrites what is displayed at the top of your browser or in bookmarks"
+msgstr "取代在瀏覽器頂端或書籤內的顯示標題"
+
+msgid "Description meta tag"
+msgstr "描述媒體標籤"
+
+msgid "A description of the page used by search engines."
+msgstr "用逗號分隔的關鍵字列表，有時會被搜索引擎使用。"
+
+msgid "Page type"
+msgstr "頁面型態"
+
+msgid "Page Types"
+msgstr ""
+
+msgid "Application"
+msgstr "應用套件"
+
+msgid "Hook application to this page."
+msgstr "將應用套件掛入此網頁"
+
+msgid "Overwrite URL"
+msgstr "取代 URL"
+
+msgid "Keep this field empty if standard path should be used."
+msgstr "如果標準路徑應該被使用，請將這一欄位保持空白。"
+
+msgid "X Frame Options"
+msgstr "X 框架選項"
+
+msgid "Whether this page can be embedded in other pages or websites"
+msgstr "此頁是否可內嵌於其他頁或網站中"
+
+msgid "Redirect"
+msgstr "重新導向"
+
+msgid "Redirects to this URL."
+msgstr "重新導向到這個 URL"
+
+msgid "Start typing..."
+msgstr "開始型態轉換 ..."
+
+msgid "Application configurations"
+msgstr ""
+
+msgid "Language independent options"
+msgstr ""
+
+msgid "You entered an invalid URL."
+msgstr ""
+
+#, python-format
+msgid "Please set the %(language)s slug before editing its advanced settings."
+msgstr ""
+
+msgid "A page with this reverse URL id exists already."
+msgstr "一個有相同的反向 URL id 的網頁已經存在。"
+
+msgid "Invalid application config value"
+msgstr ""
+
+msgid "An application instance using this configuration already exists."
+msgstr ""
+
+msgid "An application instance with this name already exists."
+msgstr ""
+
+msgid "You can't move the home page inside another page"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "user"
+msgstr "用戶"
+
+msgid "can_view"
+msgstr "can_view"
+
+msgid "Add"
+msgstr "新增"
+
+msgid "Change"
+msgstr "修改"
+
+msgid "Delete"
+msgstr "刪除"
+
+msgid ""
+"Users can't create a page without permissions to change the created page. "
+"Edit permissions required."
+msgstr ""
+
+msgid ""
+"Users can't delete a page without permissions to change the page. Edit "
+"permissions required."
+msgstr ""
+
+msgid ""
+"Users can't set page permissions without permissions to change a page. Edit "
+"permissions required."
+msgstr ""
+
+msgid ""
+"Users can't delete page permissions without permissions to change a page. "
+"Edit permissions required."
+msgstr ""
+
+msgid ""
+"Users can't create page permissions without permissions to change the "
+"created permission. Edit permissions required."
+msgstr ""
+
+msgid ""
+"Users can't delete page permissions without permissions to change "
+"permissions. Edit permissions required."
+msgstr ""
+
+#, python-format
+msgid "Invalid plugin type '%s'"
+msgstr ""
+
+msgid "Language must be set to a supported language!"
+msgstr "語言必須設定為一種被支持的語言！"
+
+msgid "Parent plugin language must be same as language!"
+msgstr ""
+
+msgid "Parent plugin placeholder must be same as placeholder!"
+msgstr ""
+
+#, python-format
+msgid ""
+"Please create the %(language)s page translation before editing it's advanced"
+" settings."
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr "進階設置"
+
+msgid "Publishing dates"
+msgstr "發佈日期"
+
+msgid "Change Permissions"
+msgstr ""
+
+#, python-format
+msgid "Cannot delete %(name)s"
+msgstr ""
+
+msgid "Are you sure?"
+msgstr "您確定嗎？"
+
+#, python-format
+msgid "%(name)s object with primary key %(key)r does not exist."
+msgstr "擁有 %(key)r 主索引鍵的 %(name)s 物件不存在。"
+
+msgid "Database error"
+msgstr "資料庫錯誤"
+
+msgid "Template not valid"
+msgstr "模板無效"
+
+msgid "The template was successfully changed"
+msgstr "模板被成功地改變。"
+
+msgid ""
+"Error! You don't have permissions to move this page. Please reload the page"
+msgstr "錯誤！你沒有權限搬移此網頁。請重新載入此網頁。"
+
+msgid "You do not have permission to copy these plugins."
+msgstr ""
+
+msgid "Error! You don't have permissions to copy this page."
+msgstr ""
+
+msgid ""
+"Error! The page you're pasting is not translated in any of the languages "
+"configured by the target site."
+msgstr ""
+
+msgid "You do not have permission to revert this page."
+msgstr ""
+
+#, python-format
+msgid "\"%s\" was reverted to the live version."
+msgstr ""
+
+msgid "You do not have permission to publish this page"
+msgstr "你沒有權限發佈此網頁"
+
+msgid "Page not published! A parent page is not published yet."
+msgstr ""
+
+msgid "The content was successfully published."
+msgstr ""
+
+msgid "There was a problem publishing your content"
+msgstr ""
+
+msgid "You do not have permission to unpublish this page"
+msgstr ""
+
+msgid "This page was never published"
+msgstr ""
+
+#, python-format
+msgid "The %(language)s page \"%(page)s\" was successfully unpublished"
+msgstr ""
+
+msgid "You do not have permission to delete this page"
+msgstr ""
+
+#, python-format
+msgid "Title and plugins with language %(language)s was deleted"
+msgstr "標題和插件的 %(language)s 語言被刪除了"
+
+#, python-format
+msgid "You don't have permissions to see page \"%(title)s\""
+msgstr ""
+
+msgid "You do not have permission to change this page's in_navigation status"
+msgstr "你沒有權限更改此網頁的 in_navigation 狀態"
+
+msgid "You do not have permission to edit this page"
+msgstr ""
+
+msgid "Add Page Copy"
+msgstr ""
+
+msgid "New sub page"
+msgstr ""
+
+msgid "New page"
+msgstr ""
+
+msgid "The page is not eligible to be home."
+msgstr ""
+
+msgid "View restriction"
+msgstr "查看限制"
+
+msgid "View restrictions"
+msgstr "查看限制"
+
+#, python-format
+msgid "Field %s not found"
+msgstr ""
+
+msgid "You do not have permission to edit this item"
+msgstr ""
+
+msgid "You do not have permission to add a plugin"
+msgstr "你沒有權限新增一個插件"
+
+msgid "You do not have permission to copy this placeholder."
+msgstr ""
+
+msgid "Plugin not found"
+msgstr ""
+
+msgid "You do not have permission to edit this plugin"
+msgstr ""
+
+msgid "order parameter references plugins in different trees"
+msgstr ""
+
+msgid "parent must be in the same placeholder"
+msgstr ""
+
+msgid "parent must be in the same language as plugin_language"
+msgstr ""
+
+msgid "You have no permission to paste this plugin"
+msgstr ""
+
+msgid "You have no permission to paste this placeholder"
+msgstr ""
+
+msgid "You have no permission to move this plugin"
+msgstr ""
+
+msgid "You have no permission to cut this plugin"
+msgstr ""
+
+msgid "You do not have permission to delete this plugin"
+msgstr ""
+
+#, python-format
+msgid "The %(name)s plugin \"%(obj)s\" was deleted successfully."
+msgstr ""
+
+msgid "You do not have permission to clear this placeholder"
+msgstr ""
+
+#, python-format
+msgid "The placeholder \"%(obj)s\" was cleared successfully."
+msgstr ""
+
+msgid "placeholder"
+msgstr ""
+
+msgid "Page permissions"
+msgstr "網頁的權限"
+
+msgid "User & Group permissions"
+msgstr "用戶和組群的權限"
+
+msgid "Page permissions management"
+msgstr "網頁權限管理"
+
+#, python-format
+msgid "No registered apphook \"%r\" found"
+msgstr ""
+
+msgid "django CMS"
+msgstr "django 內容管理系統"
+
+msgid "Placeholder"
+msgstr "定位器"
+
+msgid "Alias"
+msgstr "別名"
+
+msgid "Create Alias"
+msgstr "建立別名"
+
+#, python-format
+msgid ""
+"This is an alias reference, you can edit the content only on the <a "
+"href=\"%(page_url)s?edit\" target=\"_parent\">%(page_title)s</a> page."
+msgstr ""
+
+msgid "Getting started developer guide"
+msgstr ""
+
+msgid "Documentation"
+msgstr ""
+
+msgid "User guide"
+msgstr ""
+
+msgid "Support Forum"
+msgstr ""
+
+msgid "Support Slack"
+msgstr ""
+
+msgid "What's new"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Sites"
+msgstr "站台"
+
+msgid "Admin Sites"
+msgstr "管理站台"
+
+msgid "Administration"
+msgstr "管理"
+
+msgid "User settings"
+msgstr "使用者設定"
+
+msgid "Clipboard..."
+msgstr ""
+
+msgid "Clear clipboard"
+msgstr ""
+
+msgid "Disable toolbar"
+msgstr ""
+
+msgid "Shortcuts..."
+msgstr ""
+
+msgid "Users"
+msgstr "使用者"
+
+#, python-format
+msgid "Logout %s"
+msgstr "登出 %s"
+
+msgid "Logout"
+msgstr "登出"
+
+msgid "Language"
+msgstr "語言"
+
+msgid "Help"
+msgstr ""
+
+msgid "Structure"
+msgstr "結構"
+
+msgid "Content"
+msgstr "內容"
+
+msgid "Publish page changes"
+msgstr ""
+
+msgid "Publish page now"
+msgstr "立刻發佈本頁"
+
+msgid "Page settings"
+msgstr "頁面設定"
+
+msgid "Add Translation"
+msgstr ""
+
+msgid "Delete Translation"
+msgstr ""
+
+msgid "Copy all plugins"
+msgstr ""
+
+#, python-format
+msgid "from %s"
+msgstr ""
+
+#, python-format
+msgid "Are you sure you want to copy all plugins from %s?"
+msgstr ""
+
+msgid "Pages"
+msgstr "頁面"
+
+msgid "Page"
+msgstr "網頁"
+
+msgid "Create Page"
+msgstr ""
+
+msgid "New Page"
+msgstr "新頁面"
+
+msgid "New Sub Page"
+msgstr "新的子頁面"
+
+msgid "Duplicate this Page"
+msgstr "重複此頁"
+
+msgid "Edit this Page"
+msgstr "編輯此頁"
+
+msgid "Advanced settings"
+msgstr "進階設定"
+
+msgid "Templates"
+msgstr "樣板"
+
+msgid "Save as Page Type"
+msgstr "存成頁面型態"
+
+msgid "Permissions"
+msgstr "權限"
+
+msgid "Hide in navigation"
+msgstr "從選單隱藏"
+
+msgid "Display in navigation"
+msgstr "顯示在選單中"
+
+msgid "Unpublish page"
+msgstr ""
+
+msgid "Publish page"
+msgstr ""
+
+msgid "Are you sure you want to revert to live?"
+msgstr "您確定要還原到先前狀態"
+
+msgid "Revert to live"
+msgstr "還原到先前狀態"
+
+msgid "Delete page"
+msgstr "刪除網頁"
+
+msgid "Create a new page next to the current page."
+msgstr ""
+
+msgid "Create a page below the current page."
+msgstr ""
+
+msgid "Select a valid site"
+msgstr "選擇一個有效的網站"
+
+msgid "Select a valid page"
+msgstr "選擇一頁有效的網頁"
+
+#, python-format
+msgid ""
+"Page %(conflict_page)s has the same url '%(url)s' as current page "
+"\"%(instance)s\"."
+msgstr ""
+
+#, python-format
+msgid "Page %(conflict_page)s has the same url '%(url)s' as current page."
+msgstr ""
+
+msgid ""
+"Optional. If supplied, will be automatically added within a new text plugin."
+msgstr ""
+
+msgid "Provide a title for the new page."
+msgstr ""
+
+msgid "Leave empty for automatic slug, or override as required."
+msgstr ""
+
+msgid "Cannot automatically create slug. Please provide one manually."
+msgstr ""
+
+msgid "Please provide a valid slug."
+msgstr ""
+
+msgid "You don't have the permissions required to add a page."
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "position"
+msgstr "位置"
+
+msgid "language"
+msgstr "語言"
+
+msgid "plugin_name"
+msgstr ""
+
+msgid "creation date"
+msgstr "創建日期"
+
+msgid "can edit"
+msgstr "可以編輯"
+
+msgid "can add"
+msgstr "可以添加"
+
+msgid "can delete"
+msgstr "可以刪除"
+
+msgid "can change advanced settings"
+msgstr "可以更改進階設置"
+
+msgid "can publish"
+msgstr "可以發佈"
+
+msgid "can change permissions"
+msgstr "可以更改權限"
+
+msgid "can move"
+msgstr "可搬移"
+
+msgid "view restricted"
+msgstr "查看受限制"
+
+msgid "can recover pages"
+msgstr "可以復原網頁"
+
+msgid "group"
+msgstr "組群"
+
+msgid "sites"
+msgstr "網站"
+
+msgid "created by"
+msgstr "創建者"
+
+msgid "changed by"
+msgstr "修改者"
+
+msgid "publication date"
+msgstr "發佈日期"
+
+msgid "publication end date"
+msgstr "發佈結束日期"
+
+msgid "in navigation"
+msgstr "出現在導航中"
+
+msgid "soft root"
+msgstr "軟性根目錄"
+
+msgid "id"
+msgstr "id"
+
+msgid "attached menu"
+msgstr "附屬選單"
+
+msgid "template"
+msgstr "模板"
+
+msgid "login required"
+msgstr "需要登入"
+
+msgid "menu visibility"
+msgstr "選單可視性"
+
+msgid "application"
+msgstr "應用套件"
+
+msgid "application instance name"
+msgstr ""
+
+msgid "site"
+msgstr "網站"
+
+msgid "Grant on"
+msgstr "授權於"
+
+msgid "page"
+msgstr "網頁"
+
+msgid "for logged in users only"
+msgstr "只針對登入的用戶"
+
+msgid "for anonymous users only"
+msgstr "只針對匿名用戶"
+
+msgid "Inherit from parent page"
+msgstr ""
+
+msgid "Deny"
+msgstr ""
+
+msgid "Only this website"
+msgstr ""
+
+msgid "Allow"
+msgstr ""
+
+msgid ""
+"When the page should go live. Status must be \"Published\" for page to go "
+"live."
+msgstr "何時此網頁要正式發表。狀態必須是\"發佈\"才會使網頁發表出去。"
+
+msgid "When to expire the page. Leave empty to never expire."
+msgstr "何時讓此網頁過期。若留空白則永不過期。"
+
+msgid "All ancestors will not be displayed in the navigation"
+msgstr "所有的上層網頁將不會顯示在導航中"
+
+msgid ""
+"A unique identifier that is used with the page_url templatetag for linking "
+"to this page"
+msgstr ""
+
+msgid "The template used to render the content."
+msgstr "用於呈現內容的模板。"
+
+msgid "limit when this page is visible in the menu"
+msgstr "限制此頁於選單中的可視性"
+
+msgid "pages"
+msgstr "網頁"
+
+msgid "Empty"
+msgstr ""
+
+msgid "default"
+msgstr "預設"
+
+msgid "Current page"
+msgstr "目前網頁"
+
+msgid "Page children (immediate)"
+msgstr "子網頁(直接的)"
+
+msgid "Page and children (immediate)"
+msgstr "網頁與子網頁(直接的)"
+
+msgid "Page descendants"
+msgstr "下層網頁"
+
+msgid "Page and descendants"
+msgstr "網頁與下層網頁"
+
+msgid "on page level"
+msgstr "於網頁層級"
+
+msgid "frontend view restriction"
+msgstr "前台查看限制"
+
+msgid "Please select user or group."
+msgstr ""
+
+msgid ""
+"Users can't publish a page without permissions to change the page. Edit "
+"permissions required."
+msgstr ""
+
+msgid ""
+"Users can't change page advanced settings without permissions to change the "
+"page. Edit permissions required."
+msgstr ""
+
+msgid ""
+"Users can't change page permissions without permissions to change the page. "
+"Edit permissions required."
+msgstr ""
+
+msgid ""
+"Users can't move a page without permissions to change the page. Edit "
+"permissions required."
+msgstr ""
+
+msgid "can recover any deleted page"
+msgstr "可以復原任何已刪除的網頁"
+
+msgid "If none selected, user haves granted permissions to all sites."
+msgstr "如果沒有選任何項目，用戶則授予所有網站的權限。"
+
+msgid "Page global permission"
+msgstr "網頁全站權限"
+
+msgid "Pages global permissions"
+msgstr "網頁全站權限"
+
+msgid "Page permission"
+msgstr "網頁權限"
+
+msgid ""
+"Add page permission requires also access to children, or descendants, "
+"otherwise added page can't be changed by its creator."
+msgstr "新增網頁的權限也需要能存取子網頁或下層網頁，否則它的建造者將無法對所新增的網頁做更改。"
+
+msgid "User (page)"
+msgstr "用戶(網頁)"
+
+msgid "Users (page)"
+msgstr "用戶(網頁)"
+
+msgid "User group (page)"
+msgstr "用戶組群(網頁)"
+
+msgid "User groups (page)"
+msgstr "用戶組群(網頁)"
+
+msgid "slot"
+msgstr "插槽"
+
+msgid "width"
+msgstr "寬度"
+
+msgid "<Empty>"
+msgstr "<Empty>"
+
+msgid "The language for the admin interface and toolbar"
+msgstr ""
+
+msgid "user setting"
+msgstr ""
+
+msgid "user settings"
+msgstr ""
+
+msgid "by template"
+msgstr ""
+
+msgid "by code"
+msgstr ""
+
+msgid "static placeholder name"
+msgstr ""
+
+msgid ""
+"Descriptive name to identify this static placeholder. Not displayed to "
+"users."
+msgstr ""
+
+msgid "placeholder code"
+msgstr ""
+
+msgid "To render the static placeholder in templates."
+msgstr ""
+
+msgid "placeholder content"
+msgstr ""
+
+msgid "creation_method"
+msgstr ""
+
+msgid "static placeholder"
+msgstr ""
+
+msgid "static placeholders"
+msgstr ""
+
+msgid "A static placeholder with the same site and code already exists"
+msgstr ""
+
+msgid "title"
+msgstr "標題"
+
+msgid "overwrite the title (html title tag)"
+msgstr "取代標題(html title 標籤)"
+
+msgid "overwrite the title in the menu"
+msgstr "取代在選單上的標題"
+
+msgid "description"
+msgstr "說明"
+
+msgid "The text displayed in search engines."
+msgstr ""
+
+msgid "slug"
+msgstr "簡略標題"
+
+msgid "Path"
+msgstr "路徑"
+
+msgid "has url overwrite"
+msgstr ""
+
+msgid "redirect"
+msgstr "重新導向"
+
+msgid "is published"
+msgstr "已被發佈"
+
+msgid "Advanced options"
+msgstr "進階選項"
+
+msgid "Generic"
+msgstr "泛用"
+
+#, python-format
+msgid "The %(name)s \"%(obj)s\" was changed successfully."
+msgstr ""
+
+msgid "There are no further settings for this plugin. Please press save."
+msgstr "沒有更進一步設定可使用，請按儲存。"
+
+msgid "Save"
+msgstr "儲存"
+
+#, python-format
+msgid "Log in to administration <a href=\"%(login_url)s\">here</a>."
+msgstr "由<a href=\"%(login_url)s\">此處</a>登入到管理。"
+
+#, python-format
+msgid "Login url: %(login_url)s"
+msgstr "登入網址 ：%(login_url)s"
+
+msgid "Username:"
+msgstr "用戶名稱："
+
+msgid "Password:"
+msgstr "密碼："
+
+msgid "Add a page"
+msgstr ""
+
+msgid "Change a page"
+msgstr "修改一個網頁"
+
+msgid "Home"
+msgstr "首頁"
+
+msgid "View on site"
+msgstr "於網站上查看"
+
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "Please correct the errors below."
+
+msgid "All permissions"
+msgstr "所有權限"
+
+msgid "Loading..."
+msgstr "載入中..."
+
+msgid "Save and continue editing"
+msgstr "儲存並繼續編輯"
+
+msgid "User"
+msgstr "用戶"
+
+msgid "Group"
+msgstr "組群"
+
+msgid "Can edit"
+msgstr "允許編輯"
+
+msgid "Can add"
+msgstr "允許添加"
+
+msgid "Can delete"
+msgstr "允許刪除"
+
+msgid "Can publish"
+msgstr "允許發佈"
+
+msgid "Can change permissions"
+msgstr "允許更改權限"
+
+msgid "Can move"
+msgstr "允許搬移"
+
+msgid "Can view"
+msgstr "可查看"
+
+msgid "(global)"
+msgstr "(全站)"
+
+msgid "(current)"
+msgstr "(目前)"
+
+msgid "Page doesn't inherit any permissions."
+msgstr "網頁不繼承任何權限"
+
+msgid "Edit model"
+msgstr ""
+
+msgid "Save as new"
+msgstr "另存為新檔案"
+
+msgid "Save and add another"
+msgstr "儲存並添加另一個"
+
+msgid "Basic Settings"
+msgstr "基本設置"
+
+msgid "Copy"
+msgstr "複製"
+
+msgid "Cut"
+msgstr "剪切"
+
+msgid "Paste"
+msgstr ""
+
+msgid "Set as home"
+msgstr ""
+
+msgid "is restricted"
+msgstr ""
+
+msgid "last change by"
+msgstr ""
+
+msgid "last change on"
+msgstr ""
+
+msgid "meta"
+msgstr ""
+
+msgid "List of pages"
+msgstr "網頁列表"
+
+msgid "Search"
+msgstr ""
+
+msgid "Page Tree"
+msgstr ""
+
+msgid "Reset filter"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                                                Restore deleted %(name)s\n"
+"                                            "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                                New %(name)s\n"
+"                            "
+msgstr ""
+
+msgid "Main Navigation"
+msgstr ""
+
+msgid "Options"
+msgstr ""
+
+msgid "Successfully moved"
+msgstr "成功地被搬移"
+
+msgid "Changes within the tree might require a refresh."
+msgstr ""
+
+msgid "Error:"
+msgstr ""
+
+msgid ""
+"This page cannot be copied because an application is attached to it. See the"
+" Page's Advanced settings to manage apphooks."
+msgstr ""
+
+msgid "Are you sure you want to § this page?"
+msgstr ""
+
+msgid "Reload"
+msgstr ""
+
+msgid "New node"
+msgstr ""
+
+msgid "nodes"
+msgstr ""
+
+msgid "View"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                            <em>There is no %(object)s around yet.</em>\n"
+"                            <br>\n"
+"                            <a href=\"%(add_url)s\" class=\"addlink\">Add %(object)s</a> now.\n"
+"                        "
+msgstr ""
+
+msgid "Copy options"
+msgstr "複製選項"
+
+msgid "Choose copy options"
+msgstr "選擇複製選項"
+
+msgid "Close"
+msgstr ""
+
+msgid "Legend"
+msgstr ""
+
+msgid "Published"
+msgstr ""
+
+msgid "Changed"
+msgstr ""
+
+msgid "Unpublished"
+msgstr ""
+
+msgid "In menu"
+msgstr ""
+
+msgid "Not in menu"
+msgstr ""
+
+msgid "View page"
+msgstr ""
+
+msgid "Softroot"
+msgstr ""
+
+msgid "Apphook"
+msgstr ""
+
+#, python-format
+msgid "Application: %(apphook)s"
+msgstr ""
+
+#, python-format
+msgid "Preview this page in %(language)s "
+msgstr ""
+
+msgid "Preview"
+msgstr "預覽"
+
+msgid "Publish"
+msgstr "發佈"
+
+msgid "Unpublish"
+msgstr "取消發佈"
+
+msgid "Configure"
+msgstr ""
+
+msgid "in menu"
+msgstr ""
+
+msgid "not in menu"
+msgstr ""
+
+msgid "Page settings (SHIFT click for advanced settings)"
+msgstr ""
+
+msgid "Clipboard"
+msgstr ""
+
+msgid "Add plugin"
+msgstr ""
+
+msgid "Copy all"
+msgstr ""
+
+msgid "Copy from"
+msgstr ""
+
+msgid "Empty all"
+msgstr ""
+
+msgid "Filter plugins..."
+msgstr ""
+
+msgid "This is a static placeholder"
+msgstr ""
+
+msgid "Expand all"
+msgstr ""
+
+msgid "Collapse all"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "You cannot add plugins to this plugin."
+msgstr ""
+
+msgid "This plugin cannot be moved or edited outside of its parent"
+msgstr ""
+
+msgid "Clipboard is empty."
+msgstr ""
+
+msgid "This plugin does not allow plugins of this type as nested plugins."
+msgstr ""
+
+msgid "This plugin cannot have nested plugins."
+msgstr ""
+
+msgid "Highlight"
+msgstr ""
+
+msgid "Available plugins"
+msgstr "可用插件"
+
+msgid "Toggle structure"
+msgstr ""
+
+msgid "View published"
+msgstr ""
+
+msgid "Login"
+msgstr "登入"
+
+msgid "Add plugin to"
+msgstr ""
+
+msgid "More"
+msgstr ""
+
+#, python-format
+msgid ""
+"Development version using django CMS %(cms_version)s, Django "
+"%(django_version)s, Python %(python_version)s"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "The following error occurred:"
+msgstr ""
+
+msgid "Action successful."
+msgstr ""
+
+msgid "Are you sure you want to delete this plugin?"
+msgstr "你確定要刪除這個插件？"
+
+msgid "Are you sure you want to publish this page?"
+msgstr ""
+
+msgid "Plugin will be added here"
+msgstr ""
+
+msgid "You have unsaved changes."
+msgstr ""
+
+msgid "Loading"
+msgstr ""
+
+msgid "Are you sure you want to abandon these changes?"
+msgstr ""
+
+msgid ""
+"The form could not be loaded. Please check that the server is running "
+"correctly."
+msgstr ""
+
+msgid "Most used"
+msgstr ""
+
+msgid "Shortcuts"
+msgstr ""
+
+msgid "The page was changed in the meantime, reloading..."
+msgstr ""
+
+msgid "CMS-wide Shortcuts"
+msgstr ""
+
+msgid "Bring up this help dialog"
+msgstr ""
+
+msgid "Close/cancel"
+msgstr ""
+
+msgid "Toggle structure mode"
+msgstr ""
+
+msgid "Toggle structure mode and highlight hovered-over plugin"
+msgstr ""
+
+msgid "Open \"Create\" dialog"
+msgstr ""
+
+msgid "Focus on Toolbar"
+msgstr ""
+
+msgid "Structureboard"
+msgstr ""
+
+msgid "Focus on placeholders"
+msgstr ""
+
+msgid "Move to next/previous element"
+msgstr ""
+
+msgid "Focus on plugins of placeholder"
+msgstr ""
+
+msgid "Edit plugin"
+msgstr ""
+
+msgid "Open actions menu"
+msgstr ""
+
+msgid "Expand/collapse"
+msgstr ""
+
+msgid ""
+"<strong>Login failed.</strong> Please check your credentials and try again."
+msgstr ""
+
+msgid "This page has unpublished changes."
+msgstr ""
+
+msgid "Double-click to edit"
+msgstr ""
+
+msgid "Tap to edit"
+msgstr ""
+
+msgid "Click to go back"
+msgstr ""
+
+msgid "Click to go forward"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
+msgid "Maximize"
+msgstr ""
+
+msgid "Drop a plugin here"
+msgstr ""
+
+msgid "This page has no preview!"
+msgstr ""
+
+msgid "It is being redirected to:"
+msgstr ""
+
+msgid "Installation successful!"
+msgstr ""
+
+msgid "Add your first page"
+msgstr ""
+
+msgid "Please log in"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                    Welcome to django CMS version <strong>%(cms_version)s</strong>.\n"
+"                "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">Add the first page</a> to the system to continue.\n"
+"                    "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                        JavaScript seems to be disabled so please\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">add a page</a> manually.\n"
+"                    "
+msgstr ""
+
+msgid "Installation Notes"
+msgstr ""
+
+msgid "Support"
+msgstr ""
+
+msgid ""
+"\n"
+"                <p class=\"cms-welcome-notes\">If you don't see the django CMS logo at the top, make sure\n"
+"                    you linked the <code>static/cms</code> folder to your\n"
+"                    static files.</p>\n"
+"            "
+msgstr ""
+
+msgid ""
+"\n"
+"                    <p class=\"cms-welcome-notes\">You're seeing this message because you have\n"
+"                        <code>DEBUG = True</code> in your django settings file and\n"
+"                        haven't added any pages yet.\n"
+"                    </p>\n"
+"                "
+msgstr ""
+
+msgid "Welcome to django CMS"
+msgstr ""
+
+msgid "Add Another"
+msgstr "添加另一件"
+
+msgid "Back"
+msgstr ""
+
+msgid "Please choose an option from below to proceed to the next step."
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid "unpublished changes"
+msgstr ""
+
+msgid "published"
+msgstr "已發佈"
+
+msgid "unpublished parent"
+msgstr ""
+
+msgid "unpublished"
+msgstr ""
+
+msgid "no content"
+msgstr ""
+
+#, python-format
+msgid "Page not found on %(domain)s"
+msgstr "網頁無法於 %(domain)s 內找到"
+
+#, python-format
+msgid ""
+"A template tag couldn't find the page with lookup arguments `%(page_lookup)s\n"
+"`. The URL of the request was: http://%(host)s%(path)s"
+msgstr "有一個模板標籤無法找到以查詢參數找到網頁 `%(page_lookup)s\n`。該請求的 URL 為：http://%(host)s%(path)s"
+
+msgid "Two columns"
+msgstr ""
+
+msgid "Three columns"
+msgstr ""
+
+msgid "username"
+msgstr ""
+
+msgid ""
+"Required. 300 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+msgstr ""
+
+msgid "Enter a valid username."
+msgstr ""
+
+msgid "email address"
+msgstr "寄郵件到"
+
+msgid "staff status"
+msgstr ""
+
+msgid "Designates whether the user can log into this admin site."
+msgstr ""
+
+msgid "active"
+msgstr ""
+
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr ""
+
+msgid "users"
+msgstr ""
+
+msgid "Title Extension"
+msgstr ""
+
+msgid "Page Extension"
+msgstr ""
+
+msgid "object ID"
+msgstr ""
+
+msgid "Example1 App"
+msgstr ""
+
+msgid "MultilingualExample1 App"
+msgstr ""
+
+msgid "Example1"
+msgstr ""
+
+msgid "Examples"
+msgstr ""
+
+msgid "Extra Context"
+msgstr "額外景況(Context)"
+
+msgid "Articles"
+msgstr "文章"
+
+msgid "Sample App"
+msgstr "樣品應用"
+
+msgid "Sample App with config"
+msgstr ""
+
+msgid "Sample App with excluded permissions"
+msgstr ""
+
+msgid "Sample App 2"
+msgstr "樣品應用 2"
+
+msgid "Sample App 3"
+msgstr ""
+
+msgid "Namespaced App"
+msgstr "名稱空間應用"
+
+msgid "Parent app"
+msgstr ""
+
+msgid "Child app"
+msgstr ""
+
+msgid "Variable urls-menus App"
+msgstr ""
+
+msgid "sample root page"
+msgstr "樣品根網頁"
+
+msgid "sample settings page"
+msgstr "樣品設置網頁"
+
+msgid "sample account page"
+msgstr "樣品帳戶網頁"
+
+msgid "sample my profile page"
+msgstr "樣品我的個人資料頁"
+
+msgid "Static Menu"
+msgstr "靜態選單"
+
+msgid "Static Menu2"
+msgstr "靜態選單2"
+
+msgid "Static Menu3"
+msgstr ""
+
+msgid "Static Menu4"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Categories"
+msgstr ""
+
+msgid "Add Category"
+msgstr ""
+
+msgid "^account/$"
+msgstr "^account/$"
+
+msgid "Change Category"
+msgstr ""
+
+msgid "Thanks for spending some quality time with the Web site today."
+msgstr ""
+
+msgid "Inherit the template of the nearest ancestor"
+msgstr "繼承最近的上層網頁模板"
+
+msgid "UserSettings"
+msgstr ""
+
+#, python-format
+msgid "Add plugin to placeholder \"%(placeholder_label)s\""
+msgstr ""
+
+#, python-format
+msgid "Add plugin to %(plugin_name)s"
+msgstr ""
+
+msgid "Community forum"
+msgstr ""
+
+msgid "Getting started"
+msgstr ""
+
+msgid "Talk to us"
+msgstr ""
+
+msgid "CMS - your user account was created."
+msgstr "CMS - 您的用戶帳號已被建立。"
+
+msgid "CMS - your user account was changed."
+msgstr "CMS - 您的用戶帳號已被更改。"
+
+#, python-format
+msgid "This placeholder already has the maximum number of plugins (%s)."
+msgstr "佔位空間內已經含有最大數量的插件(%s)。"
+
+#, python-format
+msgid ""
+"This placeholder already has the maximum number (%(limit)s) of allowed "
+"%(plugin_name)s plugins."
+msgstr "佔位空間內已經含有最大數量 (%(limit)s) 所允許的 %(plugin_name)s 插件。"
+
+#, python-format
+msgid "This placeholder already has the maximum number of child plugins (%s)."
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to find the specified CMS_REQUEST_IP_RESOLVER module: \"{0}\"."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Unable to find the specified CMS_REQUEST_IP_RESOLVER function: \"{0}\" in "
+"module \"{1}\"."
+msgstr ""
+
+#, python-format
+msgid "Create a new %s instance."
+msgstr ""
+
+#, python-format
+msgid "A wizard has already been registered for model: %s"
+msgstr ""

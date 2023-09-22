@@ -1,0 +1,1638 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# d89e266cdb3589c6cb4ff79f3d6c5a21_99f0368 <7b4e3d2be999b12dc043e4885915d37c_97387>, 2013
+# d89e266cdb3589c6cb4ff79f3d6c5a21_99f0368 <7b4e3d2be999b12dc043e4885915d37c_97387>, 2013
+# Andrii Vozniuk, 2021
+# Anton Linevich <linevich@swebion.com>, 2016
+# Nick Nck <asteryx82@gmail.com>, 2015
+# Nick Nck <asteryx82@gmail.com>, 2015
+# Fabian Braun <fsbraun@gmx.de>, 2022
+# roman_grankin <grankin.roman@hotmail.com>, 2014
+# yakky <i.spalletti@nephila.it>, 2015
+# Maxym Lynnyk <yakudzam@gmail.com>, 2013
+# Alex Bolotov <oleksandr.bolotov@gmail.com>, 2013
+# Panasoft, 2014-2016
+# Pylyp Dukhlii <pylyp@pylyp.com.ua>, 2014
+# roman_grankin <grankin.roman@hotmail.com>, 2014
+# tarasyyyk <taras.korzhak96@gmail.com>, 2019
+# Volodymyr Bergman <wowkalucky@gmail.com>, 2017
+# Vusheslavov Eduard <vey@live.ru>, 2014
+# yakky <i.spalletti@nephila.it>, 2015
+# Maxym Lynnyk <yakudzam@gmail.com>, 2013
+# Петро Романчук <ixer@ixer.org.ua>, 2019
+msgid ""
+msgstr ""
+"Project-Id-Version: django CMS\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-05 17:55+0200\n"
+"PO-Revision-Date: 2010-11-30 06:47+0000\n"
+"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2022\n"
+"Language-Team: Ukrainian (http://app.transifex.com/divio/django-cms/language/uk/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: uk\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+
+msgid "All"
+msgstr "Усе"
+
+msgid "Copy permissions"
+msgstr "Скопіювати дозволи"
+
+msgid "Title"
+msgstr "Заголовок"
+
+msgid "The default title"
+msgstr "Заголовок за замовчуванням"
+
+msgid "Slug"
+msgstr "Скорочена назва для пошукових систем"
+
+msgid "The part of the title that is used in the URL"
+msgstr "Частина назви, що використовується у адресному рядку"
+
+msgid "Menu Title"
+msgstr "Назва меню"
+
+msgid "Overwrite what is displayed in the menu"
+msgstr "Перезаписати те, що висвітлено в меню"
+
+msgid "Page Title"
+msgstr "Назва сторінки"
+
+msgid ""
+"Overwrites what is displayed at the top of your browser or in bookmarks"
+msgstr "Переписати те, що буде показано в заголовку вашого браузера або в закладках"
+
+msgid "Description meta tag"
+msgstr "Описання мета ключового слова"
+
+msgid "A description of the page used by search engines."
+msgstr "Описання сторінки, що використовується пошуковими системами."
+
+msgid "Page type"
+msgstr "Тип сторінки"
+
+msgid "Page Types"
+msgstr "Типи Сторінок"
+
+msgid "Application"
+msgstr "Програма"
+
+msgid "Hook application to this page."
+msgstr "Приєднати зовнішню програму до цієї сторінки."
+
+msgid "Overwrite URL"
+msgstr "Перезаписати URL"
+
+msgid "Keep this field empty if standard path should be used."
+msgstr "Залиште це поле пустим, якщо використовується стандартний шлях."
+
+msgid "X Frame Options"
+msgstr "Опції для X Frame"
+
+msgid "Whether this page can be embedded in other pages or websites"
+msgstr "Ця сторінка може бути вбудована в інші сторінки або вебсайти"
+
+msgid "Redirect"
+msgstr "Перенаправлення"
+
+msgid "Redirects to this URL."
+msgstr "Перенаправляє на цей URL "
+
+msgid "Start typing..."
+msgstr "Розпочати друкування..."
+
+msgid "Application configurations"
+msgstr "Конфігурації програми"
+
+msgid "Language independent options"
+msgstr "Незалежні від мови налаштування"
+
+msgid "You entered an invalid URL."
+msgstr ""
+
+#, python-format
+msgid "Please set the %(language)s slug before editing its advanced settings."
+msgstr "Будь ласка, встановіть слаґ для мови %(language)s перед редагуванням її розширених налаштувань."
+
+msgid "A page with this reverse URL id exists already."
+msgstr "Сторінка із таким реверсивним URL id вже існує."
+
+msgid "Invalid application config value"
+msgstr "Неприпустиме значення конфігурації програми"
+
+msgid "An application instance using this configuration already exists."
+msgstr "Екземпляр програми, що використовує цю конфігурацію вже існує."
+
+msgid "An application instance with this name already exists."
+msgstr "Екземпляр програми з такою назвою вже існує."
+
+msgid "You can't move the home page inside another page"
+msgstr "Ви не можете перемістити домашню сторінку до іншої сторінки"
+
+msgid "Yes"
+msgstr "Так"
+
+msgid "No"
+msgstr "Ні"
+
+msgid "user"
+msgstr "користувач"
+
+msgid "can_view"
+msgstr "Може_переглянути"
+
+msgid "Add"
+msgstr "Додати"
+
+msgid "Change"
+msgstr "Змінити"
+
+msgid "Delete"
+msgstr "Видалити"
+
+msgid ""
+"Users can't create a page without permissions to change the created page. "
+"Edit permissions required."
+msgstr "Користувачу не дозволено створювати сторінки без дозволу на зміну вже створених сторінок. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't delete a page without permissions to change the page. Edit "
+"permissions required."
+msgstr "Користувачу не дозволено видаляти сторінки без дозволу на зміну сторінок. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't set page permissions without permissions to change a page. Edit "
+"permissions required."
+msgstr "Користувачу не дозволено змінювати дозволи сторінки без дозволу змінювати сторінку. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't delete page permissions without permissions to change a page. "
+"Edit permissions required."
+msgstr "Користувачі не мають дозволу видаляти дозволи сторінок без дозволу змінювати сторінки. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't create page permissions without permissions to change the "
+"created permission. Edit permissions required."
+msgstr "Користувачі не можуть створювати дозволи сторінки без дозволу змінювати дозволи, що вже існують. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't delete page permissions without permissions to change "
+"permissions. Edit permissions required."
+msgstr "Користувачі не можуть видаляти дозволи сторінки без дозволу змінювати дозволи сторінки. Змініть відповідні дозволи."
+
+#, python-format
+msgid "Invalid plugin type '%s'"
+msgstr "Невірний тип плагіну '%s'"
+
+msgid "Language must be set to a supported language!"
+msgstr "Мова повинна бути в переліку мов, що підтримуються!"
+
+msgid "Parent plugin language must be same as language!"
+msgstr "Батьківка мова розширення повинна бути така сама!"
+
+msgid "Parent plugin placeholder must be same as placeholder!"
+msgstr "Заповнювач батьківського плагіна повинен бути таким же як сам заповнювач!"
+
+#, python-format
+msgid ""
+"Please create the %(language)s page translation before editing it's advanced"
+" settings."
+msgstr "Будь ласка, створіть переклад для мови %(language)s перед редагуванням її розширених налаштувань."
+
+msgid "Advanced Settings"
+msgstr "Розширені Налаштування"
+
+msgid "Publishing dates"
+msgstr "Дати публікації"
+
+msgid "Change Permissions"
+msgstr "Змінити Дозволи"
+
+#, python-format
+msgid "Cannot delete %(name)s"
+msgstr "Неможна видалити %(name)s"
+
+msgid "Are you sure?"
+msgstr "Ви впевнені?"
+
+#, python-format
+msgid "%(name)s object with primary key %(key)r does not exist."
+msgstr "Об'єкта %(name)s з основним ключем %(key)r не існує."
+
+msgid "Database error"
+msgstr "Помилка бази даних"
+
+msgid "Template not valid"
+msgstr "Шаблон не дійсний"
+
+msgid "The template was successfully changed"
+msgstr "Шаблон було успішно змінено"
+
+msgid ""
+"Error! You don't have permissions to move this page. Please reload the page"
+msgstr "Помилка! Ви не маєте дозволу на переміщення цієї сторінки. Будь-ласка, перезавантажте сторінку."
+
+msgid "You do not have permission to copy these plugins."
+msgstr "Ви не маєте дозволу для копіювання даних розширень."
+
+msgid "Error! You don't have permissions to copy this page."
+msgstr "Помилка! У Вас не достатньо прав щоб скопіювати цю сторінку."
+
+msgid ""
+"Error! The page you're pasting is not translated in any of the languages "
+"configured by the target site."
+msgstr "Помилка! Сторінка, яку Ви намагаєтесь вставити не перекладена на жодну з мов, які налаштовано в цільовому сайті."
+
+msgid "You do not have permission to revert this page."
+msgstr "У Вас немає дозволу на відновлення цієї сторінки."
+
+#, python-format
+msgid "\"%s\" was reverted to the live version."
+msgstr "\"%s\" було відновлено до поточної версії."
+
+msgid "You do not have permission to publish this page"
+msgstr "У вас немає дозволу на публікацію цієї сторінки"
+
+msgid "Page not published! A parent page is not published yet."
+msgstr "Сторінку не опубліковано! Батьківська сторінка ще не опублікована."
+
+msgid "The content was successfully published."
+msgstr "Зміст було успішно опубліковано."
+
+msgid "There was a problem publishing your content"
+msgstr "Виникла помилка опублікування Вашого змісту"
+
+msgid "You do not have permission to unpublish this page"
+msgstr "У Вас немає дозволу для зняття з публікації цієї сторінки"
+
+msgid "This page was never published"
+msgstr "Ця сторінка не була опублікована ніколи"
+
+#, python-format
+msgid "The %(language)s page \"%(page)s\" was successfully unpublished"
+msgstr "%(language)s сторінку \"%(page)s\" було успішно знято з публікації"
+
+msgid "You do not have permission to delete this page"
+msgstr "У вас не достатньо прав щоб видалити цю сторінку"
+
+#, python-format
+msgid "Title and plugins with language %(language)s was deleted"
+msgstr "Заголовок та розширення мовами %(language)s видалені"
+
+#, python-format
+msgid "You don't have permissions to see page \"%(title)s\""
+msgstr "У Вас немає дозволу на перегляд сторінки \"%(title)s\""
+
+msgid "You do not have permission to change this page's in_navigation status"
+msgstr "У вас немає дозволу на зміну статусу \"в навігації\" для цієї сторінки"
+
+msgid "You do not have permission to edit this page"
+msgstr "У Вас немає дозволу редагувати цю сторінку"
+
+msgid "Add Page Copy"
+msgstr "Додати Копію Сторінки"
+
+msgid "New sub page"
+msgstr "Нова вкладена сторінка"
+
+msgid "New page"
+msgstr "Нова сторінка"
+
+msgid "The page is not eligible to be home."
+msgstr "Сторінка не може бути домашньою."
+
+msgid "View restriction"
+msgstr "Обмеження перегляду"
+
+msgid "View restrictions"
+msgstr "Обмеження переглядів"
+
+#, python-format
+msgid "Field %s not found"
+msgstr "Поле %s не знайдено"
+
+msgid "You do not have permission to edit this item"
+msgstr "У Вас немає дозволу редагувати цю позицію"
+
+msgid "You do not have permission to add a plugin"
+msgstr "У Вас немає дозволу додавати розширення"
+
+msgid "You do not have permission to copy this placeholder."
+msgstr "У Вас немає дозволу на копіювання цього заповнювача."
+
+msgid "Plugin not found"
+msgstr "Плагін не знайдено"
+
+msgid "You do not have permission to edit this plugin"
+msgstr "У Вас немає прав для реданування цього розширення"
+
+msgid "order parameter references plugins in different trees"
+msgstr "параметр сортування за порядком вказує на плагіни різних дерев"
+
+msgid "parent must be in the same placeholder"
+msgstr "породжувач мусить бути в тому самому вказівнику місця заповнення"
+
+msgid "parent must be in the same language as plugin_language"
+msgstr "породжувач мусить бути на тій самій мові, що й мова плагіну"
+
+msgid "You have no permission to paste this plugin"
+msgstr "У Вас немає дозволу на вставку цього плагіну"
+
+msgid "You have no permission to paste this placeholder"
+msgstr "У Вас немає дозволу на вставку цього заповнювача"
+
+msgid "You have no permission to move this plugin"
+msgstr "У Вас немає дозволу на переміщення цього розширення"
+
+msgid "You have no permission to cut this plugin"
+msgstr "У Вас немає дозволу вірізати цей плагін"
+
+msgid "You do not have permission to delete this plugin"
+msgstr "У Вас немає дозволу на знищення цього розширення"
+
+#, python-format
+msgid "The %(name)s plugin \"%(obj)s\" was deleted successfully."
+msgstr "%(name)s розширення \"%(obj)s\" було успішно видалено."
+
+msgid "You do not have permission to clear this placeholder"
+msgstr "У Вас немає дозволу на очищення цього заповнювача"
+
+#, python-format
+msgid "The placeholder \"%(obj)s\" was cleared successfully."
+msgstr "Заповнювач \"%(obj)s\" був успішно очищений."
+
+msgid "placeholder"
+msgstr "заповнювач"
+
+msgid "Page permissions"
+msgstr "Дозволи сторінки"
+
+msgid "User & Group permissions"
+msgstr "Дозволи Користувача та Групи"
+
+msgid "Page permissions management"
+msgstr "Керування дозволами для сторінки"
+
+#, python-format
+msgid "No registered apphook \"%r\" found"
+msgstr "Знайдено не зареєстрований apphook \"%r\""
+
+msgid "django CMS"
+msgstr "django CMS"
+
+msgid "Placeholder"
+msgstr "Заповнювач"
+
+msgid "Alias"
+msgstr "Псевдонім"
+
+msgid "Create Alias"
+msgstr "Створити псевдонім"
+
+#, python-format
+msgid ""
+"This is an alias reference, you can edit the content only on the <a "
+"href=\"%(page_url)s?edit\" target=\"_parent\">%(page_title)s</a> page."
+msgstr "Це альтернативне посилання, Ви можете редагувати лише на <a href=\"%(page_url)s?edit\" target=\"_parent\">%(page_title)s</a> сторінці."
+
+msgid "Getting started developer guide"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Документація"
+
+msgid "User guide"
+msgstr ""
+
+msgid "Support Forum"
+msgstr ""
+
+msgid "Support Slack"
+msgstr ""
+
+msgid "What's new"
+msgstr ""
+
+msgid "Create"
+msgstr "Створити"
+
+msgid "Sites"
+msgstr "Сайти"
+
+msgid "Admin Sites"
+msgstr "Адмін Сайти"
+
+msgid "Administration"
+msgstr "Адміністрування"
+
+msgid "User settings"
+msgstr "Налаштування користувача"
+
+msgid "Clipboard..."
+msgstr "Буфер обміну..."
+
+msgid "Clear clipboard"
+msgstr "Очистити буфер обміну"
+
+msgid "Disable toolbar"
+msgstr "Відключити панель"
+
+msgid "Shortcuts..."
+msgstr "Гарячі клавіші..."
+
+msgid "Users"
+msgstr "Користувачі"
+
+#, python-format
+msgid "Logout %s"
+msgstr "Вийти %s"
+
+msgid "Logout"
+msgstr "Вийти"
+
+msgid "Language"
+msgstr "Мова"
+
+msgid "Help"
+msgstr ""
+
+msgid "Structure"
+msgstr "Структура"
+
+msgid "Content"
+msgstr "Зміст"
+
+msgid "Publish page changes"
+msgstr "Опублікувати зміни"
+
+msgid "Publish page now"
+msgstr "Опублікувати сторінку зараз"
+
+msgid "Page settings"
+msgstr "Налаштування сторінки"
+
+msgid "Add Translation"
+msgstr "Додати Переклад"
+
+msgid "Delete Translation"
+msgstr "Видалити Переклад"
+
+msgid "Copy all plugins"
+msgstr "Копіювати усі плагіни"
+
+#, python-format
+msgid "from %s"
+msgstr "з %s"
+
+#, python-format
+msgid "Are you sure you want to copy all plugins from %s?"
+msgstr "Ви впевнені, що бажаєте скопіювати усі плагіни з %s?"
+
+msgid "Pages"
+msgstr "Сторінки"
+
+msgid "Page"
+msgstr "Сторінка"
+
+msgid "Create Page"
+msgstr "Створити Сторінку"
+
+msgid "New Page"
+msgstr "Нова Сторінка"
+
+msgid "New Sub Page"
+msgstr "Нова Під-Сторінка"
+
+msgid "Duplicate this Page"
+msgstr "Створити дуплікат цієї Сторінки"
+
+msgid "Edit this Page"
+msgstr "Редагувати цю Сторінку"
+
+msgid "Advanced settings"
+msgstr "Розширені налаштування"
+
+msgid "Templates"
+msgstr "Шаблони"
+
+msgid "Save as Page Type"
+msgstr "Зберегти як Тип Сторінки"
+
+msgid "Permissions"
+msgstr "Дозволи"
+
+msgid "Hide in navigation"
+msgstr "Приховати в навігації"
+
+msgid "Display in navigation"
+msgstr "Показати в навігації"
+
+msgid "Unpublish page"
+msgstr "Зняти сторінку з публікації"
+
+msgid "Publish page"
+msgstr "Опублікувати сторінку"
+
+msgid "Are you sure you want to revert to live?"
+msgstr "Ви впевнені, що хочете відновити опублікування?"
+
+msgid "Revert to live"
+msgstr "Відновити опублікування"
+
+msgid "Delete page"
+msgstr "Видалити сторінку"
+
+msgid "Create a new page next to the current page."
+msgstr "Створити нову сторінку одразу за активною сторінкою"
+
+msgid "Create a page below the current page."
+msgstr "Створити сторінку під актиною сторінкою"
+
+msgid "Select a valid site"
+msgstr "Виберіть чинний сайт"
+
+msgid "Select a valid page"
+msgstr "Виберіть чинну сторінку"
+
+#, python-format
+msgid ""
+"Page %(conflict_page)s has the same url '%(url)s' as current page "
+"\"%(instance)s\"."
+msgstr "Сторінка%(conflict_page)sмає таке ж посилання '%(url)s' як і поточна сторінка \"%(instance)s\"."
+
+#, python-format
+msgid "Page %(conflict_page)s has the same url '%(url)s' as current page."
+msgstr "Сторінка %(conflict_page)sмає таке ж посилання '%(url)s' як і поточна сторінка."
+
+msgid ""
+"Optional. If supplied, will be automatically added within a new text plugin."
+msgstr "Опційно. Якщо вказується, то буде автоматично додано до нового текстового плагіну."
+
+msgid "Provide a title for the new page."
+msgstr "Вкажіть назву для нової сторінки"
+
+msgid "Leave empty for automatic slug, or override as required."
+msgstr "Залиште порожнім для автоматичного слагу або вкажіть самостійно."
+
+msgid "Cannot automatically create slug. Please provide one manually."
+msgstr ""
+
+msgid "Please provide a valid slug."
+msgstr ""
+
+msgid "You don't have the permissions required to add a page."
+msgstr "Ви не маєте достатньо прав щоб додати сторінку."
+
+msgid "ID"
+msgstr "ID"
+
+msgid "position"
+msgstr "позиція"
+
+msgid "language"
+msgstr "мова"
+
+msgid "plugin_name"
+msgstr "назва_розширення"
+
+msgid "creation date"
+msgstr "дата створення"
+
+msgid "can edit"
+msgstr "може редагувати"
+
+msgid "can add"
+msgstr "може додавати"
+
+msgid "can delete"
+msgstr "може видаляти"
+
+msgid "can change advanced settings"
+msgstr "може змінювати розширені налаштування"
+
+msgid "can publish"
+msgstr "може публікувати"
+
+msgid "can change permissions"
+msgstr "може змінювати дозволи"
+
+msgid "can move"
+msgstr "може переміщати"
+
+msgid "view restricted"
+msgstr "перегляд обмежено"
+
+msgid "can recover pages"
+msgstr "може відновлювати сторінки"
+
+msgid "group"
+msgstr "група"
+
+msgid "sites"
+msgstr "сайти"
+
+msgid "created by"
+msgstr "створено"
+
+msgid "changed by"
+msgstr "змінено"
+
+msgid "publication date"
+msgstr "дата публікації"
+
+msgid "publication end date"
+msgstr "дата закінчення публікації"
+
+msgid "in navigation"
+msgstr "в навігації"
+
+msgid "soft root"
+msgstr "soft root"
+
+msgid "id"
+msgstr "Ідентифікатор"
+
+msgid "attached menu"
+msgstr "приєднане меню"
+
+msgid "template"
+msgstr "шаблон"
+
+msgid "login required"
+msgstr "потрібен login"
+
+msgid "menu visibility"
+msgstr "видимість меню"
+
+msgid "application"
+msgstr "Пристосунок"
+
+msgid "application instance name"
+msgstr "назва екземпляру програми"
+
+msgid "site"
+msgstr "сайт"
+
+msgid "Grant on"
+msgstr "Призначити права на"
+
+msgid "page"
+msgstr "сторінка"
+
+msgid "for logged in users only"
+msgstr "тільки для авторизованих користувачів"
+
+msgid "for anonymous users only"
+msgstr "тільки для неавторизованих користувачів"
+
+msgid "Inherit from parent page"
+msgstr "Наслідувати від батьківської сторінки"
+
+msgid "Deny"
+msgstr "Відмовити"
+
+msgid "Only this website"
+msgstr "Тільки цей вебсайт"
+
+msgid "Allow"
+msgstr "Дозволити"
+
+msgid ""
+"When the page should go live. Status must be \"Published\" for page to go "
+"live."
+msgstr "Для опублікування сторінки необхідно встановити статус \"Опубліковано\""
+
+msgid "When to expire the page. Leave empty to never expire."
+msgstr "Строк дії сторінки. Залиште порожнім для безстрокового строку дії."
+
+msgid "All ancestors will not be displayed in the navigation"
+msgstr "Всі нащадки не будуть показані в навігації"
+
+msgid ""
+"A unique identifier that is used with the page_url templatetag for linking "
+"to this page"
+msgstr "Унікальний ідентифікатор, що був використаний з адресою ключового слова шаблону сторінки для прив'язки до цієї сторінки"
+
+msgid "The template used to render the content."
+msgstr "Шаблон, що використовується для створення змісту."
+
+msgid "limit when this page is visible in the menu"
+msgstr "обмеження, коли ця сторінка є видимою у меню"
+
+msgid "pages"
+msgstr "сторінки"
+
+msgid "Empty"
+msgstr "Очистити"
+
+msgid "default"
+msgstr "типове"
+
+msgid "Current page"
+msgstr "Поточна сторінка"
+
+msgid "Page children (immediate)"
+msgstr "Нащадок сторінки (безпосередній)"
+
+msgid "Page and children (immediate)"
+msgstr "Сторінка та нащадок (безпосередній)"
+
+msgid "Page descendants"
+msgstr "Нащадки сторінки"
+
+msgid "Page and descendants"
+msgstr "Сторінка та нащадки"
+
+msgid "on page level"
+msgstr "на рівні сторінки"
+
+msgid "frontend view restriction"
+msgstr "обмеження перегляду зовнішнього інтерфейсу"
+
+msgid "Please select user or group."
+msgstr "Будь-ласка, оберіть користувача або групу."
+
+msgid ""
+"Users can't publish a page without permissions to change the page. Edit "
+"permissions required."
+msgstr "Користувачі не можуть публікувати сторінку без дозволу на зміну сторінки. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't change page advanced settings without permissions to change the "
+"page. Edit permissions required."
+msgstr "Користувачі не можуть змінювати розширені налаштування сторінки без дозволу на зміну сторінки. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't change page permissions without permissions to change the page. "
+"Edit permissions required."
+msgstr "Користувачі не можуть змінювати дозволи сторінки без дозволу на зміну сторінки. Змініть відповідні дозволи."
+
+msgid ""
+"Users can't move a page without permissions to change the page. Edit "
+"permissions required."
+msgstr "Користувачі не можуть переміщувати сторінку без дозволу на зміну сторінки. Змініть відповідні дозволи."
+
+msgid "can recover any deleted page"
+msgstr "може відновлювати будь-які видалені сторінки"
+
+msgid "If none selected, user haves granted permissions to all sites."
+msgstr "Якщо нічого не вибрано, то користувачу надаються права на всі сайти"
+
+msgid "Page global permission"
+msgstr "Глобальний дозвіл доступу до сторінки"
+
+msgid "Pages global permissions"
+msgstr "Глобальні дозволи доступу до сторінок"
+
+msgid "Page permission"
+msgstr "Дозвіл сторінки"
+
+msgid ""
+"Add page permission requires also access to children, or descendants, "
+"otherwise added page can't be changed by its creator."
+msgstr "Дозвіл на додавання сторінки вимагає також мати доступ до нащадків, інакше додана сторінка не може бути змінена тим, хто її створив."
+
+msgid "User (page)"
+msgstr "Користувач (сторінка)"
+
+msgid "Users (page)"
+msgstr "Користувачі (сторінка)"
+
+msgid "User group (page)"
+msgstr "Група користувачів (сторінка)"
+
+msgid "User groups (page)"
+msgstr "Групи користувачів (сторінка)"
+
+msgid "slot"
+msgstr "слот"
+
+msgid "width"
+msgstr "ширина"
+
+msgid "<Empty>"
+msgstr "<Empty>"
+
+msgid "The language for the admin interface and toolbar"
+msgstr "Мова для адміністративного інтерфейсу та інструментальної панелі"
+
+msgid "user setting"
+msgstr "налаштування користувача"
+
+msgid "user settings"
+msgstr "налаштування користувача"
+
+msgid "by template"
+msgstr "за шаблоном"
+
+msgid "by code"
+msgstr "за кодом"
+
+msgid "static placeholder name"
+msgstr "назва статичного заповнювача"
+
+msgid ""
+"Descriptive name to identify this static placeholder. Not displayed to "
+"users."
+msgstr "Образна назва для ідентифікації даного заповнювача. Не показується користувачам."
+
+msgid "placeholder code"
+msgstr "код заповнювача"
+
+msgid "To render the static placeholder in templates."
+msgstr "Для візуалізації статичного заповнювача у шаблонах."
+
+msgid "placeholder content"
+msgstr "зміст заповнювача"
+
+msgid "creation_method"
+msgstr "метод_створення"
+
+msgid "static placeholder"
+msgstr "статичний заповнювач"
+
+msgid "static placeholders"
+msgstr "статичні заповнювачі"
+
+msgid "A static placeholder with the same site and code already exists"
+msgstr "Статичний заповнювач з тим самим сайтом та кодом вже існує"
+
+msgid "title"
+msgstr "заголовок"
+
+msgid "overwrite the title (html title tag)"
+msgstr "перезаписати заголовок (html тег title)"
+
+msgid "overwrite the title in the menu"
+msgstr "перезаписати заголовок в меню"
+
+msgid "description"
+msgstr "опис"
+
+msgid "The text displayed in search engines."
+msgstr "Текст, що відображатиметься у пошукових системах."
+
+msgid "slug"
+msgstr "слаґ"
+
+msgid "Path"
+msgstr "Шлях"
+
+msgid "has url overwrite"
+msgstr "є перезапис url"
+
+msgid "redirect"
+msgstr "перенаправлення"
+
+msgid "is published"
+msgstr "опубліковано"
+
+msgid "Advanced options"
+msgstr "Розширені опції"
+
+msgid "Generic"
+msgstr "Типовий"
+
+#, python-format
+msgid "The %(name)s \"%(obj)s\" was changed successfully."
+msgstr "%(name)s \"%(obj)s\" було змінено успішно."
+
+msgid "There are no further settings for this plugin. Please press save."
+msgstr "Більше немає налаштувань для цього розширення. Будь-ласка, натисніть <Зберегти>"
+
+msgid "Save"
+msgstr "Зберегти"
+
+#, python-format
+msgid "Log in to administration <a href=\"%(login_url)s\">here</a>."
+msgstr "Авторизуйтесь як адміністратор <a href=\"%(login_url)s\">тут</a>."
+
+#, python-format
+msgid "Login url: %(login_url)s"
+msgstr "Посилання [url] для входу: %(login_url)s"
+
+msgid "Username:"
+msgstr "Ім'я користувача:"
+
+msgid "Password:"
+msgstr "Пароль"
+
+msgid "Add a page"
+msgstr "Додати сторінку"
+
+msgid "Change a page"
+msgstr "Змінити сторінку"
+
+msgid "Home"
+msgstr "Головна"
+
+msgid "View on site"
+msgstr "Дивитись на сайті"
+
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "Будь-ласка, виправте помилку нижче."
+msgstr[1] "Будь-ласка, виправте помилки нижче."
+msgstr[2] "Будь-ласка, виправте помилки нижче."
+msgstr[3] "Будь-ласка, виправте помилки нижче."
+
+msgid "All permissions"
+msgstr "Усі дозволи"
+
+msgid "Loading..."
+msgstr "Завантажується..."
+
+msgid "Save and continue editing"
+msgstr "Зберегти та продовжити редагування"
+
+msgid "User"
+msgstr "Користувач"
+
+msgid "Group"
+msgstr "Група"
+
+msgid "Can edit"
+msgstr "Може редагувати"
+
+msgid "Can add"
+msgstr "Може додавати"
+
+msgid "Can delete"
+msgstr "Може видаляти"
+
+msgid "Can publish"
+msgstr "Може публікувати"
+
+msgid "Can change permissions"
+msgstr "Може змінювати дозволи"
+
+msgid "Can move"
+msgstr "Може переміщувати"
+
+msgid "Can view"
+msgstr "Може переглядати"
+
+msgid "(global)"
+msgstr "(глобально)"
+
+msgid "(current)"
+msgstr "(місцево)"
+
+msgid "Page doesn't inherit any permissions."
+msgstr "Сторінка не наслідує жодних дозволів."
+
+msgid "Edit model"
+msgstr "Режим редагування"
+
+msgid "Save as new"
+msgstr "Зберегти як новий"
+
+msgid "Save and add another"
+msgstr "Зберегти та додати інший"
+
+msgid "Basic Settings"
+msgstr "Основні налаштування"
+
+msgid "Copy"
+msgstr "Копія"
+
+msgid "Cut"
+msgstr "Вирізати"
+
+msgid "Paste"
+msgstr "Вставити"
+
+msgid "Set as home"
+msgstr "Зробити головною"
+
+msgid "is restricted"
+msgstr "обмежено"
+
+msgid "last change by"
+msgstr "в останнє змінено"
+
+msgid "last change on"
+msgstr "в останнє змінено"
+
+msgid "meta"
+msgstr "meta"
+
+msgid "List of pages"
+msgstr "Список сторінок"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "Page Tree"
+msgstr "Дерево Сторінок"
+
+msgid "Reset filter"
+msgstr "Зняти фільтр"
+
+#, python-format
+msgid ""
+"\n"
+"                                                Restore deleted %(name)s\n"
+"                                            "
+msgstr "\n                                                Відновити видалене: %(name)s\n                                            "
+
+#, python-format
+msgid ""
+"\n"
+"                                New %(name)s\n"
+"                            "
+msgstr "\n                                Нова %(name)s\n                            "
+
+msgid "Main Navigation"
+msgstr "Головне Меню"
+
+msgid "Options"
+msgstr "Опції"
+
+msgid "Successfully moved"
+msgstr "Успішно переміщено"
+
+msgid "Changes within the tree might require a refresh."
+msgstr "Зміни в межах дерева можуть потребувати поновлення зображення для перегляду."
+
+msgid "Error:"
+msgstr "Помилка:"
+
+msgid ""
+"This page cannot be copied because an application is attached to it. See the"
+" Page's Advanced settings to manage apphooks."
+msgstr "Ця сторінка не може бути скопійована через наявність додатку, що прикріплений до неї. Дивіться розширені налаштування сторінки для управління цим додатком (apphook)."
+
+msgid "Are you sure you want to § this page?"
+msgstr "Ви впевнені, що хочете § цю сторінку?"
+
+msgid "Reload"
+msgstr "Перезавантажити"
+
+msgid "New node"
+msgstr "Новий пункт"
+
+msgid "nodes"
+msgstr "пункти"
+
+msgid "View"
+msgstr "Вигляд"
+
+msgid "Menu"
+msgstr "Меню"
+
+#, python-format
+msgid ""
+"\n"
+"                            <em>There is no %(object)s around yet.</em>\n"
+"                            <br>\n"
+"                            <a href=\"%(add_url)s\" class=\"addlink\">Add %(object)s</a> now.\n"
+"                        "
+msgstr "\n                            <em>Поки що немає %(object)s</em>\n                            <br>\n                            <a href=\"%(add_url)s\" class=\"addlink\">Додати %(object)s</a>.\n                        "
+
+msgid "Copy options"
+msgstr "Опції копіювання"
+
+msgid "Choose copy options"
+msgstr "Обрати опції копіювання"
+
+msgid "Close"
+msgstr "Закрити"
+
+msgid "Legend"
+msgstr "Легенда"
+
+msgid "Published"
+msgstr "Опубліковано"
+
+msgid "Changed"
+msgstr "Змінено"
+
+msgid "Unpublished"
+msgstr "Неопубліковано"
+
+msgid "In menu"
+msgstr "В меню"
+
+msgid "Not in menu"
+msgstr "Не в меню"
+
+msgid "View page"
+msgstr "Перегляд сторінки"
+
+msgid "Softroot"
+msgstr "Softroot"
+
+msgid "Apphook"
+msgstr "Apphook"
+
+#, python-format
+msgid "Application: %(apphook)s"
+msgstr "Програма: %(apphook)s"
+
+#, python-format
+msgid "Preview this page in %(language)s "
+msgstr "Переглянути сторінку мовою: %(language)s "
+
+msgid "Preview"
+msgstr "Попередній перегляд"
+
+msgid "Publish"
+msgstr "Опублікувати"
+
+msgid "Unpublish"
+msgstr "Зняти з публікації"
+
+msgid "Configure"
+msgstr "Налаштувати"
+
+msgid "in menu"
+msgstr "у меню"
+
+msgid "not in menu"
+msgstr "не у меню"
+
+msgid "Page settings (SHIFT click for advanced settings)"
+msgstr "Налаштування сторінки (SHIFT для розширених налаштувань)"
+
+msgid "Clipboard"
+msgstr "Буфер обміну"
+
+msgid "Add plugin"
+msgstr "Додати плагін"
+
+msgid "Copy all"
+msgstr "Копіювати все"
+
+msgid "Copy from"
+msgstr "Копіювати з"
+
+msgid "Empty all"
+msgstr "Очистити все"
+
+msgid "Filter plugins..."
+msgstr "Фільтрувати плагіни..."
+
+msgid "This is a static placeholder"
+msgstr "Це статичний заповнювач"
+
+msgid "Expand all"
+msgstr "Розгорнути все"
+
+msgid "Collapse all"
+msgstr "Згорнути все"
+
+msgid "Edit"
+msgstr "Редагувати"
+
+msgid "You cannot add plugins to this plugin."
+msgstr "Ви не можете додавати плагіни до цього плагіну"
+
+msgid "This plugin cannot be moved or edited outside of its parent"
+msgstr "Цей плагін не може переміщуватись або редагуватися за межами своїх порождувачів"
+
+msgid "Clipboard is empty."
+msgstr "Буфер обміну порожній."
+
+msgid "This plugin does not allow plugins of this type as nested plugins."
+msgstr "Цей плагін не може бути вкладеним."
+
+msgid "This plugin cannot have nested plugins."
+msgstr "Цей плагін не може вміщати вкладені плагіни."
+
+msgid "Highlight"
+msgstr "Виділення"
+
+msgid "Available plugins"
+msgstr "Доступні плагіни"
+
+msgid "Toggle structure"
+msgstr "Увімк./Вимк. структуру"
+
+msgid "View published"
+msgstr "Переглянути опубліковане"
+
+msgid "Login"
+msgstr "Увійти"
+
+msgid "Add plugin to"
+msgstr "Додати плагін до"
+
+msgid "More"
+msgstr "Більше"
+
+#, python-format
+msgid ""
+"Development version using django CMS %(cms_version)s, Django "
+"%(django_version)s, Python %(python_version)s"
+msgstr "Версія, що знаходиться у розробці з використанням django CMS %(cms_version)s, Django %(django_version)s, Python %(python_version)s"
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "The following error occurred:"
+msgstr "Сталася помилка:"
+
+msgid "Action successful."
+msgstr "Виконано успішно"
+
+msgid "Are you sure you want to delete this plugin?"
+msgstr "Ви впевнені, що хочете видалити цей плагін?"
+
+msgid "Are you sure you want to publish this page?"
+msgstr "Ви впевнені, що ви хочете опублікувати цю сторінку?"
+
+msgid "Plugin will be added here"
+msgstr "Плагін буде додано сюди"
+
+msgid "You have unsaved changes."
+msgstr "У Вас є зміни, що не збережені."
+
+msgid "Loading"
+msgstr "Завантаження"
+
+msgid "Are you sure you want to abandon these changes?"
+msgstr "Ви певні, що бажаєте знехтувати цими змінами?"
+
+msgid ""
+"The form could not be loaded. Please check that the server is running "
+"correctly."
+msgstr "Форма не може бути завантажена. Будь ласка, перевірте, чи наразі запущений сервер."
+
+msgid "Most used"
+msgstr "Найбільш використовуване"
+
+msgid "Shortcuts"
+msgstr "Гарячі клавіші"
+
+msgid "The page was changed in the meantime, reloading..."
+msgstr "Сторінку було змінено, перезавантаження..."
+
+msgid "CMS-wide Shortcuts"
+msgstr "Гарячі клавіші CMS"
+
+msgid "Bring up this help dialog"
+msgstr "Достати цей діалог допомоги"
+
+msgid "Close/cancel"
+msgstr "Закрити/відмінити"
+
+msgid "Toggle structure mode"
+msgstr "Переключити в режим структури"
+
+msgid "Toggle structure mode and highlight hovered-over plugin"
+msgstr "Переключити в режим структури і підсвічувати плагіни"
+
+msgid "Open \"Create\" dialog"
+msgstr "Відкрити діалог \"Створити\""
+
+msgid "Focus on Toolbar"
+msgstr "Зфокусувати на Панелі"
+
+msgid "Structureboard"
+msgstr ""
+
+msgid "Focus on placeholders"
+msgstr "Зфоркусувати на заповнювачах"
+
+msgid "Move to next/previous element"
+msgstr "Перемістити до наступного/попереднього елемента"
+
+msgid "Focus on plugins of placeholder"
+msgstr "Зфокусувати на плагінах заповнювача"
+
+msgid "Edit plugin"
+msgstr "Редагувати плагін"
+
+msgid "Open actions menu"
+msgstr "Відкрити меню дій"
+
+msgid "Expand/collapse"
+msgstr "Розгорнути/згорнути"
+
+msgid ""
+"<strong>Login failed.</strong> Please check your credentials and try again."
+msgstr "<strong>Увійти не вдалося.</strong> Будь ласка, перевірте ваші облікові дані і повторіть спробу."
+
+msgid "This page has unpublished changes."
+msgstr "Ця сторінка має неопубліковані зміни."
+
+msgid "Double-click to edit"
+msgstr "Двічі клацніть, щоб редагувати"
+
+msgid "Tap to edit"
+msgstr "Тацьніть для редагування"
+
+msgid "Click to go back"
+msgstr "Клікніть для повернення"
+
+msgid "Click to go forward"
+msgstr "Клікніть для переходу вперед"
+
+msgid "Minimize"
+msgstr "Згорнути"
+
+msgid "Maximize"
+msgstr "Розгорнути"
+
+msgid "Drop a plugin here"
+msgstr "Перетягніть сюди плагін"
+
+msgid "This page has no preview!"
+msgstr "Ця сторінка не має перегляду!"
+
+msgid "It is being redirected to:"
+msgstr "Це було перенапрвлено на:"
+
+msgid "Installation successful!"
+msgstr "Інсталяція відбулася успішно!"
+
+msgid "Add your first page"
+msgstr "Додайте вашу першу сторінку"
+
+msgid "Please log in"
+msgstr "Будь ласка, увійдіть в обліковий запис"
+
+#, python-format
+msgid ""
+"\n"
+"                    Welcome to django CMS version <strong>%(cms_version)s</strong>.\n"
+"                "
+msgstr "\n                    Вітаємо у django CMS версії <strong>%(cms_version)s</strong>!\n                "
+
+#, python-format
+msgid ""
+"\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">Add the first page</a> to the system to continue.\n"
+"                    "
+msgstr "\n                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">Додайте першу сторінку</a> в систему для продовження.\n                    "
+
+#, python-format
+msgid ""
+"\n"
+"                        JavaScript seems to be disabled so please\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">add a page</a> manually.\n"
+"                    "
+msgstr "\n                        Виглядає як у Вас відключено JavaScript тож, будь ласка, \n                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">додайте сторінку</a> вручну.\n                    "
+
+msgid "Installation Notes"
+msgstr "Нотатки з інсталяції"
+
+msgid "Support"
+msgstr "Підтримка"
+
+msgid ""
+"\n"
+"                <p class=\"cms-welcome-notes\">If you don't see the django CMS logo at the top, make sure\n"
+"                    you linked the <code>static/cms</code> folder to your\n"
+"                    static files.</p>\n"
+"            "
+msgstr "\n         <p class=\"cms-welcome-notes\">Якщо Ви не бачите вгорі логотип CMS django, переконайтесь,\nщо Ви посилаєтесь на статичні файли у своєму каталозі <code>static/cms</code></p>"
+
+msgid ""
+"\n"
+"                    <p class=\"cms-welcome-notes\">You're seeing this message because you have\n"
+"                        <code>DEBUG = True</code> in your django settings file and\n"
+"                        haven't added any pages yet.\n"
+"                    </p>\n"
+"                "
+msgstr "\n<p class=\"cms-welcome-notes\">Ви бачите це повідомлення, оскільки у конфігурації django  наявна директива <code>DEBUG = True</code> і Ви ще не додали жодної сторінки</p>"
+
+msgid "Welcome to django CMS"
+msgstr "Вітаємо у django CMS"
+
+msgid "Add Another"
+msgstr "Додати Інше"
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Please choose an option from below to proceed to the next step."
+msgstr "Будь ласка, оберіть опцію нижче для переходу до наступного кроку."
+
+msgid "Next"
+msgstr "Далі"
+
+msgid "unpublished changes"
+msgstr "неопубліковані зміни"
+
+msgid "published"
+msgstr "опубліковано"
+
+msgid "unpublished parent"
+msgstr "неопублікований предок"
+
+msgid "unpublished"
+msgstr "неопубліковано"
+
+msgid "no content"
+msgstr "Матеріалів поки немає"
+
+#, python-format
+msgid "Page not found on %(domain)s"
+msgstr "Сторінка не знайдена на %(domain)s"
+
+#, python-format
+msgid ""
+"A template tag couldn't find the page with lookup arguments `%(page_lookup)s\n"
+"`. The URL of the request was: http://%(host)s%(path)s"
+msgstr "Шаблонне ключове слово не може знайти сторінку з пошуковими аргументами `%(page_lookup)s\n`. URL запиту був такий: http://%(host)s%(path)s"
+
+msgid "Two columns"
+msgstr "Два стовпці"
+
+msgid "Three columns"
+msgstr "Три стовпці"
+
+msgid "username"
+msgstr "ім'я користувача"
+
+msgid ""
+"Required. 300 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+msgstr "Обов'язково. 300 символів або менше. Літери, числа and @/./+/-/_ символи"
+
+msgid "Enter a valid username."
+msgstr "Введіть чинне ім'я користувача."
+
+msgid "email address"
+msgstr "електронна адреса"
+
+msgid "staff status"
+msgstr "статус персоналу"
+
+msgid "Designates whether the user can log into this admin site."
+msgstr "Показує чи може користувач авторизуватись на цьому адміністративному сайті."
+
+msgid "active"
+msgstr "активний"
+
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr "Показує чи повинен цей користувач вважатись активним. Зніміть відмітку замість видалення реєстраційного запису."
+
+msgid "users"
+msgstr "користувачі"
+
+msgid "Title Extension"
+msgstr "Розширення назви"
+
+msgid "Page Extension"
+msgstr "Розширення"
+
+msgid "object ID"
+msgstr "дентифікатор об'єкта"
+
+msgid "Example1 App"
+msgstr "Приклад1 Програми"
+
+msgid "MultilingualExample1 App"
+msgstr "БагатомовнийПриклад1 Програми"
+
+msgid "Example1"
+msgstr "Приклад1"
+
+msgid "Examples"
+msgstr "Приклади"
+
+msgid "Extra Context"
+msgstr "Додатковий Зміст"
+
+msgid "Articles"
+msgstr "Статті"
+
+msgid "Sample App"
+msgstr "Приклад Прграми"
+
+msgid "Sample App with config"
+msgstr "Демонстраційний додаток з конфігурацією"
+
+msgid "Sample App with excluded permissions"
+msgstr "Приклад Програми з видаленими дозволами"
+
+msgid "Sample App 2"
+msgstr "Приклад Програми 2"
+
+msgid "Sample App 3"
+msgstr "Демонстраційний додаток 3"
+
+msgid "Namespaced App"
+msgstr "Простороіменна Прграма"
+
+msgid "Parent app"
+msgstr "Батьківській додаток"
+
+msgid "Child app"
+msgstr "Дочірній додаток"
+
+msgid "Variable urls-menus App"
+msgstr "Змінна urls-menus App"
+
+msgid "sample root page"
+msgstr "приклад корінної сторінки"
+
+msgid "sample settings page"
+msgstr "приклад сторінки налаштувань"
+
+msgid "sample account page"
+msgstr "приклад реєстраційної стрінки"
+
+msgid "sample my profile page"
+msgstr "приклад сторінки з моїм профілем"
+
+msgid "Static Menu"
+msgstr "Статичне меню"
+
+msgid "Static Menu2"
+msgstr "Статичне меню2"
+
+msgid "Static Menu3"
+msgstr "Статичне меню3"
+
+msgid "Static Menu4"
+msgstr "Статичне Меню4"
+
+msgid "Category"
+msgstr "Категорія"
+
+msgid "Categories"
+msgstr "Категорії"
+
+msgid "Add Category"
+msgstr "Додати категорію"
+
+msgid "^account/$"
+msgstr "^account/$"
+
+msgid "Change Category"
+msgstr "Зміна категорію"
+
+msgid "Thanks for spending some quality time with the Web site today."
+msgstr "Дякуємо за якісно проведений час з веб-сайтом сьогодні."
+
+msgid "Inherit the template of the nearest ancestor"
+msgstr "Успадкувати шаблон від найближчого пращура"
+
+msgid "UserSettings"
+msgstr "Користувацькі Налаштування"
+
+#, python-format
+msgid "Add plugin to placeholder \"%(placeholder_label)s\""
+msgstr "Додати плагін до заповнювача \"%(placeholder_label)s\""
+
+#, python-format
+msgid "Add plugin to %(plugin_name)s"
+msgstr "Додати плагін до %(plugin_name)s"
+
+msgid "Community forum"
+msgstr ""
+
+msgid "Getting started"
+msgstr ""
+
+msgid "Talk to us"
+msgstr ""
+
+msgid "CMS - your user account was created."
+msgstr "CMS - створено обліковий запис користувача."
+
+msgid "CMS - your user account was changed."
+msgstr "CMS - ваш обліковий запис було змінено."
+
+#, python-format
+msgid "This placeholder already has the maximum number of plugins (%s)."
+msgstr "Заповнювач вже містить максимальну кількість розширень (%s)."
+
+#, python-format
+msgid ""
+"This placeholder already has the maximum number (%(limit)s) of allowed "
+"%(plugin_name)s plugins."
+msgstr "Це місце заповнення вже має максимальну кількість (%(limit)s) дозволеного %(plugin_name)s в плагіні."
+
+#, python-format
+msgid "This placeholder already has the maximum number of child plugins (%s)."
+msgstr "Заповнювач вже містить максимальну кількість розширень (%s)."
+
+#, python-brace-format
+msgid "Unable to find the specified CMS_REQUEST_IP_RESOLVER module: \"{0}\"."
+msgstr "Не можу знайти вказаний CMS_REQUEST_IP_RESOLVER модуль: \"{0}\"."
+
+#, python-brace-format
+msgid ""
+"Unable to find the specified CMS_REQUEST_IP_RESOLVER function: \"{0}\" in "
+"module \"{1}\"."
+msgstr "Не можу знайти вказану CMS_REQUEST_IP_RESOLVER функцію: \"{0}\" in module \"{1}\"."
+
+#, python-format
+msgid "Create a new %s instance."
+msgstr "Додати новий %s екземпляр."
+
+#, python-format
+msgid "A wizard has already been registered for model: %s"
+msgstr "Помічник вже було зареєстровано для моделі: %s"
