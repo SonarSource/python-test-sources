@@ -21,6 +21,10 @@ tf_module {
     mtype: "<type \'int\'>"
   }
   member {
+    name: "CXX_VERSION"
+    mtype: "<type \'int\'>"
+  }
+  member {
     name: "ConditionalAccumulator"
     mtype: "<type \'type\'>"
   }
@@ -38,7 +42,7 @@ tf_module {
   }
   member {
     name: "DType"
-    mtype: "<class \'pybind11_builtins.pybind11_type\'>"
+    mtype: "<class \'tensorflow.python.framework.dtypes.DTypeMeta\'>"
   }
   member {
     name: "DeviceSpec"
@@ -657,6 +661,10 @@ tf_module {
     mtype: "<type \'type\'>"
   }
   member {
+    name: "types"
+    mtype: "<type \'module\'>"
+  }
+  member {
     name: "uint16"
     mtype: "<class \'tensorflow.python.framework.dtypes.DType\'>"
   }
@@ -763,6 +771,10 @@ tf_module {
   member_method {
     name: "angle"
     argspec: "args=[\'input\', \'name\'], varargs=None, keywords=None, defaults=[\'None\'], "
+  }
+  member_method {
+    name: "approx_top_k"
+    argspec: "args=[\'input\', \'k\', \'reduction_dimension\', \'recall_target\', \'is_max_k\', \'reduction_input_size_override\', \'aggregate_to_topk\', \'name\'], varargs=None, keywords=None, defaults=[\'-1\', \'0.95\', \'True\', \'-1\', \'True\', \'None\'], "
   }
   member_method {
     name: "arg_max"
@@ -1027,6 +1039,14 @@ tf_module {
   member_method {
     name: "control_flow_v2_enabled"
     argspec: "args=[], varargs=None, keywords=None, defaults=None"
+  }
+  member_method {
+    name: "conv2d_backprop_filter_v2"
+    argspec: "args=[\'input\', \'filter\', \'out_backprop\', \'strides\', \'padding\', \'use_cudnn_on_gpu\', \'explicit_paddings\', \'data_format\', \'dilations\', \'name\'], varargs=None, keywords=None, defaults=[\'True\', \'[]\', \'NHWC\', \'[1, 1, 1, 1]\', \'None\'], "
+  }
+  member_method {
+    name: "conv2d_backprop_input_v2"
+    argspec: "args=[\'input\', \'filter\', \'out_backprop\', \'strides\', \'padding\', \'use_cudnn_on_gpu\', \'explicit_paddings\', \'data_format\', \'dilations\', \'name\'], varargs=None, keywords=None, defaults=[\'True\', \'[]\', \'NHWC\', \'[1, 1, 1, 1]\', \'None\'], "
   }
   member_method {
     name: "convert_to_tensor"
@@ -1338,7 +1358,7 @@ tf_module {
   }
   member_method {
     name: "function"
-    argspec: "args=[\'func\', \'input_signature\', \'autograph\', \'experimental_implements\', \'experimental_autograph_options\', \'experimental_relax_shapes\', \'experimental_compile\'], varargs=None, keywords=None, defaults=[\'None\', \'None\', \'True\', \'None\', \'None\', \'False\', \'None\'], "
+    argspec: "args=[\'func\', \'input_signature\', \'autograph\', \'jit_compile\', \'reduce_retracing\', \'experimental_implements\', \'experimental_autograph_options\', \'experimental_attributes\', \'experimental_relax_shapes\', \'experimental_compile\', \'experimental_follow_type_hints\'], varargs=None, keywords=None, defaults=[\'None\', \'None\', \'True\', \'None\', \'False\', \'None\', \'None\', \'None\', \'None\', \'None\', \'None\'], "
   }
   member_method {
     name: "gather"
@@ -1529,6 +1549,10 @@ tf_module {
     argspec: "args=[\'x\', \'name\'], varargs=None, keywords=None, defaults=[\'None\'], "
   }
   member_method {
+    name: "is_symbolic_tensor"
+    argspec: "args=[\'tensor\'], varargs=None, keywords=None, defaults=None"
+  }
+  member_method {
     name: "is_tensor"
     argspec: "args=[\'x\'], varargs=None, keywords=None, defaults=None"
   }
@@ -1630,7 +1654,7 @@ tf_module {
   }
   member_method {
     name: "matmul"
-    argspec: "args=[\'a\', \'b\', \'transpose_a\', \'transpose_b\', \'adjoint_a\', \'adjoint_b\', \'a_is_sparse\', \'b_is_sparse\', \'name\'], varargs=None, keywords=None, defaults=[\'False\', \'False\', \'False\', \'False\', \'False\', \'False\', \'None\'], "
+    argspec: "args=[\'a\', \'b\', \'transpose_a\', \'transpose_b\', \'adjoint_a\', \'adjoint_b\', \'a_is_sparse\', \'b_is_sparse\', \'output_type\', \'name\'], varargs=None, keywords=None, defaults=[\'False\', \'False\', \'False\', \'False\', \'False\', \'False\', \'None\', \'None\'], "
   }
   member_method {
     name: "matrix_band_part"
@@ -1730,7 +1754,7 @@ tf_module {
   }
   member_method {
     name: "nondifferentiable_batch_function"
-    argspec: "args=[\'num_batch_threads\', \'max_batch_size\', \'batch_timeout_micros\', \'allowed_batch_sizes\', \'max_enqueued_batches\', \'autograph\'], varargs=None, keywords=None, defaults=[\'None\', \'10\', \'True\'], "
+    argspec: "args=[\'num_batch_threads\', \'max_batch_size\', \'batch_timeout_micros\', \'allowed_batch_sizes\', \'max_enqueued_batches\', \'autograph\', \'enable_large_batch_splitting\'], varargs=None, keywords=None, defaults=[\'None\', \'10\', \'True\', \'True\'], "
   }
   member_method {
     name: "norm"
@@ -1742,7 +1766,7 @@ tf_module {
   }
   member_method {
     name: "numpy_function"
-    argspec: "args=[\'func\', \'inp\', \'Tout\', \'name\'], varargs=None, keywords=None, defaults=[\'None\'], "
+    argspec: "args=[\'func\', \'inp\', \'Tout\', \'stateful\', \'name\'], varargs=None, keywords=None, defaults=[\'True\', \'None\'], "
   }
   member_method {
     name: "one_hot"
@@ -1829,12 +1853,24 @@ tf_module {
     argspec: "args=[\'concat_dim\', \'values\', \'input_mins\', \'input_maxes\', \'name\'], varargs=None, keywords=None, defaults=[\'None\'], "
   }
   member_method {
+    name: "ragged_fill_empty_rows"
+    argspec: "args=[\'value_rowids\', \'values\', \'nrows\', \'default_value\', \'name\'], varargs=None, keywords=None, defaults=[\'None\'], "
+  }
+  member_method {
+    name: "ragged_fill_empty_rows_grad"
+    argspec: "args=[\'reverse_index_map\', \'grad_values\', \'name\'], varargs=None, keywords=None, defaults=[\'None\'], "
+  }
+  member_method {
     name: "random_crop"
     argspec: "args=[\'value\', \'size\', \'seed\', \'name\'], varargs=None, keywords=None, defaults=[\'None\', \'None\'], "
   }
   member_method {
     name: "random_gamma"
     argspec: "args=[\'shape\', \'alpha\', \'beta\', \'dtype\', \'seed\', \'name\'], varargs=None, keywords=None, defaults=[\'None\', \"<dtype: \'float32\'>\", \'None\', \'None\'], "
+  }
+  member_method {
+    name: "random_index_shuffle"
+    argspec: "args=[\'index\', \'seed\', \'max_index\', \'rounds\', \'name\'], varargs=None, keywords=None, defaults=[\'4\', \'None\'], "
   }
   member_method {
     name: "random_normal"
@@ -2502,7 +2538,7 @@ tf_module {
   }
   member_method {
     name: "vectorized_map"
-    argspec: "args=[\'fn\', \'elems\', \'fallback_to_while_loop\'], varargs=None, keywords=None, defaults=[\'True\'], "
+    argspec: "args=[\'fn\', \'elems\', \'fallback_to_while_loop\', \'warn\'], varargs=None, keywords=None, defaults=[\'True\', \'True\'], "
   }
   member_method {
     name: "verify_tensor_all_finite"

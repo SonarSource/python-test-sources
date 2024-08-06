@@ -14,18 +14,17 @@ For more details on the format specification, visit:
 http://www6.appliedbiosystems.com/support/software_community/ABIF_File_Format.pdf
 
 """
-
-
 import datetime
 import struct
 import sys
 
 from os.path import basename
 
-from Bio import Alphabet
-from Bio.Alphabet.IUPAC import ambiguous_dna, unambiguous_dna
+from typing import List
+
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+
 from .Interfaces import SequenceIterator
 
 
@@ -285,7 +284,7 @@ _INSTRUMENT_SPECIFIC_TAGS["abi_3530/3530xl"] = {
     "ScPa1": "The parameter string of size caller",
     "ScSt1": "Raw data start point. Set to 0 for 3500 data collection.",
     "SpeN1": "Active spectral calibration name",
-    "TrPa1": "Timming parameters",
+    "TrPa1": "Trimming parameters",
     "TrSc1": "Trace score.",
     "TrSc2": 'One of "Pass", "Fail", or "Check"',
     "phAR1": "Trace peak aria ratio",
@@ -323,12 +322,12 @@ _BYTEFMT = {
     19: "s",  # cString
     20: "2i",  # tag, legacy unsupported
 }
-# header data structure (exluding 4 byte ABIF marker)
+# header data structure (excluding 4 byte ABIF marker)
 _HEADFMT = ">H4sI2H3I"
 # directory data structure
 _DIRFMT = ">4sI2H4I"
 
-__global_tag_listing = []
+__global_tag_listing: List[str] = []
 for tag in _INSTRUMENT_SPECIFIC_TAGS.values():
     __global_tag_listing += tag.keys()
 
@@ -350,10 +349,10 @@ def _get_string_tag(opt_bytes_value, default=None):
 class AbiIterator(SequenceIterator):
     """Parser for Abi files."""
 
-    def __init__(self, source, alphabet=None, trim=False):
+    def __init__(self, source, trim=False):
         """Return an iterator for the Abi file format."""
         self.trim = trim
-        super().__init__(source, alphabet=alphabet, mode="b", fmt="ABI")
+        super().__init__(source, mode="b", fmt="ABI")
 
     def parse(self, handle):
         """Start parsing the file, and return a SeqRecord generator."""
@@ -364,21 +363,12 @@ class AbiIterator(SequenceIterator):
             raise ValueError("Empty file.")
 
         if marker != b"ABIF":
-            raise OSError("File should start ABIF, not %r" % marker)
+            raise OSError(f"File should start ABIF, not {marker!r}")
         records = self.iterate(handle)
         return records
 
     def iterate(self, handle):
         """Parse the file and generate SeqRecord objects."""
-        alphabet = self.alphabet
-        # raise exception if alphabet is not dna
-        if alphabet is not None:
-            if isinstance(
-                Alphabet._get_base_alphabet(alphabet), Alphabet.ProteinAlphabet
-            ):
-                raise ValueError("Invalid alphabet, ABI files do not hold proteins.")
-            if isinstance(Alphabet._get_base_alphabet(alphabet), Alphabet.RNAAlphabet):
-                raise ValueError("Invalid alphabet, ABI files do not hold RNA.")
         # dirty hack for handling time information
         times = {"RUND1": "", "RUND2": "", "RUNT1": "", "RUNT2": ""}
 
@@ -393,6 +383,7 @@ class AbiIterator(SequenceIterator):
         sample_id = "<unknown id>"
 
         raw = {}
+        seq = qual = None
         for tag_name, tag_number, tag_data in _abi_parse_header(header, handle):
             key = tag_name + str(tag_number)
 
@@ -401,12 +392,6 @@ class AbiIterator(SequenceIterator):
             # PBAS2 is base-called sequence, only available in 3530
             if key == "PBAS2":
                 seq = tag_data.decode()
-                ambigs = "KYWMRS"
-                if alphabet is None:
-                    if set(seq).intersection(ambigs):
-                        alphabet = ambiguous_dna
-                    else:
-                        alphabet = unambiguous_dna
             # PCON2 is quality values of base-called sequence
             elif key == "PCON2":
                 qual = [ord(val) for val in tag_data.decode()]
@@ -421,8 +406,8 @@ class AbiIterator(SequenceIterator):
                     annot[_EXTRACT[key]] = tag_data
 
         # set time annotations
-        annot["run_start"] = "%s %s" % (times["RUND1"], times["RUNT1"])
-        annot["run_finish"] = "%s %s" % (times["RUND2"], times["RUNT2"])
+        annot["run_start"] = f"{times['RUND1']} {times['RUNT1']}"
+        annot["run_finish"] = f"{times['RUND2']} {times['RUNT2']}"
 
         # raw data (for advanced end users benefit)
         annot["abif_raw"] = raw
@@ -453,12 +438,19 @@ class AbiIterator(SequenceIterator):
             except AttributeError:
                 file_name = ""
             record = SeqRecord(
-                Seq(seq, alphabet),
+                Seq(seq),
                 id=sample_id,
                 name=file_name,
                 description="",
                 annotations=annot,
-                letter_annotations={"phred_quality": qual},
+            )
+        if qual:
+            # Expect this to be missing for FSA files.
+            record.letter_annotations["phred_quality"] = qual
+        elif not is_fsa_file and not qual and self.trim:
+            raise ValueError(
+                "The 'abi-trim' format can not be used for files without"
+                " quality values."
             )
 
         if self.trim and not is_fsa_file:
@@ -541,8 +533,8 @@ def _abi_trim(seq_record):
             for qual in seq_record.letter_annotations["phred_quality"]
         ]
 
-        # calculate cummulative score
-        # if cummulative value < 0, set it to 0
+        # calculate cumulative score
+        # if cumulative value < 0, set it to 0
         # first value is set to 0, because of the assumption that
         # the first base will always be trimmed out
         cummul_score = [0]
@@ -553,12 +545,12 @@ def _abi_trim(seq_record):
             else:
                 cummul_score.append(score)
                 if not start:
-                    # trim_start = value when cummulative score is first > 0
+                    # trim_start = value when cumulative score is first > 0
                     trim_start = i
                     start = True
 
-        # trim_finish = index of highest cummulative score,
-        # marking the end of sequence segment with highest cummulative score
+        # trim_finish = index of highest cumulative score,
+        # marking the end of sequence segment with highest cumulative score
         trim_finish = cummul_score.index(max(cummul_score))
 
         return seq_record[trim_start:trim_finish]

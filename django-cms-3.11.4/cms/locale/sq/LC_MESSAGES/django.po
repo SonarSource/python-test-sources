@@ -1,0 +1,1618 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Besnik Bleta <besnik@programeshqip.org>, 2020-2021
+# Fabian Braun <fsbraun@gmx.de>, 2022
+msgid ""
+msgstr ""
+"Project-Id-Version: django CMS\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-05 17:55+0200\n"
+"PO-Revision-Date: 2010-11-30 06:47+0000\n"
+"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2022\n"
+"Language-Team: Albanian (http://app.transifex.com/divio/django-cms/language/sq/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: sq\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "All"
+msgstr "Krejt"
+
+msgid "Copy permissions"
+msgstr "Leje kopjimi"
+
+msgid "Title"
+msgstr "Titulli"
+
+msgid "The default title"
+msgstr "Titulli parazgjedhje"
+
+msgid "Slug"
+msgstr "Identifikues"
+
+msgid "The part of the title that is used in the URL"
+msgstr "Pjesa e titullit që përdoret te URL-ja"
+
+msgid "Menu Title"
+msgstr "Titull Menuje"
+
+msgid "Overwrite what is displayed in the menu"
+msgstr "Mbishkruaj ç’ka shfaqet te menuja"
+
+msgid "Page Title"
+msgstr "Titull Faqeje"
+
+msgid ""
+"Overwrites what is displayed at the top of your browser or in bookmarks"
+msgstr "Mbishkruan ç’shfaqet në krye të shfletuesit tuaj ose te faqerojtësit"
+
+msgid "Description meta tag"
+msgstr "Etiketë meta përshkrimi"
+
+msgid "A description of the page used by search engines."
+msgstr "Përshkrim i faqes i përdorur nga motorë kërkimesh."
+
+msgid "Page type"
+msgstr "Lloj faqeje"
+
+msgid "Page Types"
+msgstr "Lloje Faqesh"
+
+msgid "Application"
+msgstr "Aplikacion"
+
+msgid "Hook application to this page."
+msgstr "Lidhe aplikacionin me këtë faqe."
+
+msgid "Overwrite URL"
+msgstr "Mbishkruaje URL-në"
+
+msgid "Keep this field empty if standard path should be used."
+msgstr "Mbajeni të zbrazët këtë fushë, nëse duhet përdorur shtegu standard."
+
+msgid "X Frame Options"
+msgstr "Mundësi për X Frame"
+
+msgid "Whether this page can be embedded in other pages or websites"
+msgstr "Nëse kjo faqe mund të trupëzohet në faqe ose sajte të tjerë"
+
+msgid "Redirect"
+msgstr "Ridrejtoje"
+
+msgid "Redirects to this URL."
+msgstr "Ridrejto te kjo URL."
+
+msgid "Start typing..."
+msgstr "Filloni të shtypni…"
+
+msgid "Application configurations"
+msgstr "Formësime aplikacioni"
+
+msgid "Language independent options"
+msgstr "Mundësi të pavarura nga gjuhët"
+
+msgid "You entered an invalid URL."
+msgstr "Dhatë një URL të pavlefshme."
+
+#, python-format
+msgid "Please set the %(language)s slug before editing its advanced settings."
+msgstr "Ju lutemi, përpara se të përpunoni rregullimet e thelluara për të, caktoni identifikuesin %(language)s."
+
+msgid "A page with this reverse URL id exists already."
+msgstr "Ka tashmë një faqe me këtë URL të përmbysur."
+
+msgid "Invalid application config value"
+msgstr "Vlerë e pavlefshme formësimi aplikacioni"
+
+msgid "An application instance using this configuration already exists."
+msgstr "Ka tashmë një instancë aplikacioni që përdor këtë formësim."
+
+msgid "An application instance with this name already exists."
+msgstr "Ka tashmë një instancë aplikacioni me këtë emër."
+
+msgid "You can't move the home page inside another page"
+msgstr "S’mund ta kaloni faqen e kreut brenda një faqeje tjetër"
+
+msgid "Yes"
+msgstr "Po"
+
+msgid "No"
+msgstr "Jo"
+
+msgid "user"
+msgstr "përdorues"
+
+msgid "can_view"
+msgstr "mund_të_shohë"
+
+msgid "Add"
+msgstr "Shtoni"
+
+msgid "Change"
+msgstr "Ndryshoje"
+
+msgid "Delete"
+msgstr "Fshije"
+
+msgid ""
+"Users can't create a page without permissions to change the created page. "
+"Edit permissions required."
+msgstr "Përdoruesit s’mund të krijojnë një faqe pa leje për ndryshim të faqes së krijuar. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't delete a page without permissions to change the page. Edit "
+"permissions required."
+msgstr "Përdoruesit s’mund të fshijnë një faqe pa leje për ndryshim të faqes. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't set page permissions without permissions to change a page. Edit "
+"permissions required."
+msgstr "Përdoruesit s’mund të caktojnë leje faqeje pa leje për ndryshim të faqes. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't delete page permissions without permissions to change a page. "
+"Edit permissions required."
+msgstr "Përdoruesit s’mund të fshijnë leje faqeje pa leje për ndryshim të faqes. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't create page permissions without permissions to change the "
+"created permission. Edit permissions required."
+msgstr "Përdoruesit s’mund të krijojnë leje faqeje pa leje për ndryshim të lejes së krijuar. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't delete page permissions without permissions to change "
+"permissions. Edit permissions required."
+msgstr "Përdoruesit s’mund të fshijnë leje faqeje pa leje për ndryshim lejesh. Lypsen leje përpunimi."
+
+#, python-format
+msgid "Invalid plugin type '%s'"
+msgstr "Lloj i pavlefshëm shtojce '%s'"
+
+msgid "Language must be set to a supported language!"
+msgstr "Si gjuhë duhet caktuar një nga gjuhët që mbulohet!"
+
+msgid "Parent plugin language must be same as language!"
+msgstr "Gjuha e shtojcës mëmë duhet të jetë e njëjtë me gjuhën!"
+
+msgid "Parent plugin placeholder must be same as placeholder!"
+msgstr "Vendmbajtësja e shtojcës mëmë duhet të jetë e njëjtë me vendmbajtësen!"
+
+#, python-format
+msgid ""
+"Please create the %(language)s page translation before editing it's advanced"
+" settings."
+msgstr "Ju lutemi, përpara se të përpunoni rregullimet e thelluara për të, krijoni faqen %(language)s."
+
+msgid "Advanced Settings"
+msgstr "Rregullime të Mëtejshme"
+
+msgid "Publishing dates"
+msgstr "Data botimi"
+
+msgid "Change Permissions"
+msgstr "Ndryshoni Leje"
+
+#, python-format
+msgid "Cannot delete %(name)s"
+msgstr "S’fshihet dot %(name)s"
+
+msgid "Are you sure?"
+msgstr "Jeni i sigurt?"
+
+#, python-format
+msgid "%(name)s object with primary key %(key)r does not exist."
+msgstr "Objekti %(name)s me kyç parësor %(key)r s’ekziston."
+
+msgid "Database error"
+msgstr "Gabim baze të dhënash"
+
+msgid "Template not valid"
+msgstr "Gjedhe jo e vlefshme"
+
+msgid "The template was successfully changed"
+msgstr "Gjedhja u ndryshua me sukses"
+
+msgid ""
+"Error! You don't have permissions to move this page. Please reload the page"
+msgstr "Gabim! S’keni leje për lëvizjen e kësaj faqeje. Ju lutemi, ringarkoni faqen"
+
+msgid "You do not have permission to copy these plugins."
+msgstr "S’keni leje të kopjoni këto shtojca."
+
+msgid "Error! You don't have permissions to copy this page."
+msgstr "Gabim! S’keni leje të kopjoni këtë faqe."
+
+msgid ""
+"Error! The page you're pasting is not translated in any of the languages "
+"configured by the target site."
+msgstr "Gabim! Faqja që po ngjitni s’është e përkthyer në ndonjë nga gjuhët e formësuara nga sajti i synuar."
+
+msgid "You do not have permission to revert this page."
+msgstr "S’keni leje për të rikthyer këtë faqe."
+
+#, python-format
+msgid "\"%s\" was reverted to the live version."
+msgstr "\"%s\" u rikthye te versioni <em>live</em>."
+
+msgid "You do not have permission to publish this page"
+msgstr "S’keni leje të botoni këtë faqe"
+
+msgid "Page not published! A parent page is not published yet."
+msgstr "Faqja s’u botua! S’është botuar ende një faqe mëmë."
+
+msgid "The content was successfully published."
+msgstr "Lënda u botua me sukses."
+
+msgid "There was a problem publishing your content"
+msgstr "Pati një problem me botimin e lëndës tuaj"
+
+msgid "You do not have permission to unpublish this page"
+msgstr "S’keni leje për ta hequr këtë faqe nga botimi"
+
+msgid "This page was never published"
+msgstr "Kjo faqe s’qe botuar kurrë"
+
+#, python-format
+msgid "The %(language)s page \"%(page)s\" was successfully unpublished"
+msgstr "Faqja \"%(page)s\" në %(language)s u hoq me sukses nga botimi"
+
+msgid "You do not have permission to delete this page"
+msgstr "S’keni leje për fshirje të kësaj faqeje"
+
+#, python-format
+msgid "Title and plugins with language %(language)s was deleted"
+msgstr "Titulli dhe shtojcat me gjuhën %(language)s u fshinë"
+
+#, python-format
+msgid "You don't have permissions to see page \"%(title)s\""
+msgstr "S’keni leje të shihni faqen \"%(title)s\""
+
+msgid "You do not have permission to change this page's in_navigation status"
+msgstr "S’keni leje të ndryshoni gjendje lëvizjeje të kësaj faqeje"
+
+msgid "You do not have permission to edit this page"
+msgstr "S’keni leje për të përpunuar këtë faqe"
+
+msgid "Add Page Copy"
+msgstr "Shtoni Kopje Faqeje"
+
+msgid "New sub page"
+msgstr "Nënfaqe e re"
+
+msgid "New page"
+msgstr "Faqe e re"
+
+msgid "The page is not eligible to be home."
+msgstr "Faqja s’kualifikohet për të qenë faqe kreu."
+
+msgid "View restriction"
+msgstr "Shihni kufizim"
+
+msgid "View restrictions"
+msgstr "Shihni kufizime"
+
+#, python-format
+msgid "Field %s not found"
+msgstr "Fusha %s s’u gjet"
+
+msgid "You do not have permission to edit this item"
+msgstr "S’keni leje të përpunoni këtë objekt"
+
+msgid "You do not have permission to add a plugin"
+msgstr "S’keni leje të shtoni një shtojcë"
+
+msgid "You do not have permission to copy this placeholder."
+msgstr "S’keni leje të kopjoni këtë vendmbajtëse."
+
+msgid "Plugin not found"
+msgstr "S’u gjet shtojcë"
+
+msgid "You do not have permission to edit this plugin"
+msgstr "S’keni leje të përpunoni këtë shtojcë"
+
+msgid "order parameter references plugins in different trees"
+msgstr ""
+
+msgid "parent must be in the same placeholder"
+msgstr "mëma duhet të jetë në të njëjtën vendmbajtëse"
+
+msgid "parent must be in the same language as plugin_language"
+msgstr "mëma duhet të jetë në të njëjtën gjuhë me plugin_language"
+
+msgid "You have no permission to paste this plugin"
+msgstr "S’keni leje ta ngjitni këtë shtojcë"
+
+msgid "You have no permission to paste this placeholder"
+msgstr "S’keni leje ta ngjitni këtë vendmbajtëse"
+
+msgid "You have no permission to move this plugin"
+msgstr "S’keni leje të lëvizni këtë shtojcë"
+
+msgid "You have no permission to cut this plugin"
+msgstr "S’keni leje ta prisni këtë shtojcash"
+
+msgid "You do not have permission to delete this plugin"
+msgstr "S’keni leje ta fshini këtë shtojcë"
+
+#, python-format
+msgid "The %(name)s plugin \"%(obj)s\" was deleted successfully."
+msgstr "Shtojca %(name)s \"%(obj)s\" u fshi me sukses."
+
+msgid "You do not have permission to clear this placeholder"
+msgstr "S’keni leje të spastroni këtë vendmbajtëse"
+
+#, python-format
+msgid "The placeholder \"%(obj)s\" was cleared successfully."
+msgstr "Vendmbajtësja \"%(obj)s\" u fshi me sukses."
+
+msgid "placeholder"
+msgstr "vendmbajtëse"
+
+msgid "Page permissions"
+msgstr "Leje faqeje"
+
+msgid "User & Group permissions"
+msgstr "Leje Përdoruessih & Grupesh"
+
+msgid "Page permissions management"
+msgstr "Administrim leje faqesh"
+
+#, python-format
+msgid "No registered apphook \"%r\" found"
+msgstr "S’u gjet apphook \"%r\" i regjistruar"
+
+msgid "django CMS"
+msgstr "django CMS"
+
+msgid "Placeholder"
+msgstr "Vendmbajtëse"
+
+msgid "Alias"
+msgstr "Alias"
+
+msgid "Create Alias"
+msgstr "Krijoni Alias"
+
+#, python-format
+msgid ""
+"This is an alias reference, you can edit the content only on the <a "
+"href=\"%(page_url)s?edit\" target=\"_parent\">%(page_title)s</a> page."
+msgstr "Kjo është një referencë aliasi, lëndën mund ta përpunoni vetëm te faqja <a href=\"%(page_url)s?edit\" target=\"_parent\">%(page_title)s</a>."
+
+msgid "Getting started developer guide"
+msgstr "Udhërrëfyes si t’ia fillohet për zhvillues"
+
+msgid "Documentation"
+msgstr "Dokumentim"
+
+msgid "User guide"
+msgstr "Udhërrëfyes përdoruesish"
+
+msgid "Support Forum"
+msgstr "Forum Asistence"
+
+msgid "Support Slack"
+msgstr "Kanal Slack Asistence"
+
+msgid "What's new"
+msgstr "Ç’ka të re"
+
+msgid "Create"
+msgstr "Krijoje"
+
+msgid "Sites"
+msgstr "Sajte"
+
+msgid "Admin Sites"
+msgstr "Sajte Përgjegjësi"
+
+msgid "Administration"
+msgstr "Administrim"
+
+msgid "User settings"
+msgstr "Rregullime përdoruesi"
+
+msgid "Clipboard..."
+msgstr "E papastër…"
+
+msgid "Clear clipboard"
+msgstr "Spastro të papastrën"
+
+msgid "Disable toolbar"
+msgstr "Çaktivizo panelin"
+
+msgid "Shortcuts..."
+msgstr "Shkurtore…"
+
+msgid "Users"
+msgstr "Përdorues"
+
+#, python-format
+msgid "Logout %s"
+msgstr "Dilni %s"
+
+msgid "Logout"
+msgstr "Dalje"
+
+msgid "Language"
+msgstr "Gjuhë"
+
+msgid "Help"
+msgstr "Ndihmë"
+
+msgid "Structure"
+msgstr "Strukturë"
+
+msgid "Content"
+msgstr "Lëndë"
+
+msgid "Publish page changes"
+msgstr "Boto ndryshime faqesh"
+
+msgid "Publish page now"
+msgstr "Botoje faqen tani"
+
+msgid "Page settings"
+msgstr "Rregullime faqeje"
+
+msgid "Add Translation"
+msgstr "Shtoni Përkthim"
+
+msgid "Delete Translation"
+msgstr "Fshije Përkthimin"
+
+msgid "Copy all plugins"
+msgstr "Kopjo krejt shtojcat"
+
+#, python-format
+msgid "from %s"
+msgstr "nga %s"
+
+#, python-format
+msgid "Are you sure you want to copy all plugins from %s?"
+msgstr "Jeni i sigurt se doni të kopjohen krejt shtojcat prej %s?"
+
+msgid "Pages"
+msgstr "Faqe"
+
+msgid "Page"
+msgstr "Faqe"
+
+msgid "Create Page"
+msgstr "Krijoni Faqe"
+
+msgid "New Page"
+msgstr "Faqe e Re"
+
+msgid "New Sub Page"
+msgstr "Nënfaqe e Re"
+
+msgid "Duplicate this Page"
+msgstr "Përsëdyte këtë Faqe"
+
+msgid "Edit this Page"
+msgstr "Përpunoni këtë Faqe"
+
+msgid "Advanced settings"
+msgstr "Rregullime të mëtejshme"
+
+msgid "Templates"
+msgstr "Gjedhe"
+
+msgid "Save as Page Type"
+msgstr "Ruaje si Lloj Faqesh"
+
+msgid "Permissions"
+msgstr "Lleje"
+
+msgid "Hide in navigation"
+msgstr "Fshihe te lëvizja"
+
+msgid "Display in navigation"
+msgstr "Shfaqe te lëvizja"
+
+msgid "Unpublish page"
+msgstr "Hiqe faqen nga botimi"
+
+msgid "Publish page"
+msgstr "Botoje faqen"
+
+msgid "Are you sure you want to revert to live?"
+msgstr "Jeni i sigurt se doni të rikthehet te live?"
+
+msgid "Revert to live"
+msgstr "Riktheje te live"
+
+msgid "Delete page"
+msgstr "Fshije faqen"
+
+msgid "Create a new page next to the current page."
+msgstr "Krijoni një faqe të re krah faqes së tanishme."
+
+msgid "Create a page below the current page."
+msgstr "Krijo një faqe nën faqen e tanishme."
+
+msgid "Select a valid site"
+msgstr "Përzgjidhni sajt të vlefshëm"
+
+msgid "Select a valid page"
+msgstr "Përzgjidhni faqe të vlefshme"
+
+#, python-format
+msgid ""
+"Page %(conflict_page)s has the same url '%(url)s' as current page "
+"\"%(instance)s\"."
+msgstr "Faqja %(conflict_page)s ka të njëjtën URL '%(url)s' me faqen e tanishme \"%(instance)s\"."
+
+#, python-format
+msgid "Page %(conflict_page)s has the same url '%(url)s' as current page."
+msgstr "Faqja %(conflict_page)s ka të njëjtën URL '%(url)s' me faqen e tanishme."
+
+msgid ""
+"Optional. If supplied, will be automatically added within a new text plugin."
+msgstr "Në dëshirë. Në u dhëntë, do të shtohet automatikisht brenda një shtojce të re tekst."
+
+msgid "Provide a title for the new page."
+msgstr "Jepni një titull për faqen e re."
+
+msgid "Leave empty for automatic slug, or override as required."
+msgstr "Lëreni të zbrazët për identifikues të automatizuar, ose anashkalojeni siç kërkohet."
+
+msgid "Cannot automatically create slug. Please provide one manually."
+msgstr "S’mund të krijohet identifikues automatikisht. Ju lutemi, jepni një dorazi."
+
+msgid "Please provide a valid slug."
+msgstr "Ju lutemi, jepni një identifikues të vlefshëm."
+
+msgid "You don't have the permissions required to add a page."
+msgstr "S’keni lejet e domosdoshme për të krijuar një faqe."
+
+msgid "ID"
+msgstr "ID"
+
+msgid "position"
+msgstr "pozicion"
+
+msgid "language"
+msgstr "gjuhë"
+
+msgid "plugin_name"
+msgstr "emër_shtojce"
+
+msgid "creation date"
+msgstr "datë krijimi"
+
+msgid "can edit"
+msgstr "mund të përpunojë"
+
+msgid "can add"
+msgstr "mund të shtojë"
+
+msgid "can delete"
+msgstr "mund të fshijë"
+
+msgid "can change advanced settings"
+msgstr "mund të ndryshojë rregullime të mëtejshme"
+
+msgid "can publish"
+msgstr "mund të botojë"
+
+msgid "can change permissions"
+msgstr "mund të ndryshojë leje"
+
+msgid "can move"
+msgstr "mund të lëvizë"
+
+msgid "view restricted"
+msgstr "të shohë të kufizuarat"
+
+msgid "can recover pages"
+msgstr "mund të rimarrë faqe"
+
+msgid "group"
+msgstr "grup"
+
+msgid "sites"
+msgstr "sajte"
+
+msgid "created by"
+msgstr "krijuar nga"
+
+msgid "changed by"
+msgstr "ndryshuar nga"
+
+msgid "publication date"
+msgstr "datë botimi"
+
+msgid "publication end date"
+msgstr "datë përfundimi botimi"
+
+msgid "in navigation"
+msgstr "në lëvizje"
+
+msgid "soft root"
+msgstr ""
+
+msgid "id"
+msgstr "id"
+
+msgid "attached menu"
+msgstr "menuja bashkëngjitur"
+
+msgid "template"
+msgstr "gjedhe"
+
+msgid "login required"
+msgstr "lypset hyrje"
+
+msgid "menu visibility"
+msgstr "dukshmëri menush"
+
+msgid "application"
+msgstr "aplikacion"
+
+msgid "application instance name"
+msgstr "emër instance aplikacioni"
+
+msgid "site"
+msgstr "sajt"
+
+msgid "Grant on"
+msgstr "Akordo gjatë"
+
+msgid "page"
+msgstr "faqe"
+
+msgid "for logged in users only"
+msgstr "vetëm për përdorues të futur"
+
+msgid "for anonymous users only"
+msgstr "vetëm për përdorues anonimë"
+
+msgid "Inherit from parent page"
+msgstr "Trashëgoje prej faqeje mëmë"
+
+msgid "Deny"
+msgstr "Mohojei"
+
+msgid "Only this website"
+msgstr "Vetëm këtë sajt"
+
+msgid "Allow"
+msgstr "Lejoje"
+
+msgid ""
+"When the page should go live. Status must be \"Published\" for page to go "
+"live."
+msgstr "Kur duhet të kalohet live faqja. Që një faqe të kalohet live, gjendja e saj duhet të jetë “E botuar”."
+
+msgid "When to expire the page. Leave empty to never expire."
+msgstr "Kur të skadojë faqja. Që të mos skadojë kurrë, lëreni të zbrazët."
+
+msgid "All ancestors will not be displayed in the navigation"
+msgstr "Krejt paraardhësit s’do të shfaqen te lëvizja"
+
+msgid ""
+"A unique identifier that is used with the page_url templatetag for linking "
+"to this page"
+msgstr "Një identifikues unik që përdoret me etiketën e gjedhes page_url për të lidhur këtë faqe"
+
+msgid "The template used to render the content."
+msgstr "Gjedhja e përdorur për vizatimin e lëndës."
+
+msgid "limit when this page is visible in the menu"
+msgstr "kufizo kur kjo faqe është e dukshme te menuja"
+
+msgid "pages"
+msgstr "faqe"
+
+msgid "Empty"
+msgstr "E zbrazët"
+
+msgid "default"
+msgstr "parazgjedhje"
+
+msgid "Current page"
+msgstr "Faqja e tanishme"
+
+msgid "Page children (immediate)"
+msgstr "Pjella faqeje (të menjëhershme)"
+
+msgid "Page and children (immediate)"
+msgstr "Faqe dhe pjella (të menjëhershme)"
+
+msgid "Page descendants"
+msgstr "Pasardhës faqeje"
+
+msgid "Page and descendants"
+msgstr "Faqe dhe pasardhës"
+
+msgid "on page level"
+msgstr "në nivelin e faqes"
+
+msgid "frontend view restriction"
+msgstr "kufizim parjeje pjese të dukshme"
+
+msgid "Please select user or group."
+msgstr "Ju lutemi, përzgjidhni përdorues ose grup."
+
+msgid ""
+"Users can't publish a page without permissions to change the page. Edit "
+"permissions required."
+msgstr "Përdoruesit s’mund të botojnë një faqe pa leje për ndryshim të faqe. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't change page advanced settings without permissions to change the "
+"page. Edit permissions required."
+msgstr "Përdoruesit s’mund të ndryshojnë rregullime të thelluara të faqes pa leje për ndryshim të faqes. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't change page permissions without permissions to change the page. "
+"Edit permissions required."
+msgstr "Përdoruesit s’mund të ndryshojnë leje faqesh pa leje për ndryshim të faqes. Lypsen leje përpunimi."
+
+msgid ""
+"Users can't move a page without permissions to change the page. Edit "
+"permissions required."
+msgstr "Përdoruesit s’mund të lëvizin një faqe pa leje për ndryshim të faqes. Lypsen leje përpunimi."
+
+msgid "can recover any deleted page"
+msgstr "mund të rikthejë çfarëdo faqeje të fshirë"
+
+msgid "If none selected, user haves granted permissions to all sites."
+msgstr "Nëse s’është gjë, përdoruesi ka leje të akorduara te krejt sajtet."
+
+msgid "Page global permission"
+msgstr "Leje globale faqeje"
+
+msgid "Pages global permissions"
+msgstr "Leje globale faqesh"
+
+msgid "Page permission"
+msgstr "Leje faqesh"
+
+msgid ""
+"Add page permission requires also access to children, or descendants, "
+"otherwise added page can't be changed by its creator."
+msgstr "Leja për shtim faqesh lyp gjithashtu hyrje te pjella, ose pasardhës, përndryshe faqja e shtuar s’mund të ndryshohet nga krijuesi i saj."
+
+msgid "User (page)"
+msgstr "Përdorues (faqe)"
+
+msgid "Users (page)"
+msgstr "Përdorues (faqe)"
+
+msgid "User group (page)"
+msgstr "Grup përdoruesish (faqe)"
+
+msgid "User groups (page)"
+msgstr "Grupe përdoruesish (faqe)"
+
+msgid "slot"
+msgstr ""
+
+msgid "width"
+msgstr "gjerësi"
+
+msgid "<Empty>"
+msgstr "<E zbrazët>"
+
+msgid "The language for the admin interface and toolbar"
+msgstr "Gjuha për ndërfaqen dhe panelin e përgjegjësit"
+
+msgid "user setting"
+msgstr "rregullim përdoruesi"
+
+msgid "user settings"
+msgstr "rregullime përdoruesi"
+
+msgid "by template"
+msgstr "sipas gjedheje"
+
+msgid "by code"
+msgstr "sipas kodi"
+
+msgid "static placeholder name"
+msgstr "emër vendmbajtëseje statike"
+
+msgid ""
+"Descriptive name to identify this static placeholder. Not displayed to "
+"users."
+msgstr "Emër përshkrues për identifikim të kësaj vendmbajtëse statike. S’u shfaqet përdoruesve."
+
+msgid "placeholder code"
+msgstr "kod vendmbajtëseje"
+
+msgid "To render the static placeholder in templates."
+msgstr "Për vizatim të vendmbajtëses statike në gjedhe."
+
+msgid "placeholder content"
+msgstr "lëndë vendmbajtëseje"
+
+msgid "creation_method"
+msgstr "metodë_krijimi"
+
+msgid "static placeholder"
+msgstr "vendmbajtëse statike"
+
+msgid "static placeholders"
+msgstr "vendmbajtëse statike"
+
+msgid "A static placeholder with the same site and code already exists"
+msgstr "Ka tashmë një vendmbajtëse statike me të njëjtin sajt dhe kod"
+
+msgid "title"
+msgstr "titull"
+
+msgid "overwrite the title (html title tag)"
+msgstr "mbishkruaje titullin (etiketë titulli html)"
+
+msgid "overwrite the title in the menu"
+msgstr "mbishkruaje titullin te menuja"
+
+msgid "description"
+msgstr "përshkrim"
+
+msgid "The text displayed in search engines."
+msgstr "Teksti i shfaqur në motorë kërkimesh."
+
+msgid "slug"
+msgstr "identifikues"
+
+msgid "Path"
+msgstr "Shteg"
+
+msgid "has url overwrite"
+msgstr ""
+
+msgid "redirect"
+msgstr "ridrejtim"
+
+msgid "is published"
+msgstr "është botuar"
+
+msgid "Advanced options"
+msgstr "Mundësi të mëtejshme"
+
+msgid "Generic"
+msgstr "Elementare"
+
+#, python-format
+msgid "The %(name)s \"%(obj)s\" was changed successfully."
+msgstr "%(name)s \"%(obj)s\" u ndryshua me sukses."
+
+msgid "There are no further settings for this plugin. Please press save."
+msgstr "S’ka rregullime të tjera për këtë shtojcë. Ju lutemi, shtypni “Ruaje”."
+
+msgid "Save"
+msgstr "Ruaje"
+
+#, python-format
+msgid "Log in to administration <a href=\"%(login_url)s\">here</a>."
+msgstr "Hyni te pjesa e administrimit që <a href=\"%(login_url)s\">këtu</a>."
+
+#, python-format
+msgid "Login url: %(login_url)s"
+msgstr "URL hyrjesh: %(login_url)s"
+
+msgid "Username:"
+msgstr "Emër përdoruesi:"
+
+msgid "Password:"
+msgstr "Fjalëkalim:"
+
+msgid "Add a page"
+msgstr "Shtoni një faqe"
+
+msgid "Change a page"
+msgstr "Ndryshon një faqe"
+
+msgid "Home"
+msgstr "Kreu"
+
+msgid "View on site"
+msgstr "Shiheni në sajt"
+
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "Ju lutemi, ndreqni gabimin më poshtë."
+msgstr[1] "Ju lutemi, ndreqni gabimet më poshtë."
+
+msgid "All permissions"
+msgstr "Krejt lejet"
+
+msgid "Loading..."
+msgstr "Po ngarkohet…"
+
+msgid "Save and continue editing"
+msgstr "Ruajeni dhe vazhdoni përpunimin"
+
+msgid "User"
+msgstr "Përdorues"
+
+msgid "Group"
+msgstr "Grup"
+
+msgid "Can edit"
+msgstr "Mund të përpunojë"
+
+msgid "Can add"
+msgstr "Mund të shtojë"
+
+msgid "Can delete"
+msgstr "Mund të fshijë"
+
+msgid "Can publish"
+msgstr "Mund të botojë"
+
+msgid "Can change permissions"
+msgstr "Mund të ndryshojë leje"
+
+msgid "Can move"
+msgstr "Mund të lëvizë"
+
+msgid "Can view"
+msgstr "Mund të shohë"
+
+msgid "(global)"
+msgstr "(global)"
+
+msgid "(current)"
+msgstr "(i tanishmi)"
+
+msgid "Page doesn't inherit any permissions."
+msgstr "Faqja s’trashëgon ndonjë leje."
+
+msgid "Edit model"
+msgstr "Përpunoni model"
+
+msgid "Save as new"
+msgstr "Ruaje si të ri"
+
+msgid "Save and add another"
+msgstr "Ruajeni dhe shtoni një tjetër"
+
+msgid "Basic Settings"
+msgstr "Rregullime Bazë"
+
+msgid "Copy"
+msgstr "Kopjoje"
+
+msgid "Cut"
+msgstr "Prije"
+
+msgid "Paste"
+msgstr "Ngjite"
+
+msgid "Set as home"
+msgstr "Vëre si krye"
+
+msgid "is restricted"
+msgstr "është e kufizuar"
+
+msgid "last change by"
+msgstr "ndryshimi i fundit nga"
+
+msgid "last change on"
+msgstr "ndryshimi i fundit më"
+
+msgid "meta"
+msgstr "meta"
+
+msgid "List of pages"
+msgstr "Listë e faqeve"
+
+msgid "Search"
+msgstr "Kërko"
+
+msgid "Page Tree"
+msgstr "Pemë Faqesh"
+
+msgid "Reset filter"
+msgstr "Zeroje filtrin"
+
+#, python-format
+msgid ""
+"\n"
+"                                                Restore deleted %(name)s\n"
+"                                            "
+msgstr "\n                                                Riktheni %(name)s e fshirë\n                                            "
+
+#, python-format
+msgid ""
+"\n"
+"                                New %(name)s\n"
+"                            "
+msgstr "\n                                %(name)s e re\n                            "
+
+msgid "Main Navigation"
+msgstr "Lëvizjet Kryesore"
+
+msgid "Options"
+msgstr "Mundësi"
+
+msgid "Successfully moved"
+msgstr "U lëviz sukses"
+
+msgid "Changes within the tree might require a refresh."
+msgstr "Ndryshimet brenda pemës mund të duan një rifreskim."
+
+msgid "Error:"
+msgstr "Gabim:"
+
+msgid ""
+"This page cannot be copied because an application is attached to it. See the"
+" Page's Advanced settings to manage apphooks."
+msgstr "Kjo faqe s’mund të kopjohet, ngaqë i është bashkëngjitur një aplikacion. Se si të administroni apphook-e, shihni Rregullime të Thelluara Faqesh."
+
+msgid "Are you sure you want to § this page?"
+msgstr "Jeni i sigurt se doni të § kjo faqe?"
+
+msgid "Reload"
+msgstr "Ringarkoje"
+
+msgid "New node"
+msgstr "Nyjë e re"
+
+msgid "nodes"
+msgstr "nyje"
+
+msgid "View"
+msgstr "Shihni"
+
+msgid "Menu"
+msgstr "Menu"
+
+#, python-format
+msgid ""
+"\n"
+"                            <em>There is no %(object)s around yet.</em>\n"
+"                            <br>\n"
+"                            <a href=\"%(add_url)s\" class=\"addlink\">Add %(object)s</a> now.\n"
+"                        "
+msgstr "\n                            <em>Ende s’ka %(object)s përqark.</em>\n                            <br>\n                            <a href=\"%(add_url)s\" class=\"addlink\">Shtoni %(object)s</a> tani.\n                        "
+
+msgid "Copy options"
+msgstr "Mundësi kopjimi"
+
+msgid "Choose copy options"
+msgstr "Zgjidhni mundësi kopjimi"
+
+msgid "Close"
+msgstr "Mbylle"
+
+msgid "Legend"
+msgstr "Legjendë"
+
+msgid "Published"
+msgstr "Të botuara"
+
+msgid "Changed"
+msgstr "E ndryshuar"
+
+msgid "Unpublished"
+msgstr "Të pabotuara"
+
+msgid "In menu"
+msgstr "Në menu"
+
+msgid "Not in menu"
+msgstr "Jo në menu"
+
+msgid "View page"
+msgstr "Shihni faqen"
+
+msgid "Softroot"
+msgstr ""
+
+msgid "Apphook"
+msgstr "Apphook"
+
+#, python-format
+msgid "Application: %(apphook)s"
+msgstr "Aplikacion: %(apphook)s"
+
+#, python-format
+msgid "Preview this page in %(language)s "
+msgstr "Parashiheni këtë faqe në %(language)s "
+
+msgid "Preview"
+msgstr "Paraparje"
+
+msgid "Publish"
+msgstr "Botoje"
+
+msgid "Unpublish"
+msgstr "Shbotoje"
+
+msgid "Configure"
+msgstr "Formësoni"
+
+msgid "in menu"
+msgstr "në menu"
+
+msgid "not in menu"
+msgstr "jo në menu"
+
+msgid "Page settings (SHIFT click for advanced settings)"
+msgstr "Rregullime faqeje (për rregullime të thelluara, shtypni SHIFT dhe klikoni)"
+
+msgid "Clipboard"
+msgstr "E papastër"
+
+msgid "Add plugin"
+msgstr "Shtoni shtojcë"
+
+msgid "Copy all"
+msgstr "Kopjoje krejt"
+
+msgid "Copy from"
+msgstr "Kopjoje prej"
+
+msgid "Empty all"
+msgstr "Zbrazi krejt"
+
+msgid "Filter plugins..."
+msgstr "Filtroni shtojca…"
+
+msgid "This is a static placeholder"
+msgstr "Kjo është një vendmbajtëse statike"
+
+msgid "Expand all"
+msgstr "Zgjeroji krejt"
+
+msgid "Collapse all"
+msgstr "Tkurri krejt"
+
+msgid "Edit"
+msgstr "Përpunim"
+
+msgid "You cannot add plugins to this plugin."
+msgstr "S’mund të shtoni shtojca te kjo shtojcë."
+
+msgid "This plugin cannot be moved or edited outside of its parent"
+msgstr "Kjo shtojcë s’mund të hiqet apo përpunohet jashtë mëmës së vet"
+
+msgid "Clipboard is empty."
+msgstr "E papastra është e zbrazët."
+
+msgid "This plugin does not allow plugins of this type as nested plugins."
+msgstr "Kjo shtojcë nuk lejon shtojca të këtij lloji si shtojca futur brenda njëra-tjetrës."
+
+msgid "This plugin cannot have nested plugins."
+msgstr "Kjo shtojcë s’mund të ketë shtojca futur brenda njëra-tjetrës."
+
+msgid "Highlight"
+msgstr "Theksoje"
+
+msgid "Available plugins"
+msgstr "Shtojca të gatshme"
+
+msgid "Toggle structure"
+msgstr "Shfaq/Fshih strukturë"
+
+msgid "View published"
+msgstr "Shihni të botuarat"
+
+msgid "Login"
+msgstr "Hyrje"
+
+msgid "Add plugin to"
+msgstr "Shtoni shtojcë te"
+
+msgid "More"
+msgstr "Më tepër"
+
+#, python-format
+msgid ""
+"Development version using django CMS %(cms_version)s, Django "
+"%(django_version)s, Python %(python_version)s"
+msgstr "Version zhvillim që përdor django CMS %(cms_version)s, Django %(django_version)s, Python %(python_version)s"
+
+msgid "Cancel"
+msgstr "Anuloje"
+
+msgid "The following error occurred:"
+msgstr "Ndodhi gabimi vijues:"
+
+msgid "Action successful."
+msgstr "Veprim i suksesshëm."
+
+msgid "Are you sure you want to delete this plugin?"
+msgstr "Jeni i sigurt se doni të fshihet kjo shtojcë?"
+
+msgid "Are you sure you want to publish this page?"
+msgstr "Jeni i sigurt se doni të botohet kjo faqe?"
+
+msgid "Plugin will be added here"
+msgstr "Shtojca do të shtohet këtu"
+
+msgid "You have unsaved changes."
+msgstr "Keni ndryshime të paruajtura."
+
+msgid "Loading"
+msgstr "Po ngarkohet"
+
+msgid "Are you sure you want to abandon these changes?"
+msgstr "Jeni i sigurt se doni të braktisen këto ndryshime?"
+
+msgid ""
+"The form could not be loaded. Please check that the server is running "
+"correctly."
+msgstr "Formulari s’u ngarkua dot. Ju lutemi, kontrolloni se shërbyesi po xhiron si duhet."
+
+msgid "Most used"
+msgstr "Më të përdorurit"
+
+msgid "Shortcuts"
+msgstr "Shkurtore"
+
+msgid "The page was changed in the meantime, reloading..."
+msgstr "Ndërkohë faqja qe ndryshuar, po ringarkohet…"
+
+msgid "CMS-wide Shortcuts"
+msgstr "Shkurtore për krejt CMS-në"
+
+msgid "Bring up this help dialog"
+msgstr "Shfaq këtë dialog ndihme"
+
+msgid "Close/cancel"
+msgstr "Mbylle/anuloje"
+
+msgid "Toggle structure mode"
+msgstr "Këmbe mënyrë strukture"
+
+msgid "Toggle structure mode and highlight hovered-over plugin"
+msgstr "Këmbe mënyrë strukture dhe nxirr në pah shtojcën që ka kursorin përsipër"
+
+msgid "Open \"Create\" dialog"
+msgstr "Hap dialogun “Krijoni”"
+
+msgid "Focus on Toolbar"
+msgstr "Fokusi te Paneli"
+
+msgid "Structureboard"
+msgstr ""
+
+msgid "Focus on placeholders"
+msgstr "Fokusi te vendmbajtëset"
+
+msgid "Move to next/previous element"
+msgstr "Kalo te elementi pasues/i mëparshëm"
+
+msgid "Focus on plugins of placeholder"
+msgstr "Fokus te shtojcat e vendmbajtëse"
+
+msgid "Edit plugin"
+msgstr "Përpunoni shtojcë"
+
+msgid "Open actions menu"
+msgstr "Hap menu veprimesh"
+
+msgid "Expand/collapse"
+msgstr "Zgjeroje/tkurre"
+
+msgid ""
+"<strong>Login failed.</strong> Please check your credentials and try again."
+msgstr "<strong>Hyrja dështoi.</strong> Ju lutemi, kontrolloni kredencialet tuaja dhe riprovoni."
+
+msgid "This page has unpublished changes."
+msgstr "Kjo faqe ka ndryshime të pabotuara."
+
+msgid "Double-click to edit"
+msgstr "Dyklikojeni që ta përpunoni"
+
+msgid "Tap to edit"
+msgstr "Prekeni që ta përpunoni"
+
+msgid "Click to go back"
+msgstr "Klikoni që të ecet mbrapsht"
+
+msgid "Click to go forward"
+msgstr "Klikoni që të ecet përpara"
+
+msgid "Minimize"
+msgstr "Minimizoje"
+
+msgid "Maximize"
+msgstr "Maksimizoje"
+
+msgid "Drop a plugin here"
+msgstr "Hidhni këtu një shtojcë"
+
+msgid "This page has no preview!"
+msgstr "Kjo faqe s’ka paraparje!"
+
+msgid "It is being redirected to:"
+msgstr "Po ridrejtohet te:"
+
+msgid "Installation successful!"
+msgstr "Instalim i suksesshëm!"
+
+msgid "Add your first page"
+msgstr "Shtoni faqen tuaj të parë"
+
+msgid "Please log in"
+msgstr "Ju lutemi, bëni hyrjen"
+
+#, python-format
+msgid ""
+"\n"
+"                    Welcome to django CMS version <strong>%(cms_version)s</strong>.\n"
+"                "
+msgstr "\n                    Mirë se vini te django CMS version <strong>%(cms_version)s</strong>.\n                "
+
+#, python-format
+msgid ""
+"\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">Add the first page</a> to the system to continue.\n"
+"                    "
+msgstr "\n                        Që sistemi të vazhdojë, <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">shtoni faqen e parë</a>.\n                    "
+
+#, python-format
+msgid ""
+"\n"
+"                        JavaScript seems to be disabled so please\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">add a page</a> manually.\n"
+"                    "
+msgstr "\n                        JavaScript-i duket të jetë i çaktivizuar, ndaj, ju lutemi\n                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">shtoni një faqe</a> dorazi.\n                    "
+
+msgid "Installation Notes"
+msgstr "Shënime Instalimi"
+
+msgid "Support"
+msgstr "Asistencë"
+
+msgid ""
+"\n"
+"                <p class=\"cms-welcome-notes\">If you don't see the django CMS logo at the top, make sure\n"
+"                    you linked the <code>static/cms</code> folder to your\n"
+"                    static files.</p>\n"
+"            "
+msgstr "\n                <p class=\"cms-welcome-notes\">Nëse s’e shihni stemën e django CMS -s në krye, sigurohuni\n                    se e keni lidhur dosjen tuaj <code>static/cms</code> me\n                    kartelat tuaja statike.</p>\n            "
+
+msgid ""
+"\n"
+"                    <p class=\"cms-welcome-notes\">You're seeing this message because you have\n"
+"                        <code>DEBUG = True</code> in your django settings file and\n"
+"                        haven't added any pages yet.\n"
+"                    </p>\n"
+"                "
+msgstr "\n                    <p class=\"cms-welcome-notes\">Këtë mesazh po e shihni ngaqë keni\n                        caktuar <code>DEBUG = True</code> te kartela e rregullimeve tuaja për django-n\n                        dhe s’keni shtuar ende ndonjë faqe.\n                    </p>\n                "
+
+msgid "Welcome to django CMS"
+msgstr "Mirë se vini te django- CMS"
+
+msgid "Add Another"
+msgstr "Shtoni Tjetër"
+
+msgid "Back"
+msgstr "Mbrapsht"
+
+msgid "Please choose an option from below to proceed to the next step."
+msgstr "Ju lutemi, që të vazhdohet te hapi pasues, zgjidhni një mundësi më poshtë."
+
+msgid "Next"
+msgstr "Pasuesi"
+
+msgid "unpublished changes"
+msgstr "ndryshime të pabotuara"
+
+msgid "published"
+msgstr "e botuar"
+
+msgid "unpublished parent"
+msgstr "mëmë e pabotuar"
+
+msgid "unpublished"
+msgstr "e pabotuar"
+
+msgid "no content"
+msgstr "pa lëndë"
+
+#, python-format
+msgid "Page not found on %(domain)s"
+msgstr "Faqe që s’u gjet te %(domain)s"
+
+#, python-format
+msgid ""
+"A template tag couldn't find the page with lookup arguments `%(page_lookup)s\n"
+"`. The URL of the request was: http://%(host)s%(path)s"
+msgstr "Një etiketë gjedheje s’gjeti dot faqen me argumente kërkimi `%(page_lookup)s\n`. URL-ja e kërkesës qe: http://%(host)s%(path)s"
+
+msgid "Two columns"
+msgstr "Dy shtylla"
+
+msgid "Three columns"
+msgstr "Tre shtylla"
+
+msgid "username"
+msgstr "emër përdoruesi"
+
+msgid ""
+"Required. 300 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+msgstr "E domosdoshme. 300 ose më pak shenja. Shkronja, numra dhe shenjat @/./+/-/_"
+
+msgid "Enter a valid username."
+msgstr "Jepni një emër përdoruesi të vlefshëm."
+
+msgid "email address"
+msgstr "adresë email"
+
+msgid "staff status"
+msgstr ""
+
+msgid "Designates whether the user can log into this admin site."
+msgstr "Përcakton nëse mund të hyjë ose jo përdoruesi te ky sajt administrimi."
+
+msgid "active"
+msgstr "aktiv"
+
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr "Përcakton nëse ky përdorues do të duhej trajtuar si aktiv. Në vend se të fshini llogari, shpërzgjidhni këtë."
+
+msgid "users"
+msgstr "përdorues"
+
+msgid "Title Extension"
+msgstr "Zgjatim Titulli"
+
+msgid "Page Extension"
+msgstr "Zgjatim Faqeje"
+
+msgid "object ID"
+msgstr "ID objekti"
+
+msgid "Example1 App"
+msgstr "Aplikacion Shembull 1"
+
+msgid "MultilingualExample1 App"
+msgstr "Aplikacion Shembull Shumëgjuhësh 1"
+
+msgid "Example1"
+msgstr "Shembull 1"
+
+msgid "Examples"
+msgstr "Shembuj"
+
+msgid "Extra Context"
+msgstr "Kontekst Ekstra"
+
+msgid "Articles"
+msgstr "Artikuj"
+
+msgid "Sample App"
+msgstr "Aplikacion Shembull"
+
+msgid "Sample App with config"
+msgstr "Aplikacion Shembull me formësim"
+
+msgid "Sample App with excluded permissions"
+msgstr "Aplikacion Shembull me leje të përjashtuara"
+
+msgid "Sample App 2"
+msgstr "Aplikacion Shembull 2"
+
+msgid "Sample App 3"
+msgstr "Aplikacion Shembull 3"
+
+msgid "Namespaced App"
+msgstr ""
+
+msgid "Parent app"
+msgstr "Aplikacion mëmë"
+
+msgid "Child app"
+msgstr "Aplikacion pjellë"
+
+msgid "Variable urls-menus App"
+msgstr ""
+
+msgid "sample root page"
+msgstr "faqe shembull rrënjë"
+
+msgid "sample settings page"
+msgstr "faqe shembull rregullimesh"
+
+msgid "sample account page"
+msgstr "faqe shembull llogarish"
+
+msgid "sample my profile page"
+msgstr "faqe shembull profili im"
+
+msgid "Static Menu"
+msgstr "Menu Statike"
+
+msgid "Static Menu2"
+msgstr "Menu Statike 2"
+
+msgid "Static Menu3"
+msgstr "Menu Statike 3"
+
+msgid "Static Menu4"
+msgstr "Menu Statike 4"
+
+msgid "Category"
+msgstr "Kategori"
+
+msgid "Categories"
+msgstr "Kategori"
+
+msgid "Add Category"
+msgstr "Shtoni Kategori"
+
+msgid "^account/$"
+msgstr "^llogari/$"
+
+msgid "Change Category"
+msgstr "Ndryshoni Kategorinë"
+
+msgid "Thanks for spending some quality time with the Web site today."
+msgstr "Faleminderit që shpenzoni sot pak kohë të çmuar me sajtin Web."
+
+msgid "Inherit the template of the nearest ancestor"
+msgstr "Trashëgo gjedhen e paraardhësit më të afërt"
+
+msgid "UserSettings"
+msgstr "RregullimePërdoruesi"
+
+#, python-format
+msgid "Add plugin to placeholder \"%(placeholder_label)s\""
+msgstr "Shtoje shtojcën te vendmbajtësja \"%(placeholder_label)s\""
+
+#, python-format
+msgid "Add plugin to %(plugin_name)s"
+msgstr "Shtoje shtojcën te %(plugin_name)s"
+
+msgid "Community forum"
+msgstr "Forum bashkësie"
+
+msgid "Getting started"
+msgstr "Si t’ia fillohet"
+
+msgid "Talk to us"
+msgstr "Flisni me ne"
+
+msgid "CMS - your user account was created."
+msgstr "CMS - llogaria juaj e përdoruesit u krijua."
+
+msgid "CMS - your user account was changed."
+msgstr "CMS - llogaria juaj e përdoruesit u ndryshua."
+
+#, python-format
+msgid "This placeholder already has the maximum number of plugins (%s)."
+msgstr "Kjo vendmbajtëse ka tashmë numrin maksimum të shtojcave (%s)."
+
+#, python-format
+msgid ""
+"This placeholder already has the maximum number (%(limit)s) of allowed "
+"%(plugin_name)s plugins."
+msgstr "Kjo vendmbajtëse ka tashmë numrin maksimum (%(limit)s) të shtojcave %(plugin_name)s të lejuara."
+
+#, python-format
+msgid "This placeholder already has the maximum number of child plugins (%s)."
+msgstr "Kjo venmbajtëse ka tashmë numrin maksimum të shtojcave pjella (%s)."
+
+#, python-brace-format
+msgid "Unable to find the specified CMS_REQUEST_IP_RESOLVER module: \"{0}\"."
+msgstr "S’arrihet të gjendet moduli specifik CMS_REQUEST_IP_RESOLVER: \"{0}\"."
+
+#, python-brace-format
+msgid ""
+"Unable to find the specified CMS_REQUEST_IP_RESOLVER function: \"{0}\" in "
+"module \"{1}\"."
+msgstr "S’arrihet të gjendet funksioni specifik CMS_REQUEST_IP_RESOLVER: \"{0}\" te moduli \"{1}\"."
+
+#, python-format
+msgid "Create a new %s instance."
+msgstr "Krijo një instancë %s të re."
+
+#, python-format
+msgid "A wizard has already been registered for model: %s"
+msgstr "Është regjistruar tashmë një ndihmës për modelin: %s"

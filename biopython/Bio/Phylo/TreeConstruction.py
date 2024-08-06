@@ -11,8 +11,11 @@ import itertools
 import copy
 import numbers
 from Bio.Phylo import BaseTree
-from Bio.Align import MultipleSeqAlignment
-from Bio.SubsMat import MatrixInfo
+from Bio.Align import Alignment, MultipleSeqAlignment
+from Bio.Align import substitution_matrices
+
+
+# flake8: noqa
 
 
 class _Matrix:
@@ -67,7 +70,7 @@ class _Matrix:
     >>> m[0,1]
     7
 
-    Also you can delete or insert a column&row of elemets by index.
+    Also you can delete or insert a column&row of elements by index.
 
     >>> m
     _Matrix(names=['Alpha', 'Beta', 'Gamma', 'Delta'], matrix=[[0], [7, 0], [8, 4, 0], [9, 5, 6, 0]])
@@ -104,16 +107,15 @@ class _Matrix:
             # check if all elements are numbers
             if (
                 isinstance(matrix, list)
-                and all(isinstance(l, list) for l in matrix)
+                and all(isinstance(row, list) for row in matrix)
                 and all(
-                    isinstance(n, numbers.Number)
-                    for n in [item for sublist in matrix for item in sublist]
+                    isinstance(item, numbers.Number) for row in matrix for item in row
                 )
             ):
                 # check if the same length with names
                 if len(matrix) == len(names):
                     # check if is lower triangle format
-                    if [len(m) for m in matrix] == list(range(1, len(self) + 1)):
+                    if [len(row) for row in matrix] == list(range(1, len(self) + 1)):
                         self.matrix = matrix
                     else:
                         raise ValueError("'matrix' should be in lower triangle format")
@@ -299,12 +301,14 @@ class _Matrix:
         """Get a lower triangular matrix string."""
         matrix_string = "\n".join(
             [
-                self.names[i] + "\t" + "\t".join([str(n) for n in self.matrix[i]])
+                self.names[i]
+                + "\t"
+                + "\t".join([format(n, "f") for n in self.matrix[i]])
                 for i in range(0, len(self))
             ]
         )
         matrix_string = matrix_string + "\n\t" + "\t".join(self.names)
-        return matrix_string
+        return matrix_string.expandtabs(tabsize=4)
 
 
 class DistanceMatrix(_Matrix):
@@ -358,110 +362,121 @@ _DistanceMatrix = DistanceMatrix
 
 
 class DistanceCalculator:
-    """Class to calculate the distance matrix from a DNA or Protein.
+    """Calculates the distance matrix from a DNA or protein sequence alignment.
 
-    Multiple Sequence Alignment(MSA) and the given name of the
-    substitution model.
+    This class calculates the distance matrix from a multiple sequence alignment
+    of DNA or protein sequences, and the given name of the substitution model.
 
     Currently only scoring matrices are used.
 
     :Parameters:
         model : str
             Name of the model matrix to be used to calculate distance.
-            The attribute ``dna_matrices`` contains the available model
-            names for DNA sequences and ``protein_matrices`` for protein
+            The attribute ``dna_models`` contains the available model
+            names for DNA sequences and ``protein_models`` for protein
             sequences.
 
     Examples
     --------
     Loading a small PHYLIP alignment from which to compute distances::
 
-        from Bio.Phylo.TreeConstruction import DistanceCalculator
-        from Bio import AlignIO
-        aln = AlignIO.read(open('TreeConstruction/msa.phy'), 'phylip')
-        print(aln)
-
-    Output::
-
-        Alignment with 5 rows and 13 columns
-        AACGTGGCCACAT Alpha
-        AAGGTCGCCACAC Beta
-        CAGTTCGCCACAA Gamma
-        GAGATTTCCGCCT Delta
-        GAGATCTCCGCCC Epsilon
+      >>> from Bio.Phylo.TreeConstruction import DistanceCalculator
+      >>> from Bio import AlignIO
+      >>> aln = AlignIO.read(open('TreeConstruction/msa.phy'), 'phylip')
+      >>> print(aln)  # doctest:+NORMALIZE_WHITESPACE
+      Alignment with 5 rows and 13 columns
+      AACGTGGCCACAT Alpha
+      AAGGTCGCCACAC Beta
+      CAGTTCGCCACAA Gamma
+      GAGATTTCCGCCT Delta
+      GAGATCTCCGCCC Epsilon
 
     DNA calculator with 'identity' model::
 
-        calculator = DistanceCalculator('identity')
-        dm = calculator.get_distance(aln)
-        print(dm)
-
-    Output::
-
-        Alpha	0
-        Beta	0.23076923076923073	0
-        Gamma	0.3846153846153846	0.23076923076923073	0
-        Delta	0.5384615384615384	0.5384615384615384	0.5384615384615384	0
-        Epsilon	0.6153846153846154	0.3846153846153846	0.46153846153846156	0.15384615384615385	0
-            Alpha	Beta	Gamma	Delta	Epsilon
+      >>> calculator = DistanceCalculator('identity')
+      >>> dm = calculator.get_distance(aln)
+      >>> print(dm)  # doctest:+NORMALIZE_WHITESPACE
+        Alpha   0.000000
+        Beta    0.230769    0.000000
+        Gamma   0.384615    0.230769    0.000000
+        Delta   0.538462    0.538462    0.538462    0.000000
+        Epsilon 0.615385    0.384615    0.461538    0.153846    0.000000
+            Alpha   Beta    Gamma   Delta   Epsilon
 
     Protein calculator with 'blosum62' model::
 
-        calculator = DistanceCalculator('blosum62')
-        dm = calculator.get_distance(aln)
-        print(dm)
+      >>> calculator = DistanceCalculator('blosum62')
+      >>> dm = calculator.get_distance(aln)
+      >>> print(dm)  # doctest:+NORMALIZE_WHITESPACE
+      Alpha   0.000000
+      Beta    0.369048    0.000000
+      Gamma   0.493976    0.250000    0.000000
+      Delta   0.585366    0.547619    0.566265    0.000000
+      Epsilon 0.700000    0.355556    0.488889    0.222222    0.000000
+          Alpha   Beta    Gamma   Delta   Epsilon
 
-    Output::
+    Same calculation, using the new Alignment object::
 
-        Alpha	0
-        Beta	0.36904761904761907	0
-        Gamma	0.49397590361445787	0.25	0
-        Delta	0.5853658536585367	0.5476190476190477	0.5662650602409638	0
-        Epsilon	0.7	0.3555555555555555	0.48888888888888893	0.2222222222222222	0
-            Alpha	Beta	Gamma	Delta	Epsilon
+      >>> from Bio.Phylo.TreeConstruction import DistanceCalculator
+      >>> from Bio import Align
+      >>> aln = Align.read('TreeConstruction/msa.phy', 'phylip')
+      >>> print(aln)  # doctest:+NORMALIZE_WHITESPACE
+      Alpha             0 AACGTGGCCACAT 13
+      Beta              0 AAGGTCGCCACAC 13
+      Gamma             0 CAGTTCGCCACAA 13
+      Delta             0 GAGATTTCCGCCT 13
+      Epsilon           0 GAGATCTCCGCCC 13
+      <BLANKLINE>
+
+    DNA calculator with 'identity' model::
+
+      >>> calculator = DistanceCalculator('identity')
+      >>> dm = calculator.get_distance(aln)
+      >>> print(dm)  # doctest:+NORMALIZE_WHITESPACE
+      Alpha   0.000000
+      Beta    0.230769    0.000000
+      Gamma   0.384615    0.230769    0.000000
+      Delta   0.538462    0.538462    0.538462    0.000000
+      Epsilon 0.615385    0.384615    0.461538    0.153846    0.000000
+          Alpha   Beta    Gamma   Delta   Epsilon
+
+    Protein calculator with 'blosum62' model::
+
+      >>> calculator = DistanceCalculator('blosum62')
+      >>> dm = calculator.get_distance(aln)
+      >>> print(dm)  # doctest:+NORMALIZE_WHITESPACE
+      Alpha   0.000000
+      Beta    0.369048    0.000000
+      Gamma   0.493976    0.250000    0.000000
+      Delta   0.585366    0.547619    0.566265    0.000000
+      Epsilon 0.700000    0.355556    0.488889    0.222222    0.000000
+          Alpha   Beta    Gamma   Delta   Epsilon
 
     """
 
-    dna_alphabet = ["A", "T", "C", "G"]
+    protein_alphabet = set("ABCDEFGHIKLMNPQRSTVWXYZ")
 
-    # BLAST nucleic acid scoring matrix
-    blastn = [[5], [-4, 5], [-4, -4, 5], [-4, -4, -4, 5]]
-
-    # transition/transversion scoring matrix
-    trans = [[6], [-5, 6], [-5, -1, 6], [-1, -5, -5, 6]]
-
-    protein_alphabet = [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "K",
-        "L",
-        "M",
-        "N",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "V",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    ]
+    dna_models = []
+    protein_models = []
 
     # matrices available
-    dna_matrices = {"blastn": blastn, "trans": trans}
-    protein_models = MatrixInfo.available_matrices
-    protein_matrices = {name: getattr(MatrixInfo, name) for name in protein_models}
+    names = substitution_matrices.load()
+    for name in names:
+        matrix = substitution_matrices.load(name)
+        if name == "NUC.4.4":
+            # BLAST nucleic acid scoring matrix
+            name = "blastn"
+        else:
+            name = name.lower()
+        if protein_alphabet.issubset(set(matrix.alphabet)):
+            protein_models.append(name)
+        else:
+            dna_models.append(name)
 
-    dna_models = list(dna_matrices.keys())
+    del protein_alphabet
+    del name
+    del names
+    del matrix
 
     models = ["identity"] + dna_models + protein_models
 
@@ -477,12 +492,12 @@ class DistanceCalculator:
 
         if model == "identity":
             self.scoring_matrix = None
-        elif model in self.dna_models:
-            self.scoring_matrix = _Matrix(self.dna_alphabet, self.dna_matrices[model])
-        elif model in self.protein_models:
-            self.scoring_matrix = self._build_protein_matrix(
-                self.protein_matrices[model]
-            )
+        elif model in self.models:
+            if model == "blastn":
+                name = "NUC.4.4"
+            else:
+                name = model.upper()
+            self.scoring_matrix = substitution_matrices.load(name)
         else:
             raise ValueError(
                 "Model not supported. Available models: " + ", ".join(self.models)
@@ -496,30 +511,7 @@ class DistanceCalculator:
         """
         score = 0
         max_score = 0
-        if self.scoring_matrix:
-            max_score1 = 0
-            max_score2 = 0
-            for i in range(0, len(seq1)):
-                l1 = seq1[i]
-                l2 = seq2[i]
-                if l1 in self.skip_letters or l2 in self.skip_letters:
-                    continue
-                if l1 not in self.scoring_matrix.names:
-                    raise ValueError(
-                        "Bad alphabet '%s' in sequence '%s' at position '%s'"
-                        % (l1, seq1.id, i)
-                    )
-                if l2 not in self.scoring_matrix.names:
-                    raise ValueError(
-                        "Bad alphabet '%s' in sequence '%s' at position '%s'"
-                        % (l2, seq2.id, i)
-                    )
-                max_score1 += self.scoring_matrix[l1, l1]
-                max_score2 += self.scoring_matrix[l2, l2]
-                score += self.scoring_matrix[l1, l2]
-            # Take the higher score if the matrix is asymmetrical
-            max_score = max(max_score1, max_score2)
-        else:
+        if self.scoring_matrix is None:
             # Score by character identity, not skipping any special letters
             score = sum(
                 l1 == l2
@@ -527,41 +519,66 @@ class DistanceCalculator:
                 if l1 not in self.skip_letters and l2 not in self.skip_letters
             )
             max_score = len(seq1)
+        else:
+            max_score1 = 0
+            max_score2 = 0
+            for i in range(0, len(seq1)):
+                l1 = seq1[i]
+                l2 = seq2[i]
+                if l1 in self.skip_letters or l2 in self.skip_letters:
+                    continue
+                try:
+                    max_score1 += self.scoring_matrix[l1, l1]
+                except IndexError:
+                    raise ValueError(
+                        f"Bad letter '{l1}' in sequence '{seq1.id}' at position '{i}'"
+                    ) from None
+                try:
+                    max_score2 += self.scoring_matrix[l2, l2]
+                except IndexError:
+                    raise ValueError(
+                        f"Bad letter '{l2}' in sequence '{seq2.id}' at position '{i}'"
+                    ) from None
+                score += self.scoring_matrix[l1, l2]
+            # Take the higher score if the matrix is asymmetrical
+            max_score = max(max_score1, max_score2)
         if max_score == 0:
             return 1  # max possible scaled distance
-        return 1 - (score * 1.0 / max_score)
+        return 1 - (score / max_score)
 
     def get_distance(self, msa):
-        """Return a DistanceMatrix for MSA object.
+        """Return a DistanceMatrix for an Alignment or MultipleSeqAlignment object.
 
         :Parameters:
-            msa : MultipleSeqAlignment
-                DNA or Protein multiple sequence alignment.
+            msa : Alignment or MultipleSeqAlignment object representing a
+                DNA or protein multiple sequence alignment.
 
         """
-        if not isinstance(msa, MultipleSeqAlignment):
-            raise TypeError("Must provide a MultipleSeqAlignment object.")
+        if isinstance(msa, Alignment):
+            names = [s.id for s in msa.sequences]
+            dm = DistanceMatrix(names)
+            n = len(names)
+            for i1 in range(n):
+                for i2 in range(i1):
+                    dm[names[i1], names[i2]] = self._pairwise(msa[i1], msa[i2])
+        elif isinstance(msa, MultipleSeqAlignment):
+            names = [s.id for s in msa]
+            dm = DistanceMatrix(names)
+            for seq1, seq2 in itertools.combinations(msa, 2):
+                dm[seq1.id, seq2.id] = self._pairwise(seq1, seq2)
+        else:
+            raise TypeError(
+                "Must provide an Alignment object or a MultipleSeqAlignment object."
+            )
 
-        names = [s.id for s in msa]
-        dm = DistanceMatrix(names)
-        for seq1, seq2 in itertools.combinations(msa, 2):
-            dm[seq1.id, seq2.id] = self._pairwise(seq1, seq2)
         return dm
-
-    def _build_protein_matrix(self, subsmat):
-        """Convert matrix from SubsMat format to _Matrix object (PRIVATE)."""
-        protein_matrix = _Matrix(self.protein_alphabet)
-        for k, v in subsmat.items():
-            aa1, aa2 = k
-            protein_matrix[aa1, aa2] = v
-        return protein_matrix
 
 
 class TreeConstructor:
     """Base class for all tree constructor."""
 
     def build_tree(self, msa):
-        """Caller to built the tree from a MultipleSeqAlignment object.
+        """Caller to build the tree from an Alignment or MultipleSeqAlignment object.
 
         This should be implemented in subclass.
         """
@@ -583,45 +600,75 @@ class DistanceTreeConstructor(TreeConstructor):
     Loading a small PHYLIP alignment from which to compute distances, and then
     build a upgma Tree::
 
-        from Bio.Phylo.TreeConstruction import DistanceTreeConstructor
-        from Bio.Phylo.TreeConstruction import DistanceCalculator
-        from Bio import AlignIO
-        aln = AlignIO.read(open('TreeConstruction/msa.phy'), 'phylip')
-        constructor = DistanceTreeConstructor()
-        calculator = DistanceCalculator('identity')
-        dm = calculator.get_distance(aln)
-        upgmatree = constructor.upgma(dm)
-        print(upgmatree)
-
-    Output::
-
-        Tree(rooted=True)
-            Clade(branch_length=0, name='Inner4')
-                Clade(branch_length=0.18749999999999994, name='Inner1')
-                    Clade(branch_length=0.07692307692307693, name='Epsilon')
-                    Clade(branch_length=0.07692307692307693, name='Delta')
-                Clade(branch_length=0.11057692307692304, name='Inner3')
-                    Clade(branch_length=0.038461538461538464, name='Inner2')
-                        Clade(branch_length=0.11538461538461536, name='Gamma')
-                        Clade(branch_length=0.11538461538461536, name='Beta')
-                    Clade(branch_length=0.15384615384615383, name='Alpha')
+      >>> from Bio.Phylo.TreeConstruction import DistanceTreeConstructor
+      >>> from Bio.Phylo.TreeConstruction import DistanceCalculator
+      >>> from Bio import AlignIO
+      >>> aln = AlignIO.read(open('TreeConstruction/msa.phy'), 'phylip')
+      >>> constructor = DistanceTreeConstructor()
+      >>> calculator = DistanceCalculator('identity')
+      >>> dm = calculator.get_distance(aln)
+      >>> upgmatree = constructor.upgma(dm)
+      >>> print(upgmatree)
+      Tree(rooted=True)
+          Clade(branch_length=0, name='Inner4')
+              Clade(branch_length=0.18749999999999994, name='Inner1')
+                  Clade(branch_length=0.07692307692307693, name='Epsilon')
+                  Clade(branch_length=0.07692307692307693, name='Delta')
+              Clade(branch_length=0.11057692307692304, name='Inner3')
+                  Clade(branch_length=0.038461538461538464, name='Inner2')
+                      Clade(branch_length=0.11538461538461536, name='Gamma')
+                      Clade(branch_length=0.11538461538461536, name='Beta')
+                  Clade(branch_length=0.15384615384615383, name='Alpha')
 
     Build a NJ Tree::
 
-        njtree = constructor.nj(dm)
-        print(njtree)
+      >>> njtree = constructor.nj(dm)
+      >>> print(njtree)
+      Tree(rooted=False)
+          Clade(branch_length=0, name='Inner3')
+              Clade(branch_length=0.18269230769230765, name='Alpha')
+              Clade(branch_length=0.04807692307692307, name='Beta')
+              Clade(branch_length=0.04807692307692307, name='Inner2')
+                  Clade(branch_length=0.27884615384615385, name='Inner1')
+                      Clade(branch_length=0.051282051282051266, name='Epsilon')
+                      Clade(branch_length=0.10256410256410259, name='Delta')
+                  Clade(branch_length=0.14423076923076922, name='Gamma')
 
-    Output::
+    Same example, using the new Alignment class::
 
-        Tree(rooted=False)
-            Clade(branch_length=0, name='Inner3')
-                Clade(branch_length=0.18269230769230765, name='Alpha')
-                Clade(branch_length=0.04807692307692307, name='Beta')
-                Clade(branch_length=0.04807692307692307, name='Inner2')
-                    Clade(branch_length=0.27884615384615385, name='Inner1')
-                        Clade(branch_length=0.051282051282051266, name='Epsilon')
-                        Clade(branch_length=0.10256410256410259, name='Delta')
-                    Clade(branch_length=0.14423076923076922, name='Gamma')
+      >>> from Bio.Phylo.TreeConstruction import DistanceTreeConstructor
+      >>> from Bio.Phylo.TreeConstruction import DistanceCalculator
+      >>> from Bio import Align
+      >>> aln = Align.read(open('TreeConstruction/msa.phy'), 'phylip')
+      >>> constructor = DistanceTreeConstructor()
+      >>> calculator = DistanceCalculator('identity')
+      >>> dm = calculator.get_distance(aln)
+      >>> upgmatree = constructor.upgma(dm)
+      >>> print(upgmatree)
+      Tree(rooted=True)
+          Clade(branch_length=0, name='Inner4')
+              Clade(branch_length=0.18749999999999994, name='Inner1')
+                  Clade(branch_length=0.07692307692307693, name='Epsilon')
+                  Clade(branch_length=0.07692307692307693, name='Delta')
+              Clade(branch_length=0.11057692307692304, name='Inner3')
+                  Clade(branch_length=0.038461538461538464, name='Inner2')
+                      Clade(branch_length=0.11538461538461536, name='Gamma')
+                      Clade(branch_length=0.11538461538461536, name='Beta')
+                  Clade(branch_length=0.15384615384615383, name='Alpha')
+
+    Build a NJ Tree::
+
+      >>> njtree = constructor.nj(dm)
+      >>> print(njtree)
+      Tree(rooted=False)
+          Clade(branch_length=0, name='Inner3')
+              Clade(branch_length=0.18269230769230765, name='Alpha')
+              Clade(branch_length=0.04807692307692307, name='Beta')
+              Clade(branch_length=0.04807692307692307, name='Inner2')
+                  Clade(branch_length=0.27884615384615385, name='Inner1')
+                      Clade(branch_length=0.051282051282051266, name='Epsilon')
+                      Clade(branch_length=0.10256410256410259, name='Delta')
+                  Clade(branch_length=0.14423076923076922, name='Gamma')
 
     """
 
@@ -635,7 +682,7 @@ class DistanceTreeConstructor(TreeConstructor):
             self.distance_calculator = distance_calculator
         else:
             raise TypeError("Must provide a DistanceCalculator object.")
-        if isinstance(method, str) and method in self.methods:
+        if method in self.methods:
             self.method = method
         else:
             raise TypeError(
@@ -699,14 +746,14 @@ class DistanceTreeConstructor(TreeConstructor):
             inner_clade.clades.append(clade2)
             # assign branch length
             if clade1.is_terminal():
-                clade1.branch_length = min_dist * 1.0 / 2
+                clade1.branch_length = min_dist / 2
             else:
-                clade1.branch_length = min_dist * 1.0 / 2 - self._height_of(clade1)
+                clade1.branch_length = min_dist / 2 - self._height_of(clade1)
 
             if clade2.is_terminal():
-                clade2.branch_length = min_dist * 1.0 / 2
+                clade2.branch_length = min_dist / 2
             else:
-                clade2.branch_length = min_dist * 1.0 / 2 - self._height_of(clade2)
+                clade2.branch_length = min_dist / 2 - self._height_of(clade2)
 
             # update node list
             clades[min_j] = inner_clade
@@ -716,7 +763,7 @@ class DistanceTreeConstructor(TreeConstructor):
             # set the distances of new node at the index of min_j
             for k in range(0, len(dm)):
                 if k != min_i and k != min_j:
-                    dm[min_j, k] = (dm[min_i, k] + dm[min_j, k]) * 1.0 / 2
+                    dm[min_j, k] = (dm[min_i, k] + dm[min_j, k]) / 2
 
             dm.names[min_j] = "Inner" + str(inner_count)
 
@@ -885,7 +932,7 @@ class NNITreeSearcher(TreeSearcher):
         :Parameters:
            starting_tree : Tree
                starting tree of NNI method.
-           alignment : MultipleSeqAlignment
+           alignment : Alignment or MultipleSeqAlignment object
                multiple sequence alignment used to calculate parsimony
                score of different NNI trees.
 
@@ -937,7 +984,7 @@ class NNITreeSearcher(TreeSearcher):
                     left_right = left.clades[1]
                     right_left = right.clades[0]
                     right_right = right.clades[1]
-                    # neightbor 1 (left_left + right_right)
+                    # neighbor 1 (left_left + right_right)
                     del left.clades[1]
                     del right.clades[1]
                     left.clades.append(right_right)
@@ -1048,10 +1095,16 @@ class ParsimonyScorer(Scorer):
         terms = tree.get_terminals()
         terms.sort(key=lambda term: term.name)
         alignment.sort()
-        if not all(t.name == a.id for t, a in zip(terms, alignment)):
-            raise ValueError(
-                "Taxon names of the input tree should be the same with the alignment."
-            )
+        if isinstance(alignment, MultipleSeqAlignment):
+            if not all(t.name == a.id for t, a in zip(terms, alignment)):
+                raise ValueError(
+                    "Taxon names of the input tree should be the same with the alignment."
+                )
+        else:  # Alignment object
+            if not all(t.name == s.id for t, s in zip(terms, alignment.sequences)):
+                raise ValueError(
+                    "Taxon names of the input tree should be the same with the alignment."
+                )
         # term_align = dict(zip(terms, alignment))
         score = 0
         for i in range(len(alignment[0])):
@@ -1076,7 +1129,7 @@ class ParsimonyScorer(Scorer):
                     state = left_state & right_state
                     if not state:
                         state = left_state | right_state
-                        score_i = score_i + 1
+                        score_i += 1
                     clade_states[clade] = state
             # Sankoff algorithm with the penalty matrix
             else:
@@ -1111,7 +1164,7 @@ class ParsimonyScorer(Scorer):
                 # minimum from root score
                 score_i = min(array)
                 # TODO: resolve internal states
-            score = score + score_i
+            score += score_i
         return score
 
 
@@ -1128,56 +1181,91 @@ class ParsimonyTreeConstructor(TreeConstructor):
     --------
     We will load an alignment, and then load various trees which have already been computed from it::
 
-        from Bio import AlignIO, Phylo
-        aln = AlignIO.read(open('TreeConstruction/msa.phy'), 'phylip')
-        print(aln)
-
-    Output::
-
-        Alignment with 5 rows and 13 columns
-        AACGTGGCCACAT Alpha
-        AAGGTCGCCACAC Beta
-        CAGTTCGCCACAA Gamma
-        GAGATTTCCGCCT Delta
-        GAGATCTCCGCCC Epsilon
+      >>> from Bio import AlignIO, Phylo
+      >>> aln = AlignIO.read(open('TreeConstruction/msa.phy'), 'phylip')
+      >>> print(aln)
+      Alignment with 5 rows and 13 columns
+      AACGTGGCCACAT Alpha
+      AAGGTCGCCACAC Beta
+      CAGTTCGCCACAA Gamma
+      GAGATTTCCGCCT Delta
+      GAGATCTCCGCCC Epsilon
 
     Load a starting tree::
 
-        starting_tree = Phylo.read('TreeConstruction/nj.tre', 'newick')
-        print(starting_tree)
-
-    Output::
-
-        Tree(rooted=False, weight=1.0)
-            Clade(branch_length=0.0, name='Inner3')
-                Clade(branch_length=0.01421, name='Inner2')
-                    Clade(branch_length=0.23927, name='Inner1')
-                        Clade(branch_length=0.08531, name='Epsilon')
-                        Clade(branch_length=0.13691, name='Delta')
-                    Clade(branch_length=0.2923, name='Alpha')
-                Clade(branch_length=0.07477, name='Beta')
-                Clade(branch_length=0.17523, name='Gamma')
+      >>> starting_tree = Phylo.read('TreeConstruction/nj.tre', 'newick')
+      >>> print(starting_tree)
+      Tree(rooted=False, weight=1.0)
+          Clade(branch_length=0.0, name='Inner3')
+              Clade(branch_length=0.01421, name='Inner2')
+                  Clade(branch_length=0.23927, name='Inner1')
+                      Clade(branch_length=0.08531, name='Epsilon')
+                      Clade(branch_length=0.13691, name='Delta')
+                  Clade(branch_length=0.2923, name='Alpha')
+              Clade(branch_length=0.07477, name='Beta')
+              Clade(branch_length=0.17523, name='Gamma')
 
     Build the Parsimony tree from the starting tree::
 
-        scorer = Phylo.TreeConstruction.ParsimonyScorer()
-        searcher = Phylo.TreeConstruction.NNITreeSearcher(scorer)
-        constructor = Phylo.TreeConstruction.ParsimonyTreeConstructor(searcher, starting_tree)
-        pars_tree = constructor.build_tree(aln)
-        print(pars_tree)
+      >>> scorer = Phylo.TreeConstruction.ParsimonyScorer()
+      >>> searcher = Phylo.TreeConstruction.NNITreeSearcher(scorer)
+      >>> constructor = Phylo.TreeConstruction.ParsimonyTreeConstructor(searcher, starting_tree)
+      >>> pars_tree = constructor.build_tree(aln)
+      >>> print(pars_tree)
+      Tree(rooted=True, weight=1.0)
+          Clade(branch_length=0.0)
+              Clade(branch_length=0.19732999999999998, name='Inner1')
+                  Clade(branch_length=0.13691, name='Delta')
+                  Clade(branch_length=0.08531, name='Epsilon')
+              Clade(branch_length=0.04194000000000003, name='Inner2')
+                  Clade(branch_length=0.01421, name='Inner3')
+                      Clade(branch_length=0.17523, name='Gamma')
+                      Clade(branch_length=0.07477, name='Beta')
+                  Clade(branch_length=0.2923, name='Alpha')
 
-    Output::
+    Same example, using the new Alignment class::
 
-        Tree(rooted=True, weight=1.0)
-            Clade(branch_length=0.0)
-                Clade(branch_length=0.19732999999999998, name='Inner1')
-                    Clade(branch_length=0.13691, name='Delta')
-                    Clade(branch_length=0.08531, name='Epsilon')
-                Clade(branch_length=0.04194000000000003, name='Inner2')
-                    Clade(branch_length=0.01421, name='Inner3')
-                        Clade(branch_length=0.17523, name='Gamma')
-                        Clade(branch_length=0.07477, name='Beta')
-                    Clade(branch_length=0.2923, name='Alpha')
+      >>> from Bio import Align, Phylo
+      >>> alignment = Align.read(open('TreeConstruction/msa.phy'), 'phylip')
+      >>> print(alignment)
+      Alpha             0 AACGTGGCCACAT 13
+      Beta              0 AAGGTCGCCACAC 13
+      Gamma             0 CAGTTCGCCACAA 13
+      Delta             0 GAGATTTCCGCCT 13
+      Epsilon           0 GAGATCTCCGCCC 13
+      <BLANKLINE>
+
+    Load a starting tree::
+
+      >>> starting_tree = Phylo.read('TreeConstruction/nj.tre', 'newick')
+      >>> print(starting_tree)
+      Tree(rooted=False, weight=1.0)
+          Clade(branch_length=0.0, name='Inner3')
+              Clade(branch_length=0.01421, name='Inner2')
+                  Clade(branch_length=0.23927, name='Inner1')
+                      Clade(branch_length=0.08531, name='Epsilon')
+                      Clade(branch_length=0.13691, name='Delta')
+                  Clade(branch_length=0.2923, name='Alpha')
+              Clade(branch_length=0.07477, name='Beta')
+              Clade(branch_length=0.17523, name='Gamma')
+
+    Build the Parsimony tree from the starting tree::
+
+      >>> scorer = Phylo.TreeConstruction.ParsimonyScorer()
+      >>> searcher = Phylo.TreeConstruction.NNITreeSearcher(scorer)
+      >>> constructor = Phylo.TreeConstruction.ParsimonyTreeConstructor(searcher, starting_tree)
+      >>> pars_tree = constructor.build_tree(alignment)
+      >>> print(pars_tree)
+      Tree(rooted=True, weight=1.0)
+          Clade(branch_length=0.0)
+              Clade(branch_length=0.19732999999999998, name='Inner1')
+                  Clade(branch_length=0.13691, name='Delta')
+                  Clade(branch_length=0.08531, name='Epsilon')
+              Clade(branch_length=0.04194000000000003, name='Inner2')
+                  Clade(branch_length=0.01421, name='Inner3')
+                      Clade(branch_length=0.17523, name='Gamma')
+                      Clade(branch_length=0.07477, name='Beta')
+                  Clade(branch_length=0.2923, name='Alpha')
 
     """
 
@@ -1200,3 +1288,9 @@ class ParsimonyTreeConstructor(TreeConstructor):
             dtc = DistanceTreeConstructor(DistanceCalculator("identity"), "upgma")
             self.starting_tree = dtc.build_tree(alignment)
         return self.searcher.search(self.starting_tree, alignment)
+
+
+if __name__ == "__main__":
+    from Bio._utils import run_doctest
+
+    run_doctest()

@@ -14,19 +14,20 @@
 # ==============================================================================
 """Tests for tf.ragged.cross and tf.ragged.cross_hashed."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from absl.testing import parameterized
 
 import numpy as np
 
+from tensorflow.python.eager import def_function
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import errors
 from tensorflow.python.framework import ops
 from tensorflow.python.framework import sparse_tensor
+from tensorflow.python.framework import tensor_spec
 from tensorflow.python.framework import test_util
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import gen_ragged_array_ops
+from tensorflow.python.ops import random_ops
 from tensorflow.python.ops import sparse_ops
 from tensorflow.python.ops.ragged import ragged_array_ops
 from tensorflow.python.ops.ragged import ragged_factory_ops
@@ -362,9 +363,19 @@ class RaggedCrossOpTest(test_util.TensorFlowTestCase, parameterized.TestCase):
                   dense_const([[2], [3]])],
           exception=(ValueError, errors.InvalidArgumentError),
           message='inputs must all have the same batch dimension size'),
+      dict(
+          testcase_name='3DDenseTensor',
+          inputs=[dense_const([[[1]]])],
+          exception=(ValueError, errors.InvalidArgumentError),
+          message='tf.ragged.cross only supports inputs with rank=2'),
+      dict(
+          testcase_name='0DDenseTensor',
+          inputs=[dense_const(1)],
+          exception=(ValueError, errors.InvalidArgumentError),
+          message='tf.ragged.cross only supports inputs with rank=2'),
   ])
   def testStaticError(self, inputs, exception=ValueError, message=None):
-    with self.assertRaisesRegexp(exception, message):
+    with self.assertRaisesRegex(exception, message):
       ragged_array_ops.cross(inputs)
 
   @parameterized.named_parameters([
@@ -373,16 +384,35 @@ class RaggedCrossOpTest(test_util.TensorFlowTestCase, parameterized.TestCase):
           inputs=[ragged_const([[[1]]], ragged_rank=1)],
           message='tf.ragged.cross only supports inputs with rank=2'),
       dict(
+          testcase_name='0DDenseTensor',
+          inputs=[dense_const(1)],
+          signature=[[tensor_spec.TensorSpec(None, dtypes.int32)]],
+          exception=(ValueError, errors.InvalidArgumentError),
+          message='tf.ragged.cross only supports inputs with rank=2'),
+      dict(
+          testcase_name='1DDenseTensor',
+          inputs=[dense_const([1])],
+          signature=[[tensor_spec.TensorSpec(None, dtypes.int32)]],
+          exception=(ValueError, errors.InvalidArgumentError),
+          message='tf.ragged.cross only supports inputs with rank=2'),
+      dict(
           testcase_name='3DDenseTensor',
           inputs=[dense_const([[[1]]])],
+          signature=[[tensor_spec.TensorSpec(None, dtypes.int32)]],
+          exception=(ValueError, errors.InvalidArgumentError),
           message='tf.ragged.cross only supports inputs with rank=2'),
   ])
   def testRuntimeError(self,
                        inputs,
                        exception=errors.InvalidArgumentError,
-                       message=None):
-    with self.assertRaisesRegexp(exception, message):
-      self.evaluate(ragged_array_ops.cross(inputs))
+                       message=None,
+                       signature=None):
+    @def_function.function(input_signature=signature)
+    def fn(x):
+      return ragged_array_ops.cross(x)
+
+    with self.assertRaisesRegex(exception, message):
+      self.evaluate(fn(inputs))
 
   def _ragged_to_sparse(self, t):
     if ragged_tensor.is_ragged(t):
@@ -391,6 +421,76 @@ class RaggedCrossOpTest(test_util.TensorFlowTestCase, parameterized.TestCase):
       return sparse_tensor.SparseTensor.from_value(t)
     else:
       return ops.convert_to_tensor(t)
+
+  def testSparseValuesAndIndicesMustMatch(self):
+    with self.assertRaisesRegex(
+        (ValueError, errors.InvalidArgumentError),
+        'sparse indices and values must have the same length'):
+      self.evaluate(gen_ragged_array_ops.RaggedCross(
+          ragged_values=[],
+          ragged_row_splits=[],
+          sparse_indices=[[5]],
+          sparse_values=[],
+          sparse_shape=[5],
+          dense_inputs=[['a']],
+          input_order='RD',
+          hashed_output=False,
+          num_buckets=5,
+          hash_key=2,
+          out_values_type=dtypes.string,
+          out_row_splits_type=dtypes.int64))
+
+  def testRaggedValuesAndSplitsMustMatch(self):
+    with self.assertRaisesRegex(
+        (ValueError, errors.InvalidArgumentError),
+        'ragged values and splits must have the same length'):
+      self.evaluate(gen_ragged_array_ops.RaggedCross(
+          ragged_values=[['a']],
+          ragged_row_splits=[],
+          sparse_indices=[],
+          sparse_values=[],
+          sparse_shape=[],
+          dense_inputs=[['a']],
+          input_order='RD',
+          hashed_output=False,
+          num_buckets=5,
+          hash_key=2,
+          out_values_type=dtypes.string,
+          out_row_splits_type=dtypes.int64))
+
+  def testRaggedCrossInvalidValue(self):
+    # Test case in GitHub isseu 59114.
+    with self.assertRaisesRegex(
+        (ValueError, errors.InvalidArgumentError), 'Invalid RaggedTensor'
+    ):
+      ragged_values_0_tensor = ops.convert_to_tensor(np.ones([3], dtype=str))
+      ragged_values_0 = array_ops.identity(ragged_values_0_tensor)
+      ragged_values = [
+          ragged_values_0,
+      ]
+      ragged_row_splits_0_tensor = random_ops.random_uniform(
+          [4], minval=-256, maxval=257, dtype=dtypes.int64
+      )
+      ragged_row_splits_0 = array_ops.identity(ragged_row_splits_0_tensor)
+      ragged_row_splits = [
+          ragged_row_splits_0,
+      ]
+      self.evaluate(
+          gen_ragged_array_ops.RaggedCross(
+              ragged_values=ragged_values,
+              ragged_row_splits=ragged_row_splits,
+              sparse_indices=[],
+              sparse_values=[],
+              sparse_shape=[],
+              dense_inputs=[],
+              input_order='R',
+              hashed_output=False,
+              num_buckets=0,
+              hash_key=956888297470,
+              out_values_type=7,
+              out_row_splits_type=9,
+          )
+      )
 
 
 if __name__ == '__main__':

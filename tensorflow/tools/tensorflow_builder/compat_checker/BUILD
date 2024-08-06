@@ -5,23 +5,24 @@ load(
     "py_test",
 )
 
-licenses(["notice"])  # Apache 2.0
+licenses(["notice"])
 
 package(
+    # copybara:uncomment default_applicable_licenses = ["//tensorflow:license"],
     default_visibility = [
         "//tensorflow/tools/tensorflow_builder:__subpackages__",
     ],
 )
 
-licenses(["notice"])  # Apache 2.0
+licenses(["notice"])
 
 py_library(
     name = "compat_checker",
     srcs = ["compat_checker.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
-        "//tensorflow/python:platform",
-        "//tensorflow/python:util",
+        "//tensorflow/python/platform:tf_logging",
+        "//tensorflow/python/util:tf_decorator",
         "@six_archive//:six",
     ],
 )
@@ -36,7 +37,6 @@ py_test(
     tags = ["no_pip"],
     deps = [
         ":compat_checker",
-        "//tensorflow/python:platform",
         "//tensorflow/python:platform_test",
     ],
 )

@@ -14,10 +14,6 @@
 # ==============================================================================
 """Tests for jacobian and batch_jacobian ops."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import functools
 import os
 import time
@@ -32,7 +28,7 @@ from tensorflow.python.framework import ops
 from tensorflow.python.framework import test_util
 from tensorflow.python.layers import layers as tf_layers
 from tensorflow.python.ops import array_ops
-from tensorflow.python.ops import control_flow_ops as tf_control_flow_ops
+from tensorflow.python.ops import array_ops_stack
 from tensorflow.python.ops import functional_ops
 from tensorflow.python.ops import gradients as gradient_ops
 from tensorflow.python.ops import math_ops
@@ -41,6 +37,7 @@ from tensorflow.python.ops import random_ops
 from tensorflow.python.ops import rnn
 from tensorflow.python.ops import rnn_cell
 from tensorflow.python.ops import variables
+from tensorflow.python.ops import while_loop
 from tensorflow.python.ops.losses import losses
 from tensorflow.python.ops.parallel_for import control_flow_ops
 from tensorflow.python.ops.parallel_for import gradients
@@ -48,7 +45,7 @@ from tensorflow.python.platform import test
 from tensorflow.python.util import nest
 
 
-class FullyConnectedModel(object):
+class FullyConnectedModel:
 
   def __init__(self, activation_size, num_layers):
     self._layers = [
@@ -401,9 +398,8 @@ class GradientsTest(test.TestCase):
   def test_jacobian_while_loop_shape(self):
     # Shape x: [3, 4]
     x = random_ops.random_uniform([3, 4])
-    _, y = tf_control_flow_ops.while_loop(lambda i, a: i > 5.,
-                                          lambda i, a: (i + 1, a + i),
-                                          (constant_op.constant(0.), x))
+    _, y = while_loop.while_loop(lambda i, a: i > 5., lambda i, a:
+                                 (i + 1, a + i), (constant_op.constant(0.), x))
     # Shape y: [2, 3]
     y = y[:2, :3]
     jacobian = gradients.jacobian(y, x)
@@ -439,7 +435,7 @@ class GradientsTest(test.TestCase):
   def test_batch_jacobian_bad_shapes(self):
     x = random_ops.random_uniform([2, 2])
     y = random_ops.random_uniform([3, 2])
-    with self.assertRaisesRegexp(ValueError, "Need first dimension of output"):
+    with self.assertRaisesRegex(ValueError, "Need first dimension of `output`"):
       gradients.batch_jacobian(y, x, use_pfor=True)
 
   def test_batch_jacobian_bad_unknown_shapes(self):
@@ -447,8 +443,8 @@ class GradientsTest(test.TestCase):
       x = array_ops.placeholder(dtypes.float32)
       y = array_ops.concat([x, x], axis=0)
       jacobian = gradients.batch_jacobian(y, x)
-      with self.assertRaisesRegexp(errors.InvalidArgumentError,
-                                   "assertion failed"):
+      with self.assertRaisesRegex(errors.InvalidArgumentError,
+                                  "assertion failed"):
         sess.run(jacobian, feed_dict={x: [[1, 2], [3, 4]]})
 
   def test_batch_jacobian_fixed_shape(self):
@@ -457,7 +453,7 @@ class GradientsTest(test.TestCase):
     batch_jacobian_pfor = gradients.batch_jacobian(y, x, use_pfor=True)
     batch_jacobian_while = gradients.batch_jacobian(y, x, use_pfor=False)
     two_x = 2 * x
-    answer = array_ops.stack(
+    answer = array_ops_stack.stack(
         [array_ops.diag(two_x[0]),
          array_ops.diag(two_x[1])])
     self.run_and_assert_equal(answer, batch_jacobian_pfor)
@@ -470,7 +466,7 @@ class GradientsTest(test.TestCase):
       batch_jacobian_pfor = gradients.batch_jacobian(y, x, use_pfor=True)
       batch_jacobian_while = gradients.batch_jacobian(y, x, use_pfor=False)
       two_x = 2 * x
-      answer = array_ops.stack(
+      answer = array_ops_stack.stack(
           [array_ops.diag(two_x[0]),
            array_ops.diag(two_x[1])])
       ans, pfor_value, while_value = sess.run(
@@ -529,7 +525,7 @@ class GradientsTest(test.TestCase):
     os.environ["TF_ENABLE_WINOGRAD_NONFUSED"] = "0"
     data_format = ("channels_first"
                    if test.is_gpu_available() else "channels_last")
-    # Note that we we are setting training=False here so that dropout produces
+    # Note that we are setting training=False here so that dropout produces
     # the same result with pfor and with while_loop.
     pfor_outputs, while_outputs = create_mnist_per_eg_grad(
         4, data_format, training=False)
@@ -543,7 +539,7 @@ class GradientsTest(test.TestCase):
     os.environ["TF_ENABLE_WINOGRAD_NONFUSED"] = "0"
     data_format = ("channels_first"
                    if test.is_gpu_available() else "channels_last")
-    # Note that we we are setting training=False here so that dropout produces
+    # Note that we are setting training=False here so that dropout produces
     # the same result with pfor and with while_loop.
     pfor_outputs, while_outputs = create_mnist_per_eg_jacobian(
         2, data_format, training=False)

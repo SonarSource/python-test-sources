@@ -14,13 +14,8 @@
 # ==============================================================================
 """Model script to test TF-TensorRT integration."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import numpy as np
 
-from tensorflow.compiler.tf2tensorrt._pywrap_py_utils import get_linked_tensorrt_version
 from tensorflow.python.compiler.tensorrt.test import tf_trt_integration_test_base as trt_test
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -65,8 +60,7 @@ class QuantizationMissingAllRangesTest(trt_test.TfTrtIntegrationTestBase):
 
   def ShouldRunTest(self, run_params):
     # Only test static engine mode, with or without calibration.
-    return (get_linked_tensorrt_version()[0] >= 5 and
-            trt_test.IsQuantizationMode(run_params.precision_mode) and
+    return (trt_test.IsQuantizationMode(run_params.precision_mode) and
             not run_params.convert_online and not run_params.dynamic_engine
            ), "test static engine, offline conversion and INT8"
 
@@ -76,7 +70,7 @@ class QuantizationMissingAllRangesTest(trt_test.TfTrtIntegrationTestBase):
     # engine.
     # In static engine mode without calibration, the engine building will
     # succeed but fall back to non-quantized ops.
-    return ["TRTEngineOp_0"]
+    return ["TRTEngineOp_000"]
 
 
 class QuantizationWithRangesTest(trt_test.TfTrtIntegrationTestBase):
@@ -90,13 +84,12 @@ class QuantizationWithRangesTest(trt_test.TfTrtIntegrationTestBase):
 
   def ShouldRunTest(self, run_params):
     # Test static/dynamic engine with/without calibration.
-    return (get_linked_tensorrt_version()[0] >= 5 and
-            trt_test.IsQuantizationMode(run_params.precision_mode) and
+    return (trt_test.IsQuantizationMode(run_params.precision_mode) and
             not run_params.convert_online), "test offline conversion and INT8"
 
   def ExpectedEnginesToBuild(self, run_params):
     """Return the expected engines to build."""
-    return ["TRTEngineOp_0"]
+    return ["TRTEngineOp_000"]
 
   def ExpectedAbsoluteTolerance(self, run_params):
     """The absolute tolerance to compare floating point results."""
@@ -124,8 +117,8 @@ class NonQuantizedPrecisionsWithRangesTest(trt_test.TfTrtIntegrationTestBase):
   def ExpectedEnginesToBuild(self, run_params):
     """Return the expected engines to build."""
     # The fake quant ops are not supported in FP32/FP16 mode, and will split the
-    # graph into three TRT segments.
-    return ["TRTEngineOp_0", "TRTEngineOp_1", "TRTEngineOp_2", "TRTEngineOp_3"]
+    # graph into two TRT segments.
+    return ["TRTEngineOp_000", "TRTEngineOp_001"]
 
   def ExpectedAbsoluteTolerance(self, run_params):
     """The absolute tolerance to compare floating point results."""

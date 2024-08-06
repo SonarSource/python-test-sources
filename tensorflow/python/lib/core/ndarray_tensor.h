@@ -17,9 +17,10 @@ limitations under the License.
 #define TENSORFLOW_PYTHON_LIB_CORE_NDARRAY_TENSOR_H_
 
 #include "tensorflow/c/c_api.h"
+#include "tensorflow/c/safe_ptr.h"
 #include "tensorflow/c/tf_status_helper.h"
 #include "tensorflow/core/framework/tensor.h"
-#include "tensorflow/python/lib/core/safe_ptr.h"
+#include "tensorflow/python/lib/core/safe_pyobject_ptr.h"
 
 namespace tensorflow {
 
@@ -36,7 +37,7 @@ Status TF_TensorToPyArray(Safe_TF_TensorPtr tensor, PyObject** out_ndarray);
 // Expected to be removed once tstring migration is done.
 ABSL_MUST_USE_RESULT
 Status NdarrayToTensor(TFE_Context* ctx, PyObject* ndarray,
-                       Safe_TF_TensorPtr* ret, bool convert_string);
+                       Safe_TF_TensorPtr* ret);
 
 // Creates a tensor in 'ret' from the input Ndarray.
 // TODO(kkb): This is an old conversion function that does not support TFRT.

@@ -9,9 +9,28 @@
 
 
 import os
+from typing import Any, TypeVar, Callable, Optional, cast
+from typing import Protocol
+
+# workaround type checking method attributes from https://github.com/python/mypy/issues/2087#issuecomment-587741762
+
+F = TypeVar("F", bound=Callable[..., object])
 
 
-def find_test_dir(start_dir=None):
+class _FunctionWithPrevious(Protocol[F]):
+    previous: Optional[int]
+    __call__: F
+
+
+def function_with_previous(func: F) -> _FunctionWithPrevious[F]:
+    """Decorate a function as having an attribute named 'previous'."""
+    function_with_previous = cast(_FunctionWithPrevious[F], func)
+    # Make sure the cast isn't a lie.
+    function_with_previous.previous = None
+    return function_with_previous
+
+
+def find_test_dir(start_dir: Optional[str] = None) -> str:
     """Find the absolute path of Biopython's Tests directory.
 
     Arguments:
@@ -42,11 +61,11 @@ def find_test_dir(start_dir=None):
             break
         target = new
     raise ValueError(
-        "Not within Biopython source tree: %r" % os.path.abspath(start_dir)
+        f"Not within Biopython source tree: {os.path.abspath(start_dir)!r}"
     )
 
 
-def run_doctest(target_dir=None, *args, **kwargs):
+def run_doctest(target_dir: Optional[str] = None, *args: Any, **kwargs: Any) -> None:
     """Run doctest for the importing module."""
     import doctest
 

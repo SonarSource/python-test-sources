@@ -19,28 +19,29 @@ function for If ops produced by cond_v2. This will eventually replace the
 current tf.cond implementation once it reaches feature and performance parity.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import collections
 
+from tensorflow.core.framework import types_pb2
 from tensorflow.python.eager import backprop_util
+from tensorflow.python.framework import auto_control_deps
 from tensorflow.python.framework import auto_control_deps_utils as acd
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import errors_impl
 from tensorflow.python.framework import func_graph as func_graph_module
+from tensorflow.python.framework import indexed_slices
 from tensorflow.python.framework import ops
+from tensorflow.python.framework import tensor_shape
 from tensorflow.python.framework import tensor_util
+from tensorflow.python.framework import type_spec
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import control_flow_util
 from tensorflow.python.ops import control_flow_util_v2 as util
-from tensorflow.python.ops import custom_gradient
 from tensorflow.python.ops import default_gradient
-from tensorflow.python.ops import gen_dataset_ops
 from tensorflow.python.ops import gen_functional_ops
+from tensorflow.python.ops import gen_optional_ops
 from tensorflow.python.ops import gradients_util
+from tensorflow.python.ops import handle_data_util
 from tensorflow.python.ops import math_ops
 from tensorflow.python.util import nest
 
@@ -72,7 +73,7 @@ def cond_v2(pred, true_fn, false_fn, name="cond"):
     # graphs. Propagate that behavior here.
     add_control_dependencies = ops.get_default_graph()._add_control_dependencies
     pred = ops.convert_to_tensor(pred)
-    if (tensor_util.is_tensor(pred) and
+    if (tensor_util.is_tf_type(pred) and
         (pred.shape.dims is None or pred.shape.dims)):
       pred = array_ops.squeeze_v2(pred)
 
@@ -122,7 +123,7 @@ def _IfGrad(op, *grads):  # pylint: disable=invalid-name
   false_grad_graph = _create_grad_func(
       false_graph, grads, util.unique_grad_fn_name(false_graph.name))
 
-  # Replaces output None grads with zeros if atleast one branch has non-None
+  # Replaces output None grads with zeros if at least one branch has non-None
   # grad at that index.
   _create_zeros_for_none_grads([true_graph, false_graph],
                                [true_grad_graph, false_grad_graph])
@@ -203,7 +204,7 @@ def _build_cond(pred,
   computation.
 
   true_graph and false_graph need not have the same input types, but they must
-  have the same outpute types.
+  have the same output types.
 
   Args:
     pred: boolean Tensor
@@ -253,7 +254,8 @@ def _build_cond(pred,
 
   # Create the If op.
   with ops.control_dependencies(
-      list(true_graph.control_captures) + list(false_graph.control_captures)):
+      list(true_graph.function_captures.control) + list(
+          false_graph.function_captures.control)):
     true_stateful_ops = [
         op for op in true_graph.get_operations() if op._is_stateful
     ]
@@ -265,25 +267,34 @@ def _build_cond(pred,
     else:
       op_fn = gen_functional_ops.stateless_if
 
-    tensors = op_fn(
-        pred,
-        cond_inputs, [t.dtype for t in true_graph.outputs],
-        util.create_new_tf_function(true_graph),
-        util.create_new_tf_function(false_graph),
-        output_shapes=_get_output_shapes(true_graph.outputs,
-                                         false_graph.outputs),
-        name=name)
-
-  if_op, tensors = _get_op_and_outputs(tensors)
-  # `if_op` is None if this is a `StatelessIf` op with no outputs.
-  if if_op is not None:
-    if_op._true_graph = true_graph
-    if_op._false_graph = false_graph
-    util.maybe_set_lowering_attr(if_op)
-    util.maybe_propagate_compile_time_consts_in_xla(if_op)
-    _set_read_only_resource_inputs_attr(if_op, [true_graph, false_graph])
-    # Prevent fetching since the variant outputs can't be fetched directly.
-    if_op.graph.prevent_fetching(if_op)
+    def _make_op(inputs):
+      if_op, tensors = util.get_op_and_outputs(op_fn(
+          pred,
+          inputs, [t.dtype for t in true_graph.outputs],
+          util.create_new_tf_function(true_graph),
+          util.create_new_tf_function(false_graph),
+          output_shapes=_get_output_shapes(true_graph.outputs,
+                                           false_graph.outputs),
+          name=name))
+      _copy_handle_data(tensors, true_graph.outputs, false_graph.outputs)
+      # `if_op` is None if this is a `StatelessIf` op with no outputs.
+      if if_op is not None:
+        # The true and false graphs have already been created, and we need that
+        # to happen before we know which tensors will be captured and so whether
+        # to wrap the cond in a tf.function. Post-hoc mutation of the branch
+        # `outer_graph` properties seems like the only option if we want to
+        # conditionally wrap in a function.
+        true_graph.outer_graph = ops.get_default_graph()
+        false_graph.outer_graph = ops.get_default_graph()
+        if_op._true_graph = true_graph
+        if_op._false_graph = false_graph
+        util.maybe_set_lowering_attr(if_op)
+        util.maybe_propagate_compile_time_consts_in_xla(if_op)
+        _set_read_only_resource_inputs_attr(if_op, [true_graph, false_graph])
+        # Prevent fetching since the variant outputs can't be fetched directly.
+        if_op.graph.prevent_fetching(if_op)
+      return tensors
+    tensors = util.run_as_function_for_tape_gradients(_make_op, cond_inputs)
 
   # Return identities for each output of the If op, rather than the output of
   # the If op directly. This makes pruning work if the output of cond() is
@@ -295,7 +306,9 @@ def _build_cond(pred,
   # correct output structure
   tensors = [array_ops.identity(t) for t in tensors]
 
-  return _pack_sequence_as(true_graph.structured_outputs, tensors)
+  structured_output_specs = _get_compatible_structured_output_specs(true_graph,
+                                                                    false_graph)
+  return _pack_sequence_as(structured_output_specs, tensors)
 
 
 def get_func_graphs(op):
@@ -319,8 +332,8 @@ def get_func_graphs(op):
       input_shapes = [t.shape for t in inputs]
       func_graph = util.get_func_graph(op, input_shapes, name_attr_list.name)
     for external_t, internal_t in zip(inputs, func_graph.inputs):
-      custom_gradient.copy_handle_data(external_t, internal_t)
-    func_graph.reset_captures(zip(inputs, func_graph.inputs))
+      handle_data_util.copy_handle_data(external_t, internal_t)
+    func_graph.function_captures.reset_captures(inputs, func_graph.inputs)
     # Link the op so that the gradient code can use it.
     func_graph._forward_cond = op
     return func_graph
@@ -330,12 +343,49 @@ def get_func_graphs(op):
         op.get_attr("then_branch"), "_true_graph"),
             _get_func_graph_for_branch(
                 op.get_attr("else_branch"), "_false_graph"))
-  elif op.type == "Case":
-    # TODO(b/141114088): investigate whether to cache graphs in forward pass
-    return [_get_func_graph_for_branch(branch_fn)
-            for branch_fn in op.get_attr("branches")]
+  elif op.type in ["Case", "StatelessCase"]:
+    return [_get_func_graph_for_branch(branch_fn, "_branch_graph_{}".format(i))
+            for i, branch_fn in enumerate(op.get_attr("branches"))]
   else:
     raise ValueError("Unsupported op type: {}".format(op.type))
+
+
+def _get_compatible_structured_output_specs(true_graph, false_graph):
+  """Returns the most specific compatible specs of graph structured outputs."""
+  return nest.map_structure(_get_compatible_spec,
+                            true_graph.structured_outputs,
+                            false_graph.structured_outputs)
+
+
+def _get_compatible_spec(value_or_spec1, value_or_spec2):
+  """Returns the most specific compatible spec.
+
+  Args:
+    value_or_spec1: A TypeSpecs or a value that has a defined TypeSpec.
+    value_or_spec2: A TypeSpecs or a value that has a defined TypeSpec.
+
+  Returns:
+    The most specific compatible TypeSpecs of the input.
+
+  Raises:
+    ValueError: If value_or_spec1 is not compatible with value_or_spec2.
+  """
+  spec1 = _get_spec_for(value_or_spec1)
+  spec2 = _get_spec_for(value_or_spec2)
+
+  # pylint: disable=protected-access
+  common = spec1._without_tensor_names().most_specific_common_supertype(
+      [spec2._without_tensor_names()])
+  if common is None:
+    raise TypeError(f"No common supertype of {spec1} and {spec2}.")
+  return common
+
+
+def _get_spec_for(value_or_spec):
+  """Returns TypeSpec of a value or itself if it is a TypeSpec already."""
+  if isinstance(value_or_spec, type_spec.TypeSpec):
+    return value_or_spec
+  return type_spec.type_spec_from_value(value_or_spec)
 
 
 def _grad_fn(func_graph, grads):
@@ -534,13 +584,14 @@ def _make_inputs_match(branch_graphs, branch_inputs):
     branch_graph.inputs = input_list
 
     # Rewrite the FuncGraphs' state to reflect the new inputs.
-    branch_graph.reset_captures(zip(new_inputs, branch_graph.inputs))
+    branch_graph.function_captures.reset_captures(
+        new_inputs, branch_graph.inputs)
 
   return new_inputs
 
 
 def _create_zeros_for_none_grads(forward_graphs, grad_graphs):
-  """Creates zeros for None out grads if atleast one branch has non-None grad.
+  """Creates zeros for None out grads if at least one branch has non-None grad.
 
   Args:
     forward_graphs: List of forward FuncGraphs.
@@ -593,10 +644,11 @@ def _make_output_composite_tensors_match(op_type, branch_graphs):
   for output_idx, branch_outs in enumerate(zip(*branch_outputs)):
     if len(set(type(out) for out in branch_outs)) == 1:
       continue
-    if not any(isinstance(out, ops.IndexedSlices) for out in branch_outs):
+    if not any(
+        isinstance(out, indexed_slices.IndexedSlices) for out in branch_outs):
       continue
     for branch_idx, branch_out in enumerate(branch_outs):
-      if isinstance(branch_out, ops.IndexedSlices):
+      if isinstance(branch_out, indexed_slices.IndexedSlices):
         continue
       elif isinstance(branch_out, ops.Tensor):
         with branch_graphs[branch_idx].as_default():
@@ -635,16 +687,19 @@ def _make_indexed_slices_indices_types_match(op_type, branch_graphs):
   # Store indices of IndexedSlices.indices in `indexed_slice_indices`.
   for output_idx, branch_outs in enumerate(
       zip(*branch_outputs_flat_with_composites)):
-    if len(set(isinstance(out, ops.IndexedSlices) for out in branch_outs)) != 1:
+    if len(
+        set(
+            isinstance(out, indexed_slices.IndexedSlices)
+            for out in branch_outs)) != 1:
       raise TypeError("Cannot reconcile tf.{op_name} {output_idx}-th outputs:\n"
                       "  branches returned: {outputs}".format(
                           op_name="cond" if op_type == _COND else "switch_case",
                           output_idx=output_idx,
                           outputs=branch_outs))
-    if isinstance(branch_outs[0], ops.IndexedSlices):
+    if isinstance(branch_outs[0], indexed_slices.IndexedSlices):
       # indices is the second component of the composite tensor.
       indexed_slice_indices.append(current_index + 1)
-    if nest.is_sequence_or_composite(branch_outs[0]):
+    if nest.is_nested_or_composite(branch_outs[0]):
       current_index += len(nest.flatten(branch_outs[0], expand_composites=True))
     elif branch_outs[0] is not None:
       # `FuncGraph.outputs` does not contain Nones so no need to update the
@@ -681,15 +736,6 @@ def _make_indexed_slices_indices_types_match(op_type, branch_graphs):
         branch_graph.structured_outputs, branch_graph.outputs)
 
 
-def _get_op_and_outputs(op_or_outputs):
-  if isinstance(op_or_outputs, ops.Operation):
-    return op_or_outputs, []
-  elif not op_or_outputs:  # Empty list.
-    return None, []
-  else:
-    return op_or_outputs[0].op, op_or_outputs
-
-
 def _pack_sequence_as(structured_outputs, op_outputs):
   """Packs the outputs of the gradient If/Case op.
 
@@ -719,7 +765,7 @@ def _pack_sequence_as(structured_outputs, op_outputs):
 
 def _wrap_intermediates(func_graph, intermediates):
   with func_graph.as_default():
-    return [gen_dataset_ops.optional_from_value([t]) for t in intermediates]
+    return [gen_optional_ops.optional_from_value([t]) for t in intermediates]
 
 
 def _create_dummy_input(func_graph, template_tensor):
@@ -748,14 +794,45 @@ def _create_none_optionals(func_graph, n):
     A list of tensors in func_graph.
   """
   with func_graph.as_default():
-    return [gen_dataset_ops.optional_none() for _ in range(n)]
+    return [gen_optional_ops.optional_none() for _ in range(n)]
+
+
+# TODO(b/265317139): remove this function and move this dynamic dimension
+# handling logic to XLA once XLA shape is ready for dynamic dimensions.
+def _convert_dynamic_dimension_to_zero(shape):
+  """Converts dynamic dimensions in `shape` to zero.
+
+  The fake params created to match the intermediates captured in other branches
+  could have dynamic dimensions. But the XLA shape is not able to handle
+  dynamic dimensions in TF TensorShape. Setting the dynamic dimensions to
+  size zero will help avoid failing safety checks in bridge. When XLA
+  DynamicConditional op reconciles branch differences, XLA will replace the
+  dimension size 0 with a bounded dimension determined from the shape of
+  real argument in the other branch.
+
+  Note: Rank unknown shapes are returned as they are.
+
+  Args:
+    shape: The TensorShape of fake param.
+
+  Returns:
+    The new TensorShape with dynamic dimensions set to zero.
+  """
+  if shape.rank is None:
+    return shape
+
+  return tensor_shape.TensorShape(
+      [0 if d is None else d for d in shape.as_list()]
+  )
 
 
 def _create_fakeparams(func_graph, template_tensors):
-  """Create FakeParams for the XLA case."""
+  """Creates FakeParams for the XLA case."""
   with func_graph.as_default():
-    return [gen_functional_ops.fake_param(dtype=t.dtype, shape=t.shape)
-            for t in template_tensors]
+    return [
+        gen_functional_ops.fake_param(
+            dtype=t.dtype, shape=_convert_dynamic_dimension_to_zero(t.shape))
+        for t in template_tensors]
 
 
 def _check_same_outputs(op_type, graphs):
@@ -810,6 +887,40 @@ def _get_output_shapes(*branch_graph_outputs):
       shape = shape.most_specific_compatible_shape(other_out.shape)
     output_shapes.append(shape)
   return output_shapes
+
+
+def _copy_handle_data(external_tensors, *branch_graph_outputs):
+  """Combines shapes in handle data and sets metadata on `external_tensors`."""
+  for tensors in zip(external_tensors, *branch_graph_outputs):
+    external = tensors[0]
+    internal = tensors[1:]
+    internal_handle_data = []
+    for tensor in internal:
+      handle_data = handle_data_util.get_resource_handle_data(tensor)
+      # NOTE: Assumes handle data has only one ShapeAndType entry. It's
+      # unclear how to combine different lengths across branches.
+      if not handle_data.is_set or len(handle_data.shape_and_type) != 1:
+        break
+      internal_handle_data.append(handle_data)
+    else:  # There is handle data, so we need to combine it.
+      combined_shape = tensor_shape.TensorShape(None)
+      combined_dtype = None
+      for handle_data in internal_handle_data:
+        handle_shape = tensor_shape.TensorShape(
+            handle_data.shape_and_type[0].shape)
+        combined_shape = combined_shape.most_specific_compatible_shape(
+            handle_shape)
+        if combined_dtype is None:
+          combined_dtype = handle_data.shape_and_type[0].dtype
+        elif handle_data.shape_and_type[0].dtype != combined_dtype:
+          # Variants from different branches have different dtypes. The
+          # combined variant has no static dtype.
+          combined_dtype = types_pb2.DT_INVALID
+      combined_handle_data = internal_handle_data[0]
+      combined_handle_data.shape_and_type[0].shape.CopyFrom(
+          combined_shape.as_proto())
+      combined_handle_data.shape_and_type[0].dtype = combined_dtype
+      handle_data_util.set_handle_data(external, combined_handle_data)
 
 
 def verify_captures(op_type, branch_graphs):
@@ -903,7 +1014,7 @@ class _CondGradFuncGraph(util.CondBranchFuncGraph):
     # If it is not a resource, we wrap it in an optional in the forward graph
     # and capture the optional normally. We then unwrap the captured optional
     # value in the gradient graph to get the raw intermediate value.
-    # If it is a resource, we trace the resource upto the input in the forward
+    # If it is a resource, we trace the resource up to the input in the forward
     # graph and capture that.
 
     if tensor.dtype == dtypes.resource:
@@ -929,15 +1040,16 @@ class _CondGradFuncGraph(util.CondBranchFuncGraph):
         else:
           # 'tensor' hasn't been wrapped, do it now.
           with self._forward_graph.as_default():
-            optional = gen_dataset_ops.optional_from_value([tensor])
+            optional = gen_optional_ops.optional_from_value([tensor])
           self.op_needs_rewrite = True
         self._wrapped_intermediates[tensor_id] = optional
 
       optional = self._wrapped_intermediates[tensor_id]
       captured_optional = super(_CondGradFuncGraph,
                                 self)._capture_helper(optional, name)
-      captured_tensor = gen_dataset_ops.optional_get_value(
-          captured_optional, [tensor.dtype], [tensor.shape])[0]
+      captured_tensor = gen_optional_ops.optional_get_value(
+          captured_optional, [tensor.dtype], [tensor.shape]
+      )[0]
 
     self._indirect_captures[tensor_id] = captured_tensor
     return captured_tensor
@@ -985,6 +1097,7 @@ def indexed_case(branch_index,
 
 
 @ops.RegisterGradient("Case")
+@ops.RegisterGradient("StatelessCase")
 def _CaseGrad(op, *grads):  # pylint: disable=invalid-name
   """The gradient of a Case op produced by tf.switch_case."""
   # Get the Case operator (this logic handles the case where op is a MockOp)
@@ -1004,7 +1117,7 @@ def _CaseGrad(op, *grads):  # pylint: disable=invalid-name
     branch_grad_graphs.append(
         _create_grad_func(branch_graph, grads,
                           util.unique_grad_fn_name(branch_graph.name)))
-  # Replaces output None grads with zeros if atleast one branch has non-None
+  # Replaces output None grads with zeros if at least one branch has non-None
   # grad at that index.
   _create_zeros_for_none_grads(branch_graphs, branch_grad_graphs)
 
@@ -1090,7 +1203,7 @@ def _build_case(branch_index,
   computation.
 
   `branch_graphs` need not have the same input types, but they must
-  have the same outpute types.
+  have the same output types.
 
   Args:
     branch_index: integer Tensor
@@ -1111,24 +1224,44 @@ def _build_case(branch_index,
   # graphs in `branch_graphs`.
   case_inputs = _make_inputs_match(branch_graphs, branch_inputs)
 
+  stateful_ops = []
+  for bg in branch_graphs:
+    stateful_ops.extend([
+        op for op in bg.get_operations() if auto_control_deps.op_is_stateful(op)
+    ])
+
+  if stateful_ops:
+    op_fn = gen_functional_ops.case
+  else:
+    op_fn = gen_functional_ops.stateless_case
+
   # Create the Case op.
   with ops.control_dependencies(
-      sum((list(bg.control_captures) for bg in branch_graphs), [])):
-    tensors = gen_functional_ops.case(
-        branch_index,
-        case_inputs, [t.dtype for t in branch_graphs[0].outputs],
-        [util.create_new_tf_function(g) for g in branch_graphs],
-        output_shapes=_get_output_shapes(*[g.outputs for g in branch_graphs]),
-        name=name)
+      sum((list(bg.function_captures.control) for bg in branch_graphs), [])):
 
-  case_op, tensors = _get_op_and_outputs(tensors)
+    def _make_op(inputs):
+      case_op, tensors = util.get_op_and_outputs(op_fn(
+          branch_index,
+          inputs, [t.dtype for t in branch_graphs[0].outputs],
+          [util.create_new_tf_function(g) for g in branch_graphs],
+          output_shapes=_get_output_shapes(*[g.outputs for g in branch_graphs]),
+          name=name))
+      _copy_handle_data(tensors, *[g.outputs for g in branch_graphs])
+      if case_op is not None:
+        util.maybe_set_lowering_attr(case_op, lower_using_switch_merge)
+        util.maybe_propagate_compile_time_consts_in_xla(case_op)
+        _set_read_only_resource_inputs_attr(case_op, branch_graphs)
+        # Prevent fetching since the variant outputs can't be fetched directly.
+        case_op.graph.prevent_fetching(case_op)
 
-  if case_op is not None:
-    util.maybe_set_lowering_attr(case_op, lower_using_switch_merge)
-    util.maybe_propagate_compile_time_consts_in_xla(case_op)
-    _set_read_only_resource_inputs_attr(case_op, branch_graphs)
-    # Prevent fetching since the variant outputs can't be fetched directly.
-    case_op.graph.prevent_fetching(case_op)
+        # Store the branch graphs so they can be reused during the gradient
+        # pass.
+        for i, bg in enumerate(branch_graphs):
+          bg.outer_graph = ops.get_default_graph()
+          setattr(case_op, "_branch_graph_{}".format(i), bg)
+
+      return tensors
+    tensors = util.run_as_function_for_tape_gradients(_make_op, case_inputs)
 
   # Return identities for each output of the Case op, rather than the output of
   # the Case op directly. This makes pruning work if the output of switch_case()

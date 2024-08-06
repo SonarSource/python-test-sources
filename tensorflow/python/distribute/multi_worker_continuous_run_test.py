@@ -14,10 +14,6 @@
 # ==============================================================================
 """Tests for continuous runs using cross-worker collective ops."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import json
 import os
 
@@ -40,6 +36,23 @@ from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import variable_scope
 
 
+try:
+  import dill  # pylint:disable=g-import-not-at-top
+
+  _REGISTER_DECORATOR = dill.register
+except ImportError:
+  _REGISTER_DECORATOR = lambda fn, *_: fn
+
+
+# TODO(b/151232436): This test doesn't work with check health enabled because it
+# relies on barrier around creating strategies. Check health performs
+# communications inside strategy constructor, which makes the barrier
+# ineffective.
+CollectiveAllReduceExtended = (
+    collective_all_reduce_strategy.CollectiveAllReduceExtended)
+CollectiveAllReduceExtended._enable_check_health = False
+
+
 NUM_WORKERS = 5
 
 
@@ -47,12 +60,14 @@ NUM_WORKERS = 5
 class MultiWorkerContinuousRunTest(test.TestCase, parameterized.TestCase):
 
   def setUp(self):
+    super(MultiWorkerContinuousRunTest, self).setUp()
+    self._maybe_setup_gpus(setup=True)
+
+  def _maybe_setup_gpus(self, setup=False):
     self._gpus = config.list_physical_devices('GPU')
     self._local_device = '/device:GPU:0' if self._gpus else '/device:CPU:0'
-    super(MultiWorkerContinuousRunTest, self).setUp()
 
-  def _maybe_setup_gpus(self):
-    if self._gpus:
+    if self._gpus and not setup:
       # Set virtual GPU with memory limit of 64MB so that multiple worker
       # processes can share the physical GPU
       config.set_logical_device_configuration(
@@ -65,7 +80,7 @@ class MultiWorkerContinuousRunTest(test.TestCase, parameterized.TestCase):
     def worker_step_fn(worker_id):
       strategy = collective_all_reduce_strategy.CollectiveAllReduceStrategy()
       # Make sure the processeses are in sync after updating the cluster
-      multi_process_runner.barrier().wait()
+      multi_process_runner.get_barrier().wait()
 
       @def_function.function
       def run_reduce():
@@ -98,7 +113,7 @@ class MultiWorkerContinuousRunTest(test.TestCase, parameterized.TestCase):
     def worker_step_fn(worker_id, num_dims):
       strategy = collective_all_reduce_strategy.CollectiveAllReduceStrategy()
       # Make sure the processeses are in sync after updating the cluster
-      multi_process_runner.barrier().wait()
+      multi_process_runner.get_barrier().wait()
       tensor_shape = [2] * num_dims
 
       def variable_fn():
@@ -124,6 +139,15 @@ class MultiWorkerContinuousRunTest(test.TestCase, parameterized.TestCase):
       multi_process_runner.run(
           worker_fn,
           cluster_spec=test_base.create_cluster_spec(num_workers=NUM_WORKERS))
+
+
+@_REGISTER_DECORATOR(MultiWorkerContinuousRunTest)
+def _save_test_case(pickler, obj):
+  def reconstruct(*args, **kwargs):
+    del args, kwargs
+    return MultiWorkerContinuousRunTest()
+
+  return pickler.save_reduce(reconstruct, (), obj=obj)
 
 
 if __name__ == '__main__':

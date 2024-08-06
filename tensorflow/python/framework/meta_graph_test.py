@@ -14,10 +14,6 @@
 # =============================================================================
 """Tests for tensorflow.python.framework.meta_graph.py."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import math
 import os.path
 import random
@@ -34,7 +30,7 @@ from tensorflow.python.framework import meta_graph
 from tensorflow.python.framework import ops
 from tensorflow.python.framework import test_util
 from tensorflow.python.ops import array_ops
-from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.ops import cond
 from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.ops import gradients_impl
 from tensorflow.python.ops import math_ops
@@ -45,6 +41,7 @@ from tensorflow.python.ops import random_ops
 from tensorflow.python.ops import resource_variable_ops
 from tensorflow.python.ops import variable_scope
 from tensorflow.python.ops import variables
+from tensorflow.python.ops import while_loop
 from tensorflow.python.platform import gfile
 from tensorflow.python.platform import test
 from tensorflow.python.training import queue_runner_impl
@@ -160,6 +157,29 @@ class SimpleMetaGraphTest(test.TestCase):
     # The stripped op list should contain just Const.
     op_list = meta_graph.stripped_op_list_for_graph(graph)
     self.assertEqual(["Const"], [op.name for op in op_list.op])
+
+  def testStrippedOpListPartitionedCalls(self):
+    # Function A calls B via StatefulPartitionedCall.
+    graph = graph_pb2.GraphDef()
+    a = graph.library.function.add()
+    b = graph.library.function.add()
+    a.signature.name = "A"
+    b.signature.name = "B"
+    node_in_a = a.node_def.add()
+    node_in_a.op = "StatefulPartitionedCall"
+    node_in_a.attr["f"].func.name = "B"
+    b.node_def.add().op = "Const"
+    b.node_def.add().op = "A"
+
+    # Use A in the graph via PartitionedCall.
+    node = graph.node.add()
+    node.op = "PartitionedCall"
+    node.attr["f"].func.name = "A"
+
+    op_list = meta_graph.stripped_op_list_for_graph(graph)
+    self.assertSameElements(
+        ["Const", "PartitionedCall", "StatefulPartitionedCall"],
+        [op.name for op in op_list.op])
 
   @test_util.run_deprecated_v1
   def testDefaultAttrStripping(self):
@@ -329,12 +349,12 @@ class ScopedMetaGraphTest(test.TestCase):
               random_ops.truncated_normal(
                   [28, 128], stddev=1.0 / math.sqrt(float(28))),
               name="weights")
-        # The use of control_flow_ops.cond here is purely for adding test
+        # The use of cond.cond here is purely for adding test
         # coverage the save and restore of control flow context (which doesn't
         # make any sense here from a machine learning perspective).  The typical
         # biases is a simple Variable without the conditions.
         biases1 = variables.Variable(
-            control_flow_ops.cond(
+            cond.cond(
                 math_ops.less(random.random(), 0.5),
                 lambda: array_ops.ones([128]), lambda: array_ops.zeros([128])),
             name="biases")
@@ -347,7 +367,7 @@ class ScopedMetaGraphTest(test.TestCase):
                 [128, 32], stddev=1.0 / math.sqrt(float(128))),
             name="weights")
 
-        # The use of control_flow_ops.while_loop here is purely for adding test
+        # The use of while_loop.while_loop here is purely for adding test
         # coverage the save and restore of control flow context (which doesn't
         # make any sense here from a machine learning perspective).  The typical
         # biases is a simple Variable without the conditions.
@@ -358,12 +378,10 @@ class ScopedMetaGraphTest(test.TestCase):
           biases2 += constant_op.constant(0.1, shape=[32])
           return it + 1, biases2
 
-        _, biases2 = control_flow_ops.while_loop(
-            loop_cond,
-            loop_body, [
-                constant_op.constant(0), variables.Variable(
-                    array_ops.zeros([32]), name="biases")
-            ])
+        _, biases2 = while_loop.while_loop(loop_cond, loop_body, [
+            constant_op.constant(0),
+            variables.Variable(array_ops.zeros([32]), name="biases")
+        ])
         hidden2 = nn_ops.relu(math_ops.matmul(hidden1, weights2) + biases2)
       # Linear
       with ops.name_scope("softmax_linear"):
@@ -407,13 +425,13 @@ class ScopedMetaGraphTest(test.TestCase):
       new_image = constant_op.constant(
           1.2, dtypes.float32, shape=[100, 28], name="images")
 
-    with self.assertRaisesRegexp(ValueError, "Graph contains unbound inputs"):
+    with self.assertRaisesRegex(ValueError, "Graph contains unbound inputs"):
       meta_graph.import_scoped_meta_graph(
           os.path.join(test_dir, exported_filenames[0]),
           graph=graph,
           import_scope="new_hidden1")
 
-    with self.assertRaisesRegexp(ValueError, "Graph contains unbound inputs"):
+    with self.assertRaisesRegex(ValueError, "Graph contains unbound inputs"):
       meta_graph.import_scoped_meta_graph(
           os.path.join(test_dir, exported_filenames[0]),
           graph=graph,
@@ -506,7 +524,7 @@ class ScopedMetaGraphTest(test.TestCase):
       with ops.name_scope("export"):
         var = variables.Variable(0.)
         var_name = var.name
-        _, output = control_flow_ops.while_loop(
+        _, output = while_loop.while_loop(
             lambda i, x: i < 5,
             lambda i, x: (i + 1, x + math_ops.cast(i, dtypes.float32)),
             [0, var])
@@ -556,7 +574,7 @@ class ScopedMetaGraphTest(test.TestCase):
     # Create a simple while loop.
     with ops.Graph().as_default():
       var = variables.Variable(0.0)
-      _, output = control_flow_ops.while_loop(lambda i, x: i < 5,
+      _, output = while_loop.while_loop(lambda i, x: i < 5,
                                               lambda i, x: (i + 1, x * 2.0),
                                               [0, var])
       output_name = output.name
@@ -571,8 +589,7 @@ class ScopedMetaGraphTest(test.TestCase):
         meta_graph.import_scoped_meta_graph(meta_graph_def)
         return i + 1, ops.get_default_graph().get_tensor_by_name(output_name)
 
-      _, x = control_flow_ops.while_loop(lambda i, x: i < 2, body, [0, 0.0],
-                                         name="")
+      _, x = while_loop.while_loop(lambda i, x: i < 2, body, [0, 0.0], name="")
       with session.Session() as sess:
         self.evaluate(variables.global_variables_initializer())
         self.evaluate(x)
@@ -829,7 +846,7 @@ class ScopedMetaGraphTest(test.TestCase):
 
     graph2 = ops.Graph()
     with graph2.as_default():
-      with self.assertRaisesRegexp(ValueError, "Graph contains unbound inputs"):
+      with self.assertRaisesRegex(ValueError, "Graph contains unbound inputs"):
         meta_graph.import_scoped_meta_graph(
             orig_meta_graph, import_scope="new_hidden1")
 
@@ -952,8 +969,9 @@ class MetaGraphWithVariableScopeTest(test.TestCase):
               "python/framework/testdata/metrics_export_meta_graph.pb"))
       self.assertEqual(len(ops.get_collection(ops.GraphKeys.LOCAL_VARIABLES)),
                        2)
-      with self.assertRaisesRegexp(
-          AttributeError, "'Tensor' object has no attribute 'initializer'"):
+      with self.assertRaisesRegex(
+          AttributeError, "has no attribute 'initializer'"
+      ):
         initializer = variables.local_variables_initializer()
 
 

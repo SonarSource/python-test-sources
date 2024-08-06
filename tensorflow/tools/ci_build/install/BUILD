@@ -2,8 +2,8 @@
 """
 
 package(
-    default_visibility = ["//tensorflow:internal"],
-    licenses = ["notice"],  # Apache 2.0
+    # copybara:uncomment default_applicable_licenses = ["//tensorflow:license"],
+    licenses = ["notice"],
 )
 
 sh_binary(

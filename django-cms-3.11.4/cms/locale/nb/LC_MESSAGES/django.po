@@ -1,0 +1,1625 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Bjorn Pettersen <bjorn@tkbe.org>, 2015
+# Erlend Dalen <erlend.dalen@gmail.com>, 2019
+# Fabian Braun <fsbraun@gmx.de>, 2022
+# fivethreeo <oyvind.saltvik@gmail.com>, 2011
+# Kim Silkebækken <kim@silkebaekken.net>, 2014
+# Kim Silkebækken <kim@silkebaekken.net>, 2014
+# fivethreeo <oyvind.saltvik@gmail.com>, 2011
+# Sindre Myren <smyrman@gmail.com>, 2011
+# Sindre Myren <smyrman@gmail.com>, 2011
+msgid ""
+msgstr ""
+"Project-Id-Version: django CMS\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-05 17:55+0200\n"
+"PO-Revision-Date: 2010-11-30 06:47+0000\n"
+"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2022\n"
+"Language-Team: Norwegian Bokmål (http://app.transifex.com/divio/django-cms/language/nb/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nb\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "Copy permissions"
+msgstr "Kopier rettigheter"
+
+msgid "Title"
+msgstr "Tittel"
+
+msgid "The default title"
+msgstr "Standardtittel"
+
+msgid "Slug"
+msgstr "Slug"
+
+msgid "The part of the title that is used in the URL"
+msgstr "Delen av tittelen som brukes i adressen"
+
+msgid "Menu Title"
+msgstr "Menytittel"
+
+msgid "Overwrite what is displayed in the menu"
+msgstr "Overstyr hva som vises i menyen"
+
+msgid "Page Title"
+msgstr "Sidetittel"
+
+msgid ""
+"Overwrites what is displayed at the top of your browser or in bookmarks"
+msgstr "Overstyrer hva som vises på toppen av nettleseren din eller i bokmerker"
+
+msgid "Description meta tag"
+msgstr "Meta-tag beskrivelse"
+
+msgid "A description of the page used by search engines."
+msgstr "En beskrivelse av siden som brukes av søkemotorer."
+
+msgid "Page type"
+msgstr "Sidetype"
+
+msgid "Page Types"
+msgstr "Sidetyper"
+
+msgid "Application"
+msgstr "Applikasjon"
+
+msgid "Hook application to this page."
+msgstr "Koble applikasjon til denne siden"
+
+msgid "Overwrite URL"
+msgstr "Overstyr adresse"
+
+msgid "Keep this field empty if standard path should be used."
+msgstr "La dette feltet være tomt hvis standardadresse skal brukes"
+
+msgid "X Frame Options"
+msgstr "X Frame alternativer"
+
+msgid "Whether this page can be embedded in other pages or websites"
+msgstr "Om denne siden kan innbygges i andre sider eller nettsteder"
+
+msgid "Redirect"
+msgstr "Videresend"
+
+msgid "Redirects to this URL."
+msgstr "Videresendes til denne adressen"
+
+msgid "Start typing..."
+msgstr "Begynn å skrive..."
+
+msgid "Application configurations"
+msgstr "Applikasjonskonfigurasjoner"
+
+msgid "Language independent options"
+msgstr "Språkuavhengige alternativ"
+
+msgid "You entered an invalid URL."
+msgstr ""
+
+#, python-format
+msgid "Please set the %(language)s slug before editing its advanced settings."
+msgstr "Vennligst sett stien til 1 %(language)s før avanserte innstillinger redigeres."
+
+msgid "A page with this reverse URL id exists already."
+msgstr "En side med denne reversadresse id'en finnes allerede."
+
+msgid "Invalid application config value"
+msgstr "Ugyldig konfigurasjonsverdi for applikasjonen"
+
+msgid "An application instance using this configuration already exists."
+msgstr "En applikasjon som bruker denne konfigurasjonen finnes allerede."
+
+msgid "An application instance with this name already exists."
+msgstr "En applikasjon med dette navnet finnes allerede."
+
+msgid "You can't move the home page inside another page"
+msgstr "Du kan ikke flytte hjemmesiden inne i en annen side"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nei"
+
+msgid "user"
+msgstr "bruker"
+
+msgid "can_view"
+msgstr "kan vise"
+
+msgid "Add"
+msgstr "Legg til"
+
+msgid "Change"
+msgstr "Endre"
+
+msgid "Delete"
+msgstr "Slett"
+
+msgid ""
+"Users can't create a page without permissions to change the created page. "
+"Edit permissions required."
+msgstr "Brukere kan ikke opprette en side uten rettigheter til å redigere den opprettede siden. Rettigheter til å redigere er påkrevd."
+
+msgid ""
+"Users can't delete a page without permissions to change the page. Edit "
+"permissions required."
+msgstr "Brukere kan ikke slette en siden uten rettigheter til å redigere siden. Rettigheter til å redigere er påkrevd."
+
+msgid ""
+"Users can't set page permissions without permissions to change a page. Edit "
+"permissions required."
+msgstr "Brukere kan ikke sette siderettigheter uten rettigheter til å redigere en side. Rettigheter til å redigere er påkrevd."
+
+msgid ""
+"Users can't delete page permissions without permissions to change a page. "
+"Edit permissions required."
+msgstr "Brukere kan ikke slette side-rettigheter uten rettigheter til å endre en side. Rettigheter til å redigere er påkrevd."
+
+msgid ""
+"Users can't create page permissions without permissions to change the "
+"created permission. Edit permissions required."
+msgstr "Brukere kan ikke opprette side-rettigheter uten rettigheter til å redigere den opprettede rettigheten. Rettigheter til å redigere er påkrevd."
+
+msgid ""
+"Users can't delete page permissions without permissions to change "
+"permissions. Edit permissions required."
+msgstr "Brukere kan ikke slette side-rettigheter uten rettigheter til å endre rettigheter. Rettigheter til å redigere er påkrevd."
+
+#, python-format
+msgid "Invalid plugin type '%s'"
+msgstr "Ugyldig plugin type '%s'"
+
+msgid "Language must be set to a supported language!"
+msgstr "Språket må settes til et støttet språk!"
+
+msgid "Parent plugin language must be same as language!"
+msgstr "Språket til foreldre-plugin må være lik språk!"
+
+msgid "Parent plugin placeholder must be same as placeholder!"
+msgstr "Foreldre-programtillegg må være i samme plassholder!"
+
+#, python-format
+msgid ""
+"Please create the %(language)s page translation before editing it's advanced"
+" settings."
+msgstr "Vær vennlig å opprett %(language)s side-oversettelsen før avanserte innstillinger redigeres."
+
+msgid "Advanced Settings"
+msgstr "Avanserte instillinger"
+
+msgid "Publishing dates"
+msgstr "Publiseringsdatoer"
+
+msgid "Change Permissions"
+msgstr "Endre rettigheter"
+
+#, python-format
+msgid "Cannot delete %(name)s"
+msgstr "Kan ikke slette %(name)s"
+
+msgid "Are you sure?"
+msgstr "Er du sikker?"
+
+#, python-format
+msgid "%(name)s object with primary key %(key)r does not exist."
+msgstr "Objekter %(name)s med primærnøkkel %(key)r finnes ikke."
+
+msgid "Database error"
+msgstr "Databasefeil"
+
+msgid "Template not valid"
+msgstr "Ugyldig mal"
+
+msgid "The template was successfully changed"
+msgstr "Malen er endret"
+
+msgid ""
+"Error! You don't have permissions to move this page. Please reload the page"
+msgstr "Du har ikke rettigheter til å flytte denne siden. Vennligst last inn siden på nytt."
+
+msgid "You do not have permission to copy these plugins."
+msgstr "Du har ikke rettigheter til å kopiere disse programtilleggene."
+
+msgid "Error! You don't have permissions to copy this page."
+msgstr "Feil! Du har ikke rettigheter til å kopiere denne siden."
+
+msgid ""
+"Error! The page you're pasting is not translated in any of the languages "
+"configured by the target site."
+msgstr "Feil! Siden du limer inn er ikke oversatt til noen av språkene som er konfigurert på mottaker-nettstedet."
+
+msgid "You do not have permission to revert this page."
+msgstr "Du har ikke rettigheter til å revertere denne siden."
+
+#, python-format
+msgid "\"%s\" was reverted to the live version."
+msgstr "\"%s\" ble tilbakestilt til live-versjonen."
+
+msgid "You do not have permission to publish this page"
+msgstr "Du har ikke rettigheter til å publisere denne siden"
+
+msgid "Page not published! A parent page is not published yet."
+msgstr "Side ikke publisert! En foreldreside er ikke publisert."
+
+msgid "The content was successfully published."
+msgstr "Publiseringen av innholdet var vellykket."
+
+msgid "There was a problem publishing your content"
+msgstr "Det oppsto et problem under publisering av innholdet ditt"
+
+msgid "You do not have permission to unpublish this page"
+msgstr "Du har ikke rettigheter til å upublisere denne siden"
+
+msgid "This page was never published"
+msgstr "Denne siden var aldri publisert"
+
+#, python-format
+msgid "The %(language)s page \"%(page)s\" was successfully unpublished"
+msgstr "Upubliseringen av %(language)ssiden \"%(page)s\" var vellykket"
+
+msgid "You do not have permission to delete this page"
+msgstr "Du har ikke rettigheter til å slette denne siden."
+
+#, python-format
+msgid "Title and plugins with language %(language)s was deleted"
+msgstr "Tittel og programtillegg med språk %(language)s ble slettet"
+
+#, python-format
+msgid "You don't have permissions to see page \"%(title)s\""
+msgstr "Du har ikke rettigheter til å se side \"%(title)s\""
+
+msgid "You do not have permission to change this page's in_navigation status"
+msgstr "Du har ikke rettigheter til å endre denne sidens \"i navigasjon\" status"
+
+msgid "You do not have permission to edit this page"
+msgstr "Du har ikke rettigheter til å endre denne siden"
+
+msgid "Add Page Copy"
+msgstr "Legg til kopi av side"
+
+msgid "New sub page"
+msgstr "Ny underside"
+
+msgid "New page"
+msgstr "Ny side"
+
+msgid "The page is not eligible to be home."
+msgstr "Denne siden kvalifiserer ikke til å være hjem."
+
+msgid "View restriction"
+msgstr "Vis restriksjon"
+
+msgid "View restrictions"
+msgstr "Vis restriksjoner"
+
+#, python-format
+msgid "Field %s not found"
+msgstr "Felt %s ikke funnet"
+
+msgid "You do not have permission to edit this item"
+msgstr "Du har ikke rettigheter til å endre dette elementet"
+
+msgid "You do not have permission to add a plugin"
+msgstr "Du har ikke rettigheter til å legge inn et programtillegg"
+
+msgid "You do not have permission to copy this placeholder."
+msgstr "Du har ikke rettigheter til å kopiere denne plassholderen."
+
+msgid "Plugin not found"
+msgstr "Programtillegg ikke funnet"
+
+msgid "You do not have permission to edit this plugin"
+msgstr "Du har ikke rettigheter til å redigere dette programtillegget"
+
+msgid "order parameter references plugins in different trees"
+msgstr ""
+
+msgid "parent must be in the same placeholder"
+msgstr "forelder må være i samme plassholder"
+
+msgid "parent must be in the same language as plugin_language"
+msgstr "forelder må være i samme språk som plugin_language"
+
+msgid "You have no permission to paste this plugin"
+msgstr "Du mangler rettigheter til å lime inn dette programtillegget"
+
+msgid "You have no permission to paste this placeholder"
+msgstr "Du mangler rettigheter til å lime inn denne plassholderen"
+
+msgid "You have no permission to move this plugin"
+msgstr "Du har ikke rettigheter til å flytte dette programtillegget"
+
+msgid "You have no permission to cut this plugin"
+msgstr "Du mangler rettigheter til å klippe ut dette programtillegget."
+
+msgid "You do not have permission to delete this plugin"
+msgstr "Du har ikke rettigheter til å slette dette programtillegget"
+
+#, python-format
+msgid "The %(name)s plugin \"%(obj)s\" was deleted successfully."
+msgstr "%(name)s-programtillegget \"%(obj)s\" ble slettet."
+
+msgid "You do not have permission to clear this placeholder"
+msgstr "Du har ikke rettigheter til å tømme denne plassholderen"
+
+#, python-format
+msgid "The placeholder \"%(obj)s\" was cleared successfully."
+msgstr "Tømmingen av plassholderen \"%(obj)s\" var vellykket."
+
+msgid "placeholder"
+msgstr "plassholder"
+
+msgid "Page permissions"
+msgstr "Siderettigheter"
+
+msgid "User & Group permissions"
+msgstr "Bruker og grupperettigheter"
+
+msgid "Page permissions management"
+msgstr "Kontroll av siderettigheter"
+
+#, python-format
+msgid "No registered apphook \"%r\" found"
+msgstr ""
+
+msgid "django CMS"
+msgstr "django CMS"
+
+msgid "Placeholder"
+msgstr "Plassholder"
+
+msgid "Alias"
+msgstr "Alias"
+
+msgid "Create Alias"
+msgstr "Lag Alias"
+
+#, python-format
+msgid ""
+"This is an alias reference, you can edit the content only on the <a "
+"href=\"%(page_url)s?edit\" target=\"_parent\">%(page_title)s</a> page."
+msgstr ""
+
+msgid "Getting started developer guide"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Dokumentasjon"
+
+msgid "User guide"
+msgstr ""
+
+msgid "Support Forum"
+msgstr ""
+
+msgid "Support Slack"
+msgstr ""
+
+msgid "What's new"
+msgstr ""
+
+msgid "Create"
+msgstr "Opprett"
+
+msgid "Sites"
+msgstr "Nettsteder"
+
+msgid "Admin Sites"
+msgstr "Administrasjonssider"
+
+msgid "Administration"
+msgstr "Administrasjon"
+
+msgid "User settings"
+msgstr "Brukerinnstillinger"
+
+msgid "Clipboard..."
+msgstr "Utklippstavle..."
+
+msgid "Clear clipboard"
+msgstr "Tøm utklippstavlen"
+
+msgid "Disable toolbar"
+msgstr ""
+
+msgid "Shortcuts..."
+msgstr "Snarveier..."
+
+msgid "Users"
+msgstr "Brukere"
+
+#, python-format
+msgid "Logout %s"
+msgstr "Logg ut %s"
+
+msgid "Logout"
+msgstr "Logg ut"
+
+msgid "Language"
+msgstr "Språk"
+
+msgid "Help"
+msgstr ""
+
+msgid "Structure"
+msgstr "Struktur"
+
+msgid "Content"
+msgstr "Innhold"
+
+msgid "Publish page changes"
+msgstr "Publiser sideendringer"
+
+msgid "Publish page now"
+msgstr "Publiser side nå"
+
+msgid "Page settings"
+msgstr "Sideinnstillinger"
+
+msgid "Add Translation"
+msgstr "Legg til oversettelse"
+
+msgid "Delete Translation"
+msgstr "Slett oversettelse"
+
+msgid "Copy all plugins"
+msgstr "Kopier alle programtillegg"
+
+#, python-format
+msgid "from %s"
+msgstr "fra %s"
+
+#, python-format
+msgid "Are you sure you want to copy all plugins from %s?"
+msgstr "Er du sikker på at du ønsker å kopiere alle programtillegg fra %s?"
+
+msgid "Pages"
+msgstr "Sider"
+
+msgid "Page"
+msgstr "Side"
+
+msgid "Create Page"
+msgstr "Opprett side"
+
+msgid "New Page"
+msgstr "Ny Side"
+
+msgid "New Sub Page"
+msgstr "Ny Underside"
+
+msgid "Duplicate this Page"
+msgstr "Dupliser denne Siden"
+
+msgid "Edit this Page"
+msgstr "Rediger denne siden"
+
+msgid "Advanced settings"
+msgstr "Avanserte innstillinger"
+
+msgid "Templates"
+msgstr "Maler"
+
+msgid "Save as Page Type"
+msgstr "Lagre som Sidetype"
+
+msgid "Permissions"
+msgstr "Rettigheter"
+
+msgid "Hide in navigation"
+msgstr "Skjul i navigasjon"
+
+msgid "Display in navigation"
+msgstr "Vis i navigasjon"
+
+msgid "Unpublish page"
+msgstr "Skjul side"
+
+msgid "Publish page"
+msgstr "Publiser side"
+
+msgid "Are you sure you want to revert to live?"
+msgstr "Er du sikker på at du vil tilbakestille til live?"
+
+msgid "Revert to live"
+msgstr "Tilbakestill til live"
+
+msgid "Delete page"
+msgstr "Slett side"
+
+msgid "Create a new page next to the current page."
+msgstr "Lag en ny side ved siden av nåværende side."
+
+msgid "Create a page below the current page."
+msgstr "Lag en side under nåværende side."
+
+msgid "Select a valid site"
+msgstr "Velg et gyldig nettsted"
+
+msgid "Select a valid page"
+msgstr "Velg en gyldig side"
+
+#, python-format
+msgid ""
+"Page %(conflict_page)s has the same url '%(url)s' as current page "
+"\"%(instance)s\"."
+msgstr ""
+
+#, python-format
+msgid "Page %(conflict_page)s has the same url '%(url)s' as current page."
+msgstr ""
+
+msgid ""
+"Optional. If supplied, will be automatically added within a new text plugin."
+msgstr "Valgfritt. Vil bli automatisk lagt til i en ny tekst-plugin hvis oppgitt."
+
+msgid "Provide a title for the new page."
+msgstr "Oppgi en tittel for den nye siden."
+
+msgid "Leave empty for automatic slug, or override as required."
+msgstr ""
+
+msgid "Cannot automatically create slug. Please provide one manually."
+msgstr ""
+
+msgid "Please provide a valid slug."
+msgstr ""
+
+msgid "You don't have the permissions required to add a page."
+msgstr "Du mangler rettigheter som er påkrevd for å legge til en side."
+
+msgid "ID"
+msgstr "ID"
+
+msgid "position"
+msgstr "posisjon"
+
+msgid "language"
+msgstr "språk"
+
+msgid "plugin_name"
+msgstr "programtillegg_navn"
+
+msgid "creation date"
+msgstr "opprettelsesdsato"
+
+msgid "can edit"
+msgstr "kan redigere"
+
+msgid "can add"
+msgstr "kan legge til"
+
+msgid "can delete"
+msgstr "kan slette"
+
+msgid "can change advanced settings"
+msgstr "kan endre avanserte instillinger"
+
+msgid "can publish"
+msgstr "kan publisere"
+
+msgid "can change permissions"
+msgstr "kan endre rettigheter"
+
+msgid "can move"
+msgstr "kan flytte"
+
+msgid "view restricted"
+msgstr "visningsrestriktert"
+
+msgid "can recover pages"
+msgstr "kan gjenopprette sider"
+
+msgid "group"
+msgstr "gruppe"
+
+msgid "sites"
+msgstr "nettsteder"
+
+msgid "created by"
+msgstr "opprettet av"
+
+msgid "changed by"
+msgstr "endret av"
+
+msgid "publication date"
+msgstr "publiseringsdate"
+
+msgid "publication end date"
+msgstr "slutt publiseringsdato"
+
+msgid "in navigation"
+msgstr "i navigasjon"
+
+msgid "soft root"
+msgstr "soft root"
+
+msgid "id"
+msgstr "id"
+
+msgid "attached menu"
+msgstr "tilknyttet meny"
+
+msgid "template"
+msgstr "template"
+
+msgid "login required"
+msgstr "krever innlogging"
+
+msgid "menu visibility"
+msgstr "menyvisbarhet"
+
+msgid "application"
+msgstr "applikasjon"
+
+msgid "application instance name"
+msgstr "applikasjonsnavn"
+
+msgid "site"
+msgstr "nettsted"
+
+msgid "Grant on"
+msgstr "Godkjenn på"
+
+msgid "page"
+msgstr "side"
+
+msgid "for logged in users only"
+msgstr "kun for innloggede brukere"
+
+msgid "for anonymous users only"
+msgstr "kun for anonyme brukere"
+
+msgid "Inherit from parent page"
+msgstr "Arv fra foreldreside"
+
+msgid "Deny"
+msgstr "Nekt"
+
+msgid "Only this website"
+msgstr "Kun dette nettstedet"
+
+msgid "Allow"
+msgstr "Tillat"
+
+msgid ""
+"When the page should go live. Status must be \"Published\" for page to go "
+"live."
+msgstr "Når sideb skal gjøres offentlig. Status må være \"Publisert\" for at siden skal vises."
+
+msgid "When to expire the page. Leave empty to never expire."
+msgstr "Når siden utløper. La stå tom for aldri."
+
+msgid "All ancestors will not be displayed in the navigation"
+msgstr "Alle undernivå vil ikke vises i navigasjonen"
+
+msgid ""
+"A unique identifier that is used with the page_url templatetag for linking "
+"to this page"
+msgstr "En unik identifikator som brukes med page_url templatetag for lenking til denne siden"
+
+msgid "The template used to render the content."
+msgstr "Template  brukt for å rendre innholdet."
+
+msgid "limit when this page is visible in the menu"
+msgstr "begrens når denne siden er synlig i menyen"
+
+msgid "pages"
+msgstr "sider"
+
+msgid "Empty"
+msgstr "Tom"
+
+msgid "default"
+msgstr "standard"
+
+msgid "Current page"
+msgstr "Denne siden"
+
+msgid "Page children (immediate)"
+msgstr "Side og barn (like under)"
+
+msgid "Page and children (immediate)"
+msgstr "Side og barn (like under)"
+
+msgid "Page descendants"
+msgstr "Undernivå av side"
+
+msgid "Page and descendants"
+msgstr "Side og undernivå"
+
+msgid "on page level"
+msgstr "på sidenivå"
+
+msgid "frontend view restriction"
+msgstr "offentlig visningsrestriksjon"
+
+msgid "Please select user or group."
+msgstr "Vennligst velg bruker eller gruppe."
+
+msgid ""
+"Users can't publish a page without permissions to change the page. Edit "
+"permissions required."
+msgstr ""
+
+msgid ""
+"Users can't change page advanced settings without permissions to change the "
+"page. Edit permissions required."
+msgstr ""
+
+msgid ""
+"Users can't change page permissions without permissions to change the page. "
+"Edit permissions required."
+msgstr ""
+
+msgid ""
+"Users can't move a page without permissions to change the page. Edit "
+"permissions required."
+msgstr ""
+
+msgid "can recover any deleted page"
+msgstr "kan gjenopprette hvilken som helst side"
+
+msgid "If none selected, user haves granted permissions to all sites."
+msgstr "Hvis ingen er valgt har brukeren rettigheter til alle nettsteder."
+
+msgid "Page global permission"
+msgstr "Globale siderettigheter"
+
+msgid "Pages global permissions"
+msgstr "Globale siderettigheter"
+
+msgid "Page permission"
+msgstr "Siderettighet"
+
+msgid ""
+"Add page permission requires also access to children, or descendants, "
+"otherwise added page can't be changed by its creator."
+msgstr "Legg til side tillatelse krever også tilgang til barn eller undernivå, ellers kan ikke endres av den som opprettet den."
+
+msgid "User (page)"
+msgstr "Bruker (side)"
+
+msgid "Users (page)"
+msgstr "Brukere (side)"
+
+msgid "User group (page)"
+msgstr "Brukergruppe (side)"
+
+msgid "User groups (page)"
+msgstr "Brukergrupper (side)"
+
+msgid "slot"
+msgstr "plass"
+
+msgid "width"
+msgstr "bredde"
+
+msgid "<Empty>"
+msgstr "<Empty>"
+
+msgid "The language for the admin interface and toolbar"
+msgstr "Språket for admingrensesnittet og verktøylinjen"
+
+msgid "user setting"
+msgstr "brukerinnstilling"
+
+msgid "user settings"
+msgstr "brukerinnstillinger"
+
+msgid "by template"
+msgstr ""
+
+msgid "by code"
+msgstr ""
+
+msgid "static placeholder name"
+msgstr "statisk plassholdernavn"
+
+msgid ""
+"Descriptive name to identify this static placeholder. Not displayed to "
+"users."
+msgstr "Beskrivende navn for å identifisere denne statiske plassholderen. Ikke vist til brukere."
+
+msgid "placeholder code"
+msgstr "plassholderkode"
+
+msgid "To render the static placeholder in templates."
+msgstr "For å gjengi den statiske plassholderen i maler."
+
+msgid "placeholder content"
+msgstr "plassholderinnhold"
+
+msgid "creation_method"
+msgstr ""
+
+msgid "static placeholder"
+msgstr "statisk plassholder"
+
+msgid "static placeholders"
+msgstr "statiske plassholdere"
+
+msgid "A static placeholder with the same site and code already exists"
+msgstr ""
+
+msgid "title"
+msgstr "tittel"
+
+msgid "overwrite the title (html title tag)"
+msgstr "overskriv tittelen (html tittle tag)"
+
+msgid "overwrite the title in the menu"
+msgstr "overskriv tittelen i menyen"
+
+msgid "description"
+msgstr "beskrivelse"
+
+msgid "The text displayed in search engines."
+msgstr "Tekst vist i søkemotorer"
+
+msgid "slug"
+msgstr "slug"
+
+msgid "Path"
+msgstr "Sti"
+
+msgid "has url overwrite"
+msgstr "har adresseoverskriving"
+
+msgid "redirect"
+msgstr "videresend"
+
+msgid "is published"
+msgstr "er poblisert"
+
+msgid "Advanced options"
+msgstr "Avanserte valg"
+
+msgid "Generic"
+msgstr "Generisk"
+
+#, python-format
+msgid "The %(name)s \"%(obj)s\" was changed successfully."
+msgstr ""
+
+msgid "There are no further settings for this plugin. Please press save."
+msgstr "Det er ingen flere innstillinger for denne pluginen. Vennligst trykk lagre."
+
+msgid "Save"
+msgstr "Lagre"
+
+#, python-format
+msgid "Log in to administration <a href=\"%(login_url)s\">here</a>."
+msgstr "Logg inn til administreringen her <a href=\"%(login_url)s\">here</a>."
+
+#, python-format
+msgid "Login url: %(login_url)s"
+msgstr "Innloggingsadresse: %(login_url)s"
+
+msgid "Username:"
+msgstr "Brukernavn"
+
+msgid "Password:"
+msgstr "Passord"
+
+msgid "Add a page"
+msgstr "Legg til en side"
+
+msgid "Change a page"
+msgstr "Endre en side"
+
+msgid "Home"
+msgstr "Hjem"
+
+msgid "View on site"
+msgstr "Vis på nettside"
+
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "Vennligst rett opp feilen under"
+msgstr[1] "Vennligst rett opp feilene under"
+
+msgid "All permissions"
+msgstr "Anne rettigheter"
+
+msgid "Loading..."
+msgstr "Laster...."
+
+msgid "Save and continue editing"
+msgstr "Lagre of fortsett å redigere"
+
+msgid "User"
+msgstr "Bruker"
+
+msgid "Group"
+msgstr "Gruppe"
+
+msgid "Can edit"
+msgstr "Kan redigere"
+
+msgid "Can add"
+msgstr "Kan legge til"
+
+msgid "Can delete"
+msgstr "Kan slette"
+
+msgid "Can publish"
+msgstr "Kan publisere"
+
+msgid "Can change permissions"
+msgstr "Kan endre rettigheter"
+
+msgid "Can move"
+msgstr "Kan flytte"
+
+msgid "Can view"
+msgstr "Kan vise"
+
+msgid "(global)"
+msgstr "(global)"
+
+msgid "(current)"
+msgstr "(aktiv)"
+
+msgid "Page doesn't inherit any permissions."
+msgstr "Siden arver ingen rettigheter"
+
+msgid "Edit model"
+msgstr "Endre modell"
+
+msgid "Save as new"
+msgstr "Lagre som ny"
+
+msgid "Save and add another"
+msgstr "Lagre og legg til en til"
+
+msgid "Basic Settings"
+msgstr "Grunnleggende innstillinger"
+
+msgid "Copy"
+msgstr "Kopier"
+
+msgid "Cut"
+msgstr "Klipp"
+
+msgid "Paste"
+msgstr "Lim inn"
+
+msgid "Set as home"
+msgstr ""
+
+msgid "is restricted"
+msgstr "er beskyttet"
+
+msgid "last change by"
+msgstr "siste endring av"
+
+msgid "last change on"
+msgstr ""
+
+msgid "meta"
+msgstr ""
+
+msgid "List of pages"
+msgstr "Liste over sider"
+
+msgid "Search"
+msgstr "Søk"
+
+msgid "Page Tree"
+msgstr "Side-tre"
+
+msgid "Reset filter"
+msgstr "Nullstill filter"
+
+#, python-format
+msgid ""
+"\n"
+"                                                Restore deleted %(name)s\n"
+"                                            "
+msgstr "\nGjenopprett slettet %(name)s"
+
+#, python-format
+msgid ""
+"\n"
+"                                New %(name)s\n"
+"                            "
+msgstr "\nNy %(name)s"
+
+msgid "Main Navigation"
+msgstr "Hovednavigasjon"
+
+msgid "Options"
+msgstr "Alternativer"
+
+msgid "Successfully moved"
+msgstr "Flytting vellykket"
+
+msgid "Changes within the tree might require a refresh."
+msgstr "Endringer i treet kan kreve en oppdatering."
+
+msgid "Error:"
+msgstr "Feil:"
+
+msgid ""
+"This page cannot be copied because an application is attached to it. See the"
+" Page's Advanced settings to manage apphooks."
+msgstr ""
+
+msgid "Are you sure you want to § this page?"
+msgstr "Er du sikker på at du vil § denne siden?"
+
+msgid "Reload"
+msgstr "Last inn på nytt"
+
+msgid "New node"
+msgstr "Ny node"
+
+msgid "nodes"
+msgstr "noder"
+
+msgid "View"
+msgstr "Vis"
+
+msgid "Menu"
+msgstr "Meny"
+
+#, python-format
+msgid ""
+"\n"
+"                            <em>There is no %(object)s around yet.</em>\n"
+"                            <br>\n"
+"                            <a href=\"%(add_url)s\" class=\"addlink\">Add %(object)s</a> now.\n"
+"                        "
+msgstr "\n<em>Det er ingen %(object)s rundt enda.</em><br><a href=\"%(add_url)s\" class=\"addlink\">Legg til %(object)s</a> nå."
+
+msgid "Copy options"
+msgstr "Kopieringsalternativer"
+
+msgid "Choose copy options"
+msgstr "Velg kopieringsalternativer"
+
+msgid "Close"
+msgstr "Lukk"
+
+msgid "Legend"
+msgstr ""
+
+msgid "Published"
+msgstr "Publisert"
+
+msgid "Changed"
+msgstr "Endret"
+
+msgid "Unpublished"
+msgstr "Upublisert"
+
+msgid "In menu"
+msgstr "I meny"
+
+msgid "Not in menu"
+msgstr "Ikke i meny"
+
+msgid "View page"
+msgstr "Vis side"
+
+msgid "Softroot"
+msgstr "Myk topp"
+
+msgid "Apphook"
+msgstr ""
+
+#, python-format
+msgid "Application: %(apphook)s"
+msgstr "Applikasjon: %(apphook)s"
+
+#, python-format
+msgid "Preview this page in %(language)s "
+msgstr "Forhåndsvis denne siden i %(language)s"
+
+msgid "Preview"
+msgstr "Forhåndsvis"
+
+msgid "Publish"
+msgstr "Publiser"
+
+msgid "Unpublish"
+msgstr "Upubliser"
+
+msgid "Configure"
+msgstr "Konfigurer"
+
+msgid "in menu"
+msgstr "i meny"
+
+msgid "not in menu"
+msgstr "ikke i meny"
+
+msgid "Page settings (SHIFT click for advanced settings)"
+msgstr ""
+
+msgid "Clipboard"
+msgstr "Utklippstavle"
+
+msgid "Add plugin"
+msgstr "Ny plugin"
+
+msgid "Copy all"
+msgstr "Kopier alt"
+
+msgid "Copy from"
+msgstr "Kopier fra"
+
+msgid "Empty all"
+msgstr "Tøm alt"
+
+msgid "Filter plugins..."
+msgstr "Filtrer plugins..."
+
+msgid "This is a static placeholder"
+msgstr "Dette er en statisk plassholder"
+
+msgid "Expand all"
+msgstr "Utvid alle"
+
+msgid "Collapse all"
+msgstr "Kollaps alle"
+
+msgid "Edit"
+msgstr "Endre"
+
+msgid "You cannot add plugins to this plugin."
+msgstr "Du kan ikke legge til plugins til denne plugin."
+
+msgid "This plugin cannot be moved or edited outside of its parent"
+msgstr "Dette programtillegget kan ikke flyttes eller redigeres utenfor sin forelder"
+
+msgid "Clipboard is empty."
+msgstr "Utklippstavlen er tom."
+
+msgid "This plugin does not allow plugins of this type as nested plugins."
+msgstr "Denne plugin tillater ikke plugin av denne type som under-plugin."
+
+msgid "This plugin cannot have nested plugins."
+msgstr "Denne plugin kan ikke ha under-plugin."
+
+msgid "Highlight"
+msgstr "Fremhev"
+
+msgid "Available plugins"
+msgstr "Tilgjengelig plugins"
+
+msgid "Toggle structure"
+msgstr ""
+
+msgid "View published"
+msgstr "Vis publisert"
+
+msgid "Login"
+msgstr "Logg inn"
+
+msgid "Add plugin to"
+msgstr ""
+
+msgid "More"
+msgstr "Mer"
+
+#, python-format
+msgid ""
+"Development version using django CMS %(cms_version)s, Django "
+"%(django_version)s, Python %(python_version)s"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "The following error occurred:"
+msgstr "Følgende feil oppsto:"
+
+msgid "Action successful."
+msgstr ""
+
+msgid "Are you sure you want to delete this plugin?"
+msgstr "Er du sikker på at du vil slette denne pluginen?"
+
+msgid "Are you sure you want to publish this page?"
+msgstr "Er du sikker på at du vil publisere denne siden?"
+
+msgid "Plugin will be added here"
+msgstr "Plugin vil bli opprettet her"
+
+msgid "You have unsaved changes."
+msgstr "Du har endringer som ikke er lagret."
+
+msgid "Loading"
+msgstr "Laster"
+
+msgid "Are you sure you want to abandon these changes?"
+msgstr ""
+
+msgid ""
+"The form could not be loaded. Please check that the server is running "
+"correctly."
+msgstr ""
+
+msgid "Most used"
+msgstr "Mest brukt"
+
+msgid "Shortcuts"
+msgstr "Snarveier"
+
+msgid "The page was changed in the meantime, reloading..."
+msgstr ""
+
+msgid "CMS-wide Shortcuts"
+msgstr ""
+
+msgid "Bring up this help dialog"
+msgstr ""
+
+msgid "Close/cancel"
+msgstr "Lukk/avbryt"
+
+msgid "Toggle structure mode"
+msgstr ""
+
+msgid "Toggle structure mode and highlight hovered-over plugin"
+msgstr ""
+
+msgid "Open \"Create\" dialog"
+msgstr ""
+
+msgid "Focus on Toolbar"
+msgstr "Fokus på verktøylinja"
+
+msgid "Structureboard"
+msgstr ""
+
+msgid "Focus on placeholders"
+msgstr "Fokus på plassholdere"
+
+msgid "Move to next/previous element"
+msgstr ""
+
+msgid "Focus on plugins of placeholder"
+msgstr ""
+
+msgid "Edit plugin"
+msgstr "Rediger programtillegg"
+
+msgid "Open actions menu"
+msgstr ""
+
+msgid "Expand/collapse"
+msgstr ""
+
+msgid ""
+"<strong>Login failed.</strong> Please check your credentials and try again."
+msgstr "<strong>Mislykket innlogging.</strong> Vennligst sjekk innloggingsdetaljer og prøv igjen."
+
+msgid "This page has unpublished changes."
+msgstr "Denne siden har upubliserte endringer."
+
+msgid "Double-click to edit"
+msgstr ""
+
+msgid "Tap to edit"
+msgstr "Berør for å redigere"
+
+msgid "Click to go back"
+msgstr "Klikk for å gå tilbake"
+
+msgid "Click to go forward"
+msgstr "Klikk for å gå fremover"
+
+msgid "Minimize"
+msgstr "Minimer"
+
+msgid "Maximize"
+msgstr "Maksimer"
+
+msgid "Drop a plugin here"
+msgstr "Slipp en plugin her"
+
+msgid "This page has no preview!"
+msgstr "Denne siden har ingen forhåndsvisning!"
+
+msgid "It is being redirected to:"
+msgstr ""
+
+msgid "Installation successful!"
+msgstr "Vellykket innstallasjon!"
+
+msgid "Add your first page"
+msgstr "Opprett din første side"
+
+msgid "Please log in"
+msgstr "Vennligst logg inn"
+
+#, python-format
+msgid ""
+"\n"
+"                    Welcome to django CMS version <strong>%(cms_version)s</strong>.\n"
+"                "
+msgstr "\n                    Velkommen til django CMS version <strong>%(cms_version)s</strong>.\n                "
+
+#, python-format
+msgid ""
+"\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">Add the first page</a> to the system to continue.\n"
+"                    "
+msgstr "\n                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">Opprett den første siden</a> i systemet for å fortsette.\n                    "
+
+#, python-format
+msgid ""
+"\n"
+"                        JavaScript seems to be disabled so please\n"
+"                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">add a page</a> manually.\n"
+"                    "
+msgstr "\n                        JavaScript ser ut til å være deaktivert. Vennligst\n                        <a href=\"%(admin_add_page)s\" class=\"js-welcome-add\">legg til en side</a> manuelt.\n                    "
+
+msgid "Installation Notes"
+msgstr "Installasjonsnotis"
+
+msgid "Support"
+msgstr "Støtte"
+
+msgid ""
+"\n"
+"                <p class=\"cms-welcome-notes\">If you don't see the django CMS logo at the top, make sure\n"
+"                    you linked the <code>static/cms</code> folder to your\n"
+"                    static files.</p>\n"
+"            "
+msgstr ""
+
+msgid ""
+"\n"
+"                    <p class=\"cms-welcome-notes\">You're seeing this message because you have\n"
+"                        <code>DEBUG = True</code> in your django settings file and\n"
+"                        haven't added any pages yet.\n"
+"                    </p>\n"
+"                "
+msgstr ""
+
+msgid "Welcome to django CMS"
+msgstr "Velkommen til django CMS"
+
+msgid "Add Another"
+msgstr "Legg til en side til"
+
+msgid "Back"
+msgstr "Tilbake"
+
+msgid "Please choose an option from below to proceed to the next step."
+msgstr "Vennligst velg fra alternativene nedenfor for å fortsette til neste steg."
+
+msgid "Next"
+msgstr "Neste"
+
+msgid "unpublished changes"
+msgstr "Upubliserte endringer"
+
+msgid "published"
+msgstr "publisert"
+
+msgid "unpublished parent"
+msgstr "Upublisert forelder"
+
+msgid "unpublished"
+msgstr "Upublisert"
+
+msgid "no content"
+msgstr "manger innhold"
+
+#, python-format
+msgid "Page not found on %(domain)s"
+msgstr "Side ikke funnet på %(domain)s "
+
+#, python-format
+msgid ""
+"A template tag couldn't find the page with lookup arguments `%(page_lookup)s\n"
+"`. The URL of the request was: http://%(host)s%(path)s"
+msgstr "En maltag kunne ikke finne siden med søkeargumenter `%(page_lookup)s\n`. Adressen til forespørselen var: http://%(host)s%(path)s"
+
+msgid "Two columns"
+msgstr "To kolonner"
+
+msgid "Three columns"
+msgstr "Tre kolonner"
+
+msgid "username"
+msgstr "brukernavn"
+
+msgid ""
+"Required. 300 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+msgstr "Påkrevd. 300 eller færre tegn. Bokstaver, tall og @/./+/-/_ tegn"
+
+msgid "Enter a valid username."
+msgstr "Tast inn et gyldig brukernavn."
+
+msgid "email address"
+msgstr "mail til"
+
+msgid "staff status"
+msgstr ""
+
+msgid "Designates whether the user can log into this admin site."
+msgstr "Kan brukeren logge inn på dette admin-nettstedet?"
+
+msgid "active"
+msgstr "aktiv"
+
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr "Skal denne brukeren betraktes som aktiv? Fjern denne haken i stedet for å slette kontoer."
+
+msgid "users"
+msgstr "brukere"
+
+msgid "Title Extension"
+msgstr ""
+
+msgid "Page Extension"
+msgstr ""
+
+msgid "object ID"
+msgstr ""
+
+msgid "Example1 App"
+msgstr ""
+
+msgid "MultilingualExample1 App"
+msgstr ""
+
+msgid "Example1"
+msgstr "Eksempel1"
+
+msgid "Examples"
+msgstr "Eksempler"
+
+msgid "Extra Context"
+msgstr "Ekstra innhold"
+
+msgid "Articles"
+msgstr "Artikler"
+
+msgid "Sample App"
+msgstr "Demonstrasjons-app"
+
+msgid "Sample App with config"
+msgstr ""
+
+msgid "Sample App with excluded permissions"
+msgstr ""
+
+msgid "Sample App 2"
+msgstr "Demonstrasjons-app 2"
+
+msgid "Sample App 3"
+msgstr ""
+
+msgid "Namespaced App"
+msgstr "Applikasjon med navneområde"
+
+msgid "Parent app"
+msgstr "Foreldreapp"
+
+msgid "Child app"
+msgstr "Underapp"
+
+msgid "Variable urls-menus App"
+msgstr ""
+
+msgid "sample root page"
+msgstr "demo-grunnside"
+
+msgid "sample settings page"
+msgstr "demo-innstillingsside"
+
+msgid "sample account page"
+msgstr "demo-kontoside"
+
+msgid "sample my profile page"
+msgstr "demo-profilside"
+
+msgid "Static Menu"
+msgstr "Statisk Meny"
+
+msgid "Static Menu2"
+msgstr "Statisk Meny2"
+
+msgid "Static Menu3"
+msgstr "Statisk Meny3"
+
+msgid "Static Menu4"
+msgstr "Statisk Meny4"
+
+msgid "Category"
+msgstr "Kategori"
+
+msgid "Categories"
+msgstr "Kategorier"
+
+msgid "Add Category"
+msgstr "Ny kategori"
+
+msgid "^account/$"
+msgstr "^konto/$"
+
+msgid "Change Category"
+msgstr "Endre Kategori"
+
+msgid "Thanks for spending some quality time with the Web site today."
+msgstr ""
+
+msgid "Inherit the template of the nearest ancestor"
+msgstr "Arv mal med nærmeste stamfar"
+
+msgid "UserSettings"
+msgstr "Brukerinstillinger"
+
+#, python-format
+msgid "Add plugin to placeholder \"%(placeholder_label)s\""
+msgstr ""
+
+#, python-format
+msgid "Add plugin to %(plugin_name)s"
+msgstr ""
+
+msgid "Community forum"
+msgstr ""
+
+msgid "Getting started"
+msgstr ""
+
+msgid "Talk to us"
+msgstr ""
+
+msgid "CMS - your user account was created."
+msgstr "CMS - din brukerkonto ble opprettet."
+
+msgid "CMS - your user account was changed."
+msgstr "CMS - din brukerkonto ble endret"
+
+#, python-format
+msgid "This placeholder already has the maximum number of plugins (%s)."
+msgstr "Denne plassholderen har allerede maksimalt antall programtillegg (%s)."
+
+#, python-format
+msgid ""
+"This placeholder already has the maximum number (%(limit)s) of allowed "
+"%(plugin_name)s plugins."
+msgstr "Denne plassholderen har allerede maksimalt antall (%(limit)s) av tillatte programtillegg %(plugin_name)s."
+
+#, python-format
+msgid "This placeholder already has the maximum number of child plugins (%s)."
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to find the specified CMS_REQUEST_IP_RESOLVER module: \"{0}\"."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Unable to find the specified CMS_REQUEST_IP_RESOLVER function: \"{0}\" in "
+"module \"{1}\"."
+msgstr ""
+
+#, python-format
+msgid "Create a new %s instance."
+msgstr "Lag en ny %s instans."
+
+#, python-format
+msgid "A wizard has already been registered for model: %s"
+msgstr ""

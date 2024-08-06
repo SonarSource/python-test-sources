@@ -14,15 +14,12 @@
 # ==============================================================================
 """Tests for TPUClusterResolver."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
 
 import six
 from six.moves.urllib.error import URLError
 
+from tensorflow.core.protobuf.tpu import topology_pb2
 from tensorflow.python import framework
 from tensorflow.python.client import session
 from tensorflow.python.distribute.cluster_resolver.tpu import tpu_cluster_resolver as resolver
@@ -33,6 +30,7 @@ from tensorflow.python.platform import test
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import server_lib
 from tensorflow.python.util import compat
+
 mock = test.mock
 
 try:
@@ -140,8 +138,8 @@ class TPUClusterResolverTest(test.TestCase):
 
   @mock.patch.object(resolver, 'is_running_in_gce', mock_is_running_in_gce)
   def testCheckRunningInGceWithNoTpuName(self):
-    with self.assertRaisesRegexp(ValueError,
-                                 'Please provide a TPU Name to connect to.*'):
+    with self.assertRaisesRegex(ValueError,
+                                'Please provide a TPU Name to connect to.*'):
       resolver.TPUClusterResolver(tpu='')
 
   @mock.patch.object(six.moves.urllib.request, 'urlopen',
@@ -705,6 +703,21 @@ class TPUClusterResolverTest(test.TestCase):
         None, None, 'timeout')
     with self.assertRaises(RuntimeError):
       cluster_resolver.num_accelerators()
+
+  def testLocalTpuResolver(self):
+    cr = resolver.TPUClusterResolver(tpu='local')
+    self.assertEqual(cr.get_master(), '')
+
+  def testTpuTopology(self):
+    cluster_resolver = resolver.TPUClusterResolver(tpu='local')
+    self.assertIsNone(cluster_resolver._tpu_topology)
+
+    # Test set with tpu topology proto.
+    cluster_resolver.set_tpu_topology(
+        serialized_tpu_topology=topology_pb2.TopologyProto(
+            mesh_shape=[1, 1, 1, 1]).SerializeToString())
+    self.assertIsInstance(cluster_resolver.tpu_hardware_feature,
+                          topology_pb2.TPUHardwareFeature)
 
 
 if __name__ == '__main__':

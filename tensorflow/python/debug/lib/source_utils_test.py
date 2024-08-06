@@ -14,10 +14,6 @@
 # ==============================================================================
 """Unit tests for source_utils."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import ast
 import os
 import sys
@@ -35,11 +31,11 @@ from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import ops
 from tensorflow.python.framework import test_util
 from tensorflow.python.lib.io import file_io
-from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 # Import resource_variable_ops for the variables-to-tensor implicit conversion.
 from tensorflow.python.ops import resource_variable_ops  # pylint: disable=unused-import
 from tensorflow.python.ops import variables
+from tensorflow.python.ops import while_loop
 from tensorflow.python.platform import googletest
 from tensorflow.python.util import tf_inspect
 
@@ -106,7 +102,7 @@ class GuessIsTensorFlowLibraryTest(test_util.TensorFlowTestCase):
     self.assertTrue(
         source_utils.guess_is_tensorflow_py_library(source_utils.__file__))
 
-  @test_util.run_deprecated_v1
+  @test_util.run_v1_only("Tensor.op is not available in TF 2.x")
   def testFileInPythonKernelsPathReturnsTrue(self):
     x = constant_op.constant(42.0, name="x")
     self.assertTrue(
@@ -265,8 +261,8 @@ class SourceHelperTest(test_util.TensorFlowTestCase):
 
   def testCallingAnnotateSourceOnUnrelatedSourceFileDoesNotError(self):
     # Create an unrelated source file.
-    unrelated_source_path = tempfile.mktemp()
-    with open(unrelated_source_path, "wt") as source_file:
+    fd, unrelated_source_path = tempfile.mkstemp()
+    with open(fd, "wt") as source_file:
       source_file.write("print('hello, world')\n")
 
     self.assertEqual({},
@@ -277,8 +273,8 @@ class SourceHelperTest(test_util.TensorFlowTestCase):
     os.remove(unrelated_source_path)
 
   def testLoadingPythonSourceFileWithNonAsciiChars(self):
-    source_path = tempfile.mktemp()
-    with open(source_path, "wb") as source_file:
+    fd, source_path = tempfile.mkstemp()
+    with open(fd, "wb") as source_file:
       source_file.write(u"print('\U0001f642')\n".encode("utf-8"))
     source_lines, _ = source_utils.load_source(source_path)
     self.assertEqual(source_lines, [u"print('\U0001f642')", u""])
@@ -287,8 +283,8 @@ class SourceHelperTest(test_util.TensorFlowTestCase):
 
   def testLoadNonexistentNonParPathFailsWithIOError(self):
     bad_path = os.path.join(self.get_temp_dir(), "nonexistent.py")
-    with self.assertRaisesRegexp(
-        IOError, "neither exists nor can be loaded.*par.*"):
+    with self.assertRaisesRegex(IOError,
+                                "neither exists nor can be loaded.*par.*"):
       source_utils.load_source(bad_path)
 
   def testLoadingPythonSourceFileInParFileSucceeds(self):
@@ -315,12 +311,12 @@ class SourceHelperTest(test_util.TensorFlowTestCase):
       zf.write(temp_file_path, os.path.join("tensorflow_models", "model.py"))
 
     source_path = os.path.join(par_path, "tensorflow_models", "nonexistent.py")
-    with self.assertRaisesRegexp(
-        IOError, "neither exists nor can be loaded.*par.*"):
+    with self.assertRaisesRegex(IOError,
+                                "neither exists nor can be loaded.*par.*"):
       source_utils.load_source(source_path)
 
 
-@test_util.run_v1_only("b/120545219")
+@test_util.run_v1_only("Sessions are not available in TF 2.x")
 class ListSourceAgainstDumpTest(test_util.TensorFlowTestCase):
 
   def createAndRunGraphWithWhileLoop(self):
@@ -339,7 +335,7 @@ class ListSourceAgainstDumpTest(test_util.TensorFlowTestCase):
       loop_cond = lambda i: math_ops.less(i, 16)
 
       i = constant_op.constant(10, name="i")
-      loop = control_flow_ops.while_loop(loop_cond, loop_body, [i])
+      loop = while_loop.while_loop(loop_cond, loop_body, [i])
 
       run_options = config_pb2.RunOptions(output_partition_graphs=True)
       debug_utils.watch_graph(
@@ -406,7 +402,7 @@ class ListSourceAgainstDumpTest(test_util.TensorFlowTestCase):
 
   def testGenerateSourceListWithNodeNameFilter(self):
     source_list = source_utils.list_source_files_against_dump(
-        self.dump, node_name_regex_whitelist=r"while/Add.*")
+        self.dump, node_name_regex_allowlist=r"while/Add.*")
 
     # Assert that the file paths are sorted.
     file_paths = [item[0] for item in source_list]
@@ -433,8 +429,8 @@ class ListSourceAgainstDumpTest(test_util.TensorFlowTestCase):
     curr_file_basename = os.path.basename(self.curr_file_path)
     source_list = source_utils.list_source_files_against_dump(
         self.dump,
-        path_regex_whitelist=(
-            ".*" + curr_file_basename.replace(".", "\\.") + "$"))
+        path_regex_allowlist=(".*" + curr_file_basename.replace(".", "\\.") +
+                              "$"))
 
     self.assertEqual(1, len(source_list))
     (file_path, is_tf_py_library, num_nodes, num_tensors, num_dumps,

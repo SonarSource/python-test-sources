@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2022 The meson-python developers
+#
+# SPDX-License-Identifier: MIT
+
+.mesonpy-native-file.ini
+.mesonpy/
+docs/_build
+*.pyc
+.cache/
+dist/
+.coverage

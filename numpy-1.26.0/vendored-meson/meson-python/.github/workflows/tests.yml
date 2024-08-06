@@ -1,0 +1,358 @@
+# SPDX-FileCopyrightText: 2021 The meson-python developers
+#
+# SPDX-License-Identifier: MIT
+
+name: tests
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+      - release-*
+    paths:
+      # This is spelt like this to do not ignore the docs/examples/ folder.
+      - '**'
+      - '!docs/**'
+      - 'docs/examples/**'
+      - '!CHANGELOG.rst'
+      - '!LICENSE'
+      - '!LICENSES/**'
+      - '!README.rst'
+  workflow_dispatch:
+    # Allow to run manually
+
+env:
+  FORCE_COLOR: 1
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu
+          - macos
+          - windows
+        python:
+          - '3.7'
+          - '3.11'
+        meson:
+          -
+        include:
+          - os: ubuntu
+            python: 'pypy-3.9'
+          - os: ubuntu
+            python: '3.8'
+          - os: ubuntu
+            python: '3.9'
+          - os: ubuntu
+            python: '3.10'
+          - os: ubuntu
+            python: '3.12-dev'
+          # Test with older supported Meson version.
+          - os: ubuntu
+            python: '3.11'
+            meson: '~=0.63.3'
+          - os: ubuntu
+            python: '3.11'
+            meson: '~=0.64.0'
+          - os: ubuntu
+            python: '3.11'
+            meson: '~=1.0.0'
+          - os: ubuntu
+            python: '3.11'
+            meson: '~=1.1.0'
+          # Test with Meson master branch.
+          - os: ubuntu
+            python: '3.11'
+            meson: '@git+https://github.com/mesonbuild/meson.git'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up target Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install Ninja
+        run: sudo apt-get install ninja-build
+        if: ${{ matrix.os == 'ubuntu' }}
+
+      - name: Install Ninja
+        run: brew install ninja
+        if: ${{ matrix.os == 'macos' }}
+
+      - name: Install Ninja
+        run: python -m pip --disable-pip-version-check install ninja
+        if: ${{ matrix.os == 'windows' }}
+
+      - name: Install Meson
+        run: python -m pip --disable-pip-version-check install "meson ${{ matrix.meson }}"
+        if: ${{ matrix.meson }}
+
+      - name: Install
+        run: python -m pip --disable-pip-version-check install .[test]
+
+      - name: Run tests
+        run: >-
+          python -m pytest --showlocals -vv --cov
+          --cov-report=xml:coverage-${{ matrix.python }}.xml
+
+      - name: Send coverage report
+        uses: codecov/codecov-action@v1
+        if: ${{ always() }}
+        env:
+          PYTHON: ${{ matrix.python }}
+        with:
+          flags: tests
+          env_vars: PYTHON
+          name: ${{ matrix.python }}
+
+  msvc:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - '3.11'
+        meson:
+          -
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up target Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install Ninja
+        run: python -m pip --disable-pip-version-check install ninja
+
+      - name: Setup MSVC
+        uses: bus1/cabuild/action/msdevshell@e22aba57d6e74891d059d66501b6b5aed8123c4d  # v1
+        with:
+          architecture: x64
+
+      - name: Install Meson
+        run: python -m pip --disable-pip-version-check install "meson==${{ matrix.meson }}"
+        if: ${{ matrix.meson }}
+
+      - name: Install
+        run: python -m pip --disable-pip-version-check install .[test]
+
+      - name: Run tests
+        run: >-
+          python -m pytest --showlocals -vv
+
+  cygwin:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - '3.9'
+        meson:
+          -
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Cygwin
+        uses: cygwin/cygwin-install-action@v2
+        with:
+          packages: >-
+            python39
+            python39-devel
+            python39-pip
+            python39-setuptools
+            cmake
+            gcc-core
+            gcc-g++
+            git
+            make
+            ninja
+
+      - name: Fix git dubious ownership
+        # This addresses the "fatal: detected dubious ownership in
+        # repository" and "fatal: not in a git directory" errors
+        # encountered when trying to run Cygwin git in a directory not
+        # owned by the current user. This happens when the tests run
+        # Cygwin git in a directory outside the Cygwin filesystem.
+        run: git config --global --add safe.directory '*'
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+
+      - name: Get pip cache path
+        id: pip-cache-path
+        run: echo "path=$(cygpath -w $(python -m pip cache dir))" >> $GITHUB_OUTPUT
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+
+      - name: Restore cache
+        # Cygwin Python cannot use binary wheels from PyPI. Building
+        # some dependencies takes considerable time. Caching the built
+        # wheels speeds up the CI job quite a bit.
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pip-cache-path.outputs.path }}
+          key: cygwin-pip-${{ github.sha }}
+          restore-keys: cygwin-pip-
+
+      - name: Install Meson
+        run: python -m pip --disable-pip-version-check install "meson ${{ matrix.meson }}"
+        if: ${{ matrix.meson }}
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+
+      - name: Install
+        # Cygwin patches Python's ensurepip module to look for the
+        # wheels needed to initialize a new virtual environment in
+        # /usr/share/python-wheels/ but nothing in Cygwin actually
+        # puts the setuptools and pip wheels there. Fix this.
+        run: |
+          mkdir /usr/share/python-wheels/
+          pushd /usr/share/python-wheels/
+          python -m pip --disable-pip-version-check download setuptools pip
+          popd
+          python -m pip --disable-pip-version-check install .[test]
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+
+      - name: Run tests
+        run: >-
+          python -m pytest --showlocals -vv --cov
+          --cov-report=xml:coverage-${{ matrix.python }}.xml
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+
+      - name: Send coverage report
+        uses: codecov/codecov-action@v1
+        if: ${{ always() }}
+        env:
+          PYTHON: cygwin-${{ matrix.python }}
+        with:
+          flags: tests
+          env_vars: PYTHON
+          name: cygwin-${{ matrix.python }}
+
+  pyston:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - '3.8'
+        meson:
+          -
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install pyston
+        run: |
+          wget https://github.com/pyston/pyston/releases/download/pyston_2.3.5/pyston_2.3.5_20.04_amd64.deb
+          sudo apt install $(pwd)/pyston_2.3.5_20.04_amd64.deb
+
+      - name: Install Ninja
+        run: sudo apt-get install ninja-build
+
+      - name: Install Meson
+        run: python -m pip --disable-pip-version-check install "meson ${{ matrix.meson }}"
+        if: ${{ matrix.meson }}
+
+      - name: Install
+        run: pyston -m pip --disable-pip-version-check install .[test]
+
+      - name: Run tests
+        run: >-
+          pyston -m pytest --showlocals -vv --cov
+          --cov-report=xml:coverage-pyston.xml
+
+      - name: Send coverage report
+        uses: codecov/codecov-action@v1
+        if: ${{ always() }}
+        env:
+          PYTHON: pyston
+        with:
+          flags: tests
+          env_vars: PYTHON
+          name: pyston
+
+  homebrew:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - '3.8'
+          - '3.11'
+        meson:
+          -
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Homebrew Python
+        run: |
+          brew install --overwrite python@${{ matrix.python }}
+          echo /usr/local/opt/python@${{ matrix.python }}/libexec/bin/ >> $GITHUB_PATH
+
+      - name: Install Ninja
+        run: brew install ninja
+
+      - name: Update pip
+        # pip >= 23.0 fixes https://github.com/pypa/pip/issues/11539
+        run: python -m pip --disable-pip-version-check install --upgrade "pip >= 23.0"
+
+      - name: Install Meson
+        run: python -m pip --disable-pip-version-check install "meson ${{ matrix.meson }}"
+        if: ${{ matrix.meson }}
+
+      - name: Install
+        run: python -m pip --disable-pip-version-check install .[test]
+
+      - name: Run tests
+        run: >-
+          python -m pytest --showlocals -vv --cov
+          --cov-report=xml:coverage-homebrew-${{ matrix.python }}.xml
+
+      - name: Send coverage report
+        uses: codecov/codecov-action@v1
+        if: ${{ always() }}
+        env:
+          PYTHON: homebrew-${{ matrix.python }}
+        with:
+          flags: tests
+          env_vars: PYTHON
+          name: homebrew-${{ matrix.python }}
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install mypy
+        run: python -m pip --disable-pip-version-check install mypy==0.991
+
+      - name: Run mypy
+        run: mypy -p mesonpy
+
+  # tests-pass:
+  #   needs: [test, cygwin, pyston, homebrew, mypy]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: echo "All jobs passed"

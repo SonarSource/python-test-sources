@@ -16,45 +16,31 @@ limitations under the License.
 #define TENSORFLOW_PYTHON_PROFILER_INTERNAL_PYTHON_HOOKS_H_
 
 #include <memory>
+#include <stack>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "pybind11/cast.h"
-#include "pybind11/pybind11.h"
-#include "pybind11/pytypes.h"
+#include "absl/memory/memory.h"
+#include "pybind11/cast.h"  // from @pybind11
+#include "pybind11/pybind11.h"  // from @pybind11
+#include "pybind11/pytypes.h"  // from @pybind11
+#include "tensorflow/compiler/xla/python/profiler/internal/python_hooks.h"
+#include "tensorflow/core/platform/macros.h"
 #include "tensorflow/core/platform/types.h"
-#include "tensorflow/core/profiler/lib/traceme.h"
+#include "tensorflow/core/profiler/protobuf/xplane.pb.h"
 
 namespace tensorflow {
 namespace profiler {
 
-namespace py = ::pybind11;
+using xla::profiler::PythonHooksOptions;  // NOLINT
 
-struct PythonHooksOptions {
-  bool enable_trace_python_function = false;
-  bool enable_python_traceme = true;
-};
+using xla::profiler::PythonTraceEntry;  // NOLINT
 
-// Singleton for tracing python function calls.
-class PythonHooks {
- public:
-  static PythonHooks* GetSingleton();
+using xla::profiler::PerThreadEvents;  // NOLINT
 
-  void Start(const PythonHooksOptions& option);
-  void Stop(const PythonHooksOptions& option);
-  void Finalize();
-  void ProfileSlow(const py::object& frame, const string& event,
-                   const py::object& arg);
-  void ProfileFast(PyFrameObject* frame, int what, PyObject* arg);
+using xla::profiler::PythonHookContext;  // NOLINT
 
- private:
-  void EnableTraceMe(bool enable);
-
-  void SetProfilerInAllThreads();
-  void ClearProfilerInAllThreads();
-
-  absl::flat_hash_map<int64, std::vector<std::unique_ptr<TraceMe>>> tracemes_;
-};
+using xla::profiler::PythonHooks;  // NOLINT
 
 }  // namespace profiler
 }  // namespace tensorflow

@@ -43,7 +43,7 @@ The library files can be found in directory 'fragment_data'.
 """
 
 
-import numpy
+import numpy as np
 
 from Bio.SVDSuperimposer import SVDSuperimposer
 
@@ -78,11 +78,11 @@ def _read_fragments(size, length, dir="."):
         flist = []
         # ID of fragment=rank in spec file
         fid = 0
-        for l in fp:
+        for line in fp:
             # skip comment and blank lines
-            if l[0] == "*" or l[0] == "\n":
+            if line[0] == "*" or line[0] == "\n":
                 continue
-            sl = l.split()
+            sl = line.split()
             if sl[1] == "------":
                 # Start of fragment definition
                 f = Fragment(length, fid)
@@ -91,7 +91,7 @@ def _read_fragments(size, length, dir="."):
                 fid += 1
                 continue
             # Add CA coord to Fragment
-            coord = numpy.array([float(x) for x in sl[0:3]])
+            coord = np.array([float(x) for x in sl[0:3]])
             # XXX= dummy residue name
             f.add_residue("XXX", coord)
     return flist
@@ -115,7 +115,7 @@ class Fragment:
         self.counter = 0
         self.resname_list = []
         # CA coordinate matrix
-        self.coords_ca = numpy.zeros((length, 3), "d")
+        self.coords_ca = np.zeros((length, 3), "d")
         self.fid = fid
 
     def get_resname_list(self):
@@ -138,7 +138,7 @@ class Fragment:
         """Get the CA coordinates in the fragment.
 
         :return: the CA coords in the fragment
-        :rtype: Numeric (Nx3) array
+        :rtype: NumPy (Nx3) array
         """
         return self.coords_ca
 
@@ -148,8 +148,8 @@ class Fragment:
         :param resname: residue name (eg. GLY).
         :type resname: string
 
-        :param ca_coord: the c-alpha coorinates of the residues
-        :type ca_coord: Numeric array with length 3
+        :param ca_coord: the c-alpha coordinates of the residues
+        :type ca_coord: NumPy array with length 3
         """
         if self.counter >= self.length:
             raise PDBException("Fragment boundary exceeded.")
@@ -158,7 +158,7 @@ class Fragment:
         self.counter = self.counter + 1
 
     def __len__(self):
-        """Return lengt of the fragment."""
+        """Return length of the fragment."""
         return self.length
 
     def __sub__(self, other):

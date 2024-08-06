@@ -7,7 +7,7 @@
 """Code handle loading mmtf-python into Biopython's structures."""
 
 from Bio.PDB.StructureBuilder import StructureBuilder
-import numpy
+import numpy as np
 
 
 class StructureDecoder:
@@ -61,7 +61,7 @@ class StructureDecoder:
         :param atom_name: the atom name, e.g. CA for this atom
         :param serial_number: the serial id of the atom (e.g. 1)
         :param alternative_location_id: the alternative location id for the atom, if present
-        :param x: the x coordiante of the atom
+        :param x: the x coordinate of the atom
         :param y: the y coordinate of the atom
         :param z: the z coordinate of the atom
         :param occupancy: the occupancy of the atom
@@ -78,7 +78,7 @@ class StructureDecoder:
         # Atom_name is in twice - the full_name is with spaces
         self.structure_builder.init_atom(
             str(atom_name),
-            numpy.array((x, y, z), "f"),
+            np.array((x, y, z), "f"),
             temperature_factor,
             occupancy,
             alternative_location_id,

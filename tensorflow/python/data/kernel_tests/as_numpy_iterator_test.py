@@ -13,21 +13,20 @@
 # limitations under the License.
 # ==============================================================================
 """Tests for `tf.data.Dataset.numpy()`."""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import collections
 
 from absl.testing import parameterized
 import numpy as np
 
+from tensorflow.python.checkpoint import checkpoint as trackable_utils
+from tensorflow.python.checkpoint import checkpoint_management
 from tensorflow.python.data.kernel_tests import test_base
 from tensorflow.python.data.ops import dataset_ops
 from tensorflow.python.framework import combinations
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import sparse_tensor
-from tensorflow.python.ops.ragged import ragged_tensor_value
+from tensorflow.python.ops import sparse_ops
+from tensorflow.python.ops.ragged import ragged_factory_ops
 from tensorflow.python.platform import test
 
 
@@ -37,6 +36,14 @@ class AsNumpyIteratorTest(test_base.DatasetTestBase, parameterized.TestCase):
   def testBasic(self):
     ds = dataset_ops.Dataset.range(3)
     self.assertEqual([0, 1, 2], list(ds.as_numpy_iterator()))
+
+  @combinations.generate(test_base.eager_only_combinations())
+  def testImmutable(self):
+    ds = dataset_ops.Dataset.from_tensors([1, 2, 3])
+    arr = next(ds.as_numpy_iterator())
+    with self.assertRaisesRegex(ValueError,
+                                'assignment destination is read-only'):
+      arr[0] = 0
 
   @combinations.generate(test_base.eager_only_combinations())
   def testNestedStructure(self):
@@ -65,18 +72,24 @@ class AsNumpyIteratorTest(test_base.DatasetTestBase, parameterized.TestCase):
   def _testInvalidElement(self, element):
     ds = dataset_ops.Dataset.from_tensors(element)
     with self.assertRaisesRegex(TypeError,
-                                '.*does not support datasets containing.*'):
+                                'is not supported for datasets that'):
       ds.as_numpy_iterator()
 
   @combinations.generate(test_base.eager_only_combinations())
   def testSparseElement(self):
-    self._testInvalidElement(sparse_tensor.SparseTensorValue([[0]], [0], [1]))
+    st = sparse_tensor.SparseTensor(
+        indices=[(0, 0), (1, 1), (2, 2)], values=[1, 2, 3], dense_shape=(3, 3))
+    ds = dataset_ops.Dataset.from_tensor_slices(st)
+    dt = sparse_ops.sparse_tensor_to_dense(st)
+    self.assertAllEqual(list(ds.as_numpy_iterator()), dt.numpy())
 
   @combinations.generate(test_base.eager_only_combinations())
   def testRaggedElement(self):
-    self._testInvalidElement(
-        ragged_tensor_value.RaggedTensorValue(
-            np.array([0, 1, 2]), np.array([0, 1, 3], dtype=np.int64)))
+    lst = [[1, 2], [3], [4, 5, 6]]
+    rt = ragged_factory_ops.constant(lst)
+    ds = dataset_ops.Dataset.from_tensor_slices(rt)
+    for actual, expected in zip(ds.as_numpy_iterator(), lst):
+      self.assertTrue(np.array_equal(actual, expected))
 
   @combinations.generate(test_base.eager_only_combinations())
   def testDatasetElement(self):
@@ -86,6 +99,31 @@ class AsNumpyIteratorTest(test_base.DatasetTestBase, parameterized.TestCase):
   def testNestedNonTensorElement(self):
     tuple_elem = (constant_op.constant([1, 2, 3]), dataset_ops.Dataset.range(3))
     self._testInvalidElement(tuple_elem)
+
+  @combinations.generate(test_base.eager_only_combinations())
+  def testNoneElement(self):
+    ds = dataset_ops.Dataset.from_tensors((2, None))
+    self.assertDatasetProduces(ds, [(2, None)])
+
+  @combinations.generate(test_base.eager_only_combinations())
+  def testCompatibleWithCheckpoint(self):
+    ds = dataset_ops.Dataset.range(10)
+    iterator = ds.as_numpy_iterator()
+    ckpt = trackable_utils.Checkpoint(iterator=iterator)
+    ckpt_dir = self.get_temp_dir()
+    manager = checkpoint_management.CheckpointManager(
+        ckpt, ckpt_dir, max_to_keep=3
+    )
+    for _ in range(5):
+      next(iterator)
+
+    manager.save()
+    self.assertEqual(5, next(iterator))
+    self.assertEqual(6, next(iterator))
+    restore_iter = ds.as_numpy_iterator()
+    restore_ckpt = trackable_utils.Checkpoint(iterator=restore_iter)
+    restore_ckpt.restore(manager.latest_checkpoint)
+    self.assertEqual(5, next(restore_iter))
 
 
 if __name__ == '__main__':
