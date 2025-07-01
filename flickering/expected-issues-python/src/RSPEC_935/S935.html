@@ -1,0 +1,29 @@
+<p>Python does not check returned types by default, however some methods are expected to return a specific type otherwise builtin functions will
+fail.</p>
+<p>This rule raises an issue when a builtin function or method:</p>
+<p> * does not return or yield a value of the expected type.</p>
+<p> * returns a value when no value should be returned.</p>
+<p> * returns no value when a return value is expected.</p>
+<p>In such way that the resulting code would result in a runtime error.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class MyInt:
+    def __init__(self):
+        return self  # Noncompliant. __init__ should return nothing. This will raise a TypeError.
+
+    def __int__(self):
+        return 3.0  # Noncompliant. __int__ should always return an integer
+
+int(MyInt())  # This will fail with "TypeError: __int__ returned non-int (type float)"
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class MyInt:
+    def __int__(self):
+        return 3
+
+int(MyInt())
+</pre>
+<h2>See</h2>
+<p> * <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">Python documentation - Special method names</a></p>
+

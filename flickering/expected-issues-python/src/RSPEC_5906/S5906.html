@@ -1,0 +1,154 @@
+<p>The <code>unittest</code> module provides assertions methods specific to common types and operations. Both versions will test the same things, but
+the dedicated one will provide a better error message, simplifying the debugging process.</p>
+<p>This rule reports an issue when an assertion can be simplified by using a more specific one. The array below gives a list of assertions reported by
+this rule.</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Original</th>
+      <th>Dedicated</th>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x == y)</code></td>
+      <td><code>assertEqual(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x != y)</code></td>
+      <td><code>assertNotEqual(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(x == y)</code></td>
+      <td><code>assertNotEqual(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(x != y)</code></td>
+      <td><code>assertEqual(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x &lt; y)</code></td>
+      <td><code>assertLess(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x &lt;= y)</code></td>
+      <td><code>assertLessEqual(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x &gt; y)</code></td>
+      <td><code>assertGreater(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x &gt;= y)</code></td>
+      <td><code>assertGreaterEqual(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x is y)</code></td>
+      <td><code>assertIs(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x is not y)</code></td>
+      <td><code>assertIsNot(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(x is y)</code></td>
+      <td><code>assertIsNot(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(x is not y)</code></td>
+      <td><code>assertIs(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x in y)</code></td>
+      <td><code>assertIn(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(x in y)</code></td>
+      <td><code>assertNotIn(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(isinstance(x, y))</code></td>
+      <td><code>assertIsInstance(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(isinstance(x, y))</code></td>
+      <td><code>assertNotIsInstance(x, y)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertEqual(x, round(y, z))</code></td>
+      <td><code>assertAlmostEqual(x, y, z)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertAlmostEqual(x, round(y, z))</code></td>
+      <td><code>assertAlmostEqual(x, y, z)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertNotEqual(x, round(y, z))</code></td>
+      <td><code>assertNotAlmostEqual(x, y, z)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertNotAlmostEqual(x, round(y, z))</code></td>
+      <td><code>assertNotAlmostEqual(x, y, z)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertEqual(x, None)</code></td>
+      <td><code>assertIsNone(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertNotEqual(x, None)</code></td>
+      <td><code>assertIsNotNone(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x is None)</code></td>
+      <td><code>assertIsNone(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertTrue(x is not None)</code></td>
+      <td><code>assertIsNotNone(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(x is None)</code></td>
+      <td><code>assertIsNotNone(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertFalse(x is not None)</code></td>
+      <td><code>assertIsNone(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertEqual(x, True)</code></td>
+      <td><code>assertTrue(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertEqual(x, False)</code></td>
+      <td><code>assertFalse(x)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertAlmostEquals(x, y, z)</code></td>
+      <td><code>assertAlmostEqual(x, y, z)</code></td>
+    </tr>
+    <tr>
+      <td><code>assertNotAlmostEquals(x, y, z)</code></td>
+      <td><code>assertNotAlmostEqual(x, y, z)</code></td>
+    </tr>
+  </tbody>
+</table>
+<h2>Noncompliant Code Example</h2>
+<pre>
+import unittest
+class SomeTest(unittest.TestCase):
+  def test_something(self):
+    x = foo()
+    y = bar()
+    self.assertFalse(x == y)  # Noncompliant
+    self.assertTrue(x &lt; y)  # Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class SomeTest(unittest.TestCase):
+  def test_something(self):
+    x = foo()
+    y = bar()
+    self.assertNotEqual(x, y)
+    self.assertLess(x, y)
+</pre>
+<h2>See</h2>
+<p><a href="https://docs.python.org/3/library/unittest.html#unittest.TestCase.assertEqual">Python documentation - unittest</a></p>
+

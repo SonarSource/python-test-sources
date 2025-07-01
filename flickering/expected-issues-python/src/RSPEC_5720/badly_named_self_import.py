@@ -1,0 +1,3 @@
+
+class ExternalMetaclass(type):
+    pass
