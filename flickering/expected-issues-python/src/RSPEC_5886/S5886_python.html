@@ -1,0 +1,35 @@
+<p>Developers can use type hints to specify which type a function is expected to return. These are not enforced at runtime and not respecting them
+might not necessarily result in a runtime error. It is however likely to be unintended and could lead to maintainability issues.</p>
+<p>This rule raises an issue when a function or method returns a value that contradicts its type hint.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+def hello() -&gt; str:
+    return 42  # Noncompliant. Function's type hint asks for a string return value
+
+def should_return_a_string(condition) -&gt; str:
+    if condition:
+        return "a string"
+    # Noncompliant. The function returns None if the condition is not met
+
+def generator_noncompliant() -&gt; Generator[int, float, str]:
+    sent = yield '42'  # Noncompliant
+    return 42  # Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+def hello() -&gt; str:
+    return "Hello"
+
+def should_return_a_string() -&gt; Optional[str]:
+    if condition:
+        return "a string"
+
+def generator_ok() -&gt; Generator[int, float, str]:
+    sent = yield 42
+    return '42'
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://docs.python.org/3/library/typing.html">Python documentation - Support for type hints</a> </li>
+</ul>
+
