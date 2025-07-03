@@ -1,0 +1,1 @@
+ephem; platform_python_implementation!="PyPy"

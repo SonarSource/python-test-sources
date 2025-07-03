@@ -1,0 +1,31 @@
+// This file is part of Indico.
+// Copyright (C) 2002 - 2022 CERN
+//
+// Indico is free software; you can redistribute it and/or
+// modify it under the terms of the MIT License; see the
+// LICENSE file for more details.
+
+.menu {
+  flex-wrap: wrap;
+  padding-bottom: 2px;
+}
+
+.grid {
+  justify-content: center;
+}
+
+.search-options {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-search-checkbox:global(.ui.checkbox) {
+  margin-left: 1rem;
+}
+
+.admin-search-container {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}

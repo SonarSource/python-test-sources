@@ -1,0 +1,12 @@
+[tool.black]
+target-version = ["py36"]
+exclude = "native/.*"
+
+[tool.ufmt]
+excludes = ["native/", "stubs/"]
+
+[tool.slotscheck]
+exclude-modules = '^libcst\.(testing|tests)'
+
+[build-system]
+requires = ["setuptools", "wheel", "setuptools-rust"]

@@ -1,0 +1,26 @@
+-c requirements.txt
+flake8-colors
+flake8-quotes
+flake8
+flask-url-map-serializer
+freezegun
+isort
+migra
+pip-tools
+plantweb
+pygments
+pytest-cov
+pytest-localserver
+pytest-mock
+pytest-redis
+pytest-snapshot
+pytest
+pyquotes
+pyupgrade
+pywatchman
+sphinx-autobuild
+sphinx-issues
+sphinx-rtd-theme
+sphinx!=4.0.*  # not compatible with jinja 3 - https://github.com/sphinx-doc/sphinx/issues/9216
+sqlparse
+transifex-client

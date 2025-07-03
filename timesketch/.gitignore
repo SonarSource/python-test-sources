@@ -1,0 +1,36 @@
+# Files to ignore by git
+
+# Back-up files
+*~
+*.swp
+
+# Generic auto-generated build files
+*.pyc
+*.pyo
+
+# Ignore back-up files.
+*~
+
+# Specific auto-generated build files
+/.eggs
+/.tox
+/__pycache__
+/build/
+/dependencies/
+/dist/
+/timesketch.egg-info
+
+# Ignore frontend build related files
+node_modules
+timesketch/static/dist
+
+# Test files
+.coverage
+tests-coverage.txt
+
+# Exclude Vagrant runtime files
+vagrant/.vagrant/
+vagrant/*.log
+
+# Exclude .venv folder
+.venv/

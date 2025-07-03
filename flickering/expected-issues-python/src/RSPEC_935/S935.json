@@ -1,0 +1,21 @@
+{
+  "title": "Functions and methods should only return and yield expected values",
+  "type": "BUG",
+  "status": "ready",
+  "remediation": {
+    "func": "Constant\/Issue",
+    "constantCost": "5min"
+  },
+  "tags": [
+    "cwe"
+  ],
+  "defaultSeverity": "Critical",
+  "ruleSpecification": "RSPEC-935",
+  "sqKey": "S935",
+  "scope": "Main",
+  "securityStandards": {
+    "CWE": [
+      394
+    ]
+  }
+}

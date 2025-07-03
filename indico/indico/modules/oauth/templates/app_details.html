@@ -1,0 +1,100 @@
+{% extends 'oauth/apps_base.html' %}
+
+{% from 'forms/_form.html' import form_header, form_rows, form_footer %}
+{% from 'message_box.html' import message_box %}
+
+{% set num_users = application.user_links.count() %}
+
+
+{% block subtitle %}
+    {{ application.name }}
+{% endblock %}
+
+
+{% block content %}
+    <div class="i-box">
+        <div class="i-box-header">
+            <div class="i-box-title">
+                {%- trans %}Details{% endtrans -%}
+            </div>
+            <div class="i-box-buttons toolbar thin right">
+                <div class="group">
+                    <button class="i-button"
+                        data-href="{{ url_for('.app_revoke', application) }}" data-method="POST"
+                        data-confirm="{% trans %}Are you sure you want to revoke all {{ num_users }} user authorizations?{% endtrans %}"
+                        {% if not num_users %}disabled{% endif %}>
+                        {%- trans %}Revoke user authorizations{% endtrans -%}
+                    </button>
+                    <button class="i-button"
+                        data-href="{{ url_for('.app_reset', application) }}" data-method="POST"
+                        data-confirm="{% trans %}Are you sure you want to reset the client secret?{% endtrans %}">
+                        {%- trans %}Reset client secret{% endtrans -%}
+                    </button>
+                </div>
+                {% if not application.system_app_type %}
+                    <div class="group">
+                        <button class="i-button icon-remove danger"
+                                data-href="{{ url_for('.app_delete', application) }}" data-method="POST"
+                                data-confirm="{% trans %}Are you sure you want to remove this application?{% endtrans %}">
+                            {%- trans -%}Delete{%- endtrans -%}
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="i-box-metadata">
+                <span class="label">
+                    <i class="icon-user"></i>
+                    {% trans %}Users:{% endtrans %}
+                </span>
+                <span class="content">
+                    {{ num_users }}
+                </span>
+            </div>
+        </div>
+        <div class="i-box-content">
+            {% if application.system_app_type %}
+                {% call message_box('highlight') -%}
+                    {%- trans -%}
+                        This is a system application.
+                        It cannot be deleted and certain attributes cannot be changed.
+                    {%- endtrans -%}
+                {%- endcall %}
+            {% endif %}
+
+            <dl class="i-data-list dt-select-disabled">
+                {# Do not translate <dt> since they are the official terms in OAuth2 RFC #}
+                <dt>Client ID</dt>{#--#}
+                <dd>{{ clipboard_text(application.client_id) }}</dd>
+                <dt>Client Secret</dt>{#--#}
+                <dd>{{ clipboard_text(application.client_secret) }}</dd>
+                <dt>Authorize URL</dt>{#--#}
+                <dd>{{ clipboard_text(url_for('.oauth_authorize', _external=true)) }}</dd>
+                <dt>Access token URL</dt>{#--#}
+                <dd>{{ clipboard_text(url_for('.oauth_token', _external=true)) }}</dd>
+                <dt>OAuth metadata</dt>{#--#}
+                <dd>{{ clipboard_text(url_for('.oauth_metadata', _external=true), as_link=true) }}</dd>
+            </dl>
+            <hr>
+            {{ form_header(form) }}
+            {{ form_rows(form, disable=disabled_fields) }}
+            {% call form_footer(form) %}
+                <input class="i-button big highlight" type="submit" data-disabled-until-change
+                       value="{% trans %}Update application{% endtrans %}">
+                <a href="{{ url_for('.apps') }}" class="i-button big" data-button-back>{% trans %}Back{% endtrans %}</a>
+            {% endcall %}
+        </div>
+    </div>
+{% endblock %}
+
+{% macro clipboard_text(url, as_link=false) %}
+    {% if as_link %}
+        <a href="{{ url }}"><code>{{ url }}</code></a>
+    {% else %}
+        <code>{{ url }}</code>
+    {% endif %}
+    <span class="icon-clipboard js-copy-to-clipboard"
+          title="{% trans %}Copy to clipboard{% endtrans %}"
+          style="cursor: pointer; margin-left: 0.5em;"
+          data-clipboard-text="{{ url }}"
+          data-clipboard-action="copy"></span>
+{% endmacro %}

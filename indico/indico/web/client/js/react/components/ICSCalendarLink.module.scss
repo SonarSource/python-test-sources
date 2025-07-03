@@ -1,0 +1,74 @@
+// This file is part of Indico.
+// Copyright (C) 2002 - 2022 CERN
+//
+// Indico is free software; you can redistribute it and/or
+// modify it under the terms of the MIT License; see the
+// LICENSE file for more details.
+
+@import 'base/palette';
+
+.height-full {
+  height: 100%;
+}
+
+.export-header:global(.ui.header) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.export-header:global(.ui.header):first-child {
+  margin-top: 0.5em;
+}
+
+.export-header :global(.ui.left.labeled.button) {
+  cursor: initial;
+}
+
+.export-option {
+  display: block;
+  text-align: center;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.export-option::before,
+.export-option::after {
+  box-shadow: 1px 1px 1px $light-gray;
+  background-color: $pastel-gray;
+  content: '';
+  display: inline-block;
+  height: 1px;
+  position: relative;
+  vertical-align: middle;
+  width: 10%;
+  margin: 0 0.5rem;
+}
+
+.download-button:global(.ui.icon.button) {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 0.5rem;
+  height: 2.125rem;
+}
+
+.download-option {
+  display: flex;
+  align-items: center;
+}
+
+.popup:global(.ui.wide.popup) {
+  display: inline-flex;
+  min-width: 350px;
+  max-width: 450px;
+}
+
+.popup .content {
+  width: 0;
+  min-width: 100%;
+}
+
+.button-group :global(.ui.labeled.button) button:global(.ui.button):last-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}

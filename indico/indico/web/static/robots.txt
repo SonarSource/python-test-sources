@@ -1,0 +1,10 @@
+# recommended robots.txt for indico
+
+User-agent: *
+Disallow: /category/*/calendar
+Disallow: /category/*/overview
+Disallow: /category/*/upcoming
+Disallow: /search/*
+Disallow: /api/*
+Disallow: /admin/*
+Crawl-delay: 10
