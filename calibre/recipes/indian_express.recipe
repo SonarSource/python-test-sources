@@ -1,0 +1,48 @@
+from calibre.web.feeds.news import BasicNewsRecipe
+
+
+def classes(classes):
+    q = frozenset(classes.split(' '))
+    return dict(attrs={
+        'class': lambda x: x and frozenset(x.split()).intersection(q)})
+
+
+class IndianExpress(BasicNewsRecipe):
+    title = u'Indian Express'
+    language = 'en_IN'
+    __author__ = 'Krittika Goyal'
+    oldest_article = 1  # days
+    max_articles_per_feed = 25
+    encoding = 'utf-8'
+
+    no_stylesheets = True
+    use_embedded_content = False
+
+    keep_only_tags = [
+        classes('heading-part full-details')
+    ]
+    remove_tags = [
+        classes('share-social appstext story-tags')
+    ]
+    feeds = [
+        ('Front Page', 'https://indianexpress.com/print/front-page/feed/'),
+        ('Op-Ed', 'http://indianexpress.com/section/opinion/feed/'),
+        ('Science & Technology', 'http://indianexpress.com/section/technology/feed/'),
+        ('Movie Reviews', 'https://indianexpress.com/section/entertainment/movie-review/feed/'),
+        ('Sunday Eye', 'https://indianexpress.com/print/eye/feed/'),
+        ('Explained', 'https://indianexpress.com/section/explained/feed/'),
+        ('Delhi Confidential', 'https://indianexpress.com/section/delhi-confidential/feed'),
+        ('Economy', 'https://indianexpress.com/print/economy/feed'),
+        ('Express Network', 'https://indianexpress.com/print/express-network/'),
+        # Want to add more? go-to:https://indianexpress.com/syndication/
+    ]
+
+    def preprocess_html(self, soup):
+        for img in soup.findAll('img'):
+            noscript = img.findParent('noscript')
+            if noscript is not None:
+                lazy = noscript.findPreviousSibling('img')
+                if lazy is not None:
+                    lazy.extract()
+                noscript.name = 'div'
+        return soup

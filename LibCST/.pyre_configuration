@@ -1,0 +1,13 @@
+{
+    "exclude": [
+        ".*\/native\/.*"
+    ],
+    "source_directories": [
+        "."
+    ],
+    "search_path": [
+        "stubs", {"site-package": "setuptools_rust"}
+    ],
+    "workers": 3,
+    "strict": true
+}

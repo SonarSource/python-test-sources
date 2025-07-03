@@ -1,0 +1,93 @@
+{% extends 'footer.html' %}
+
+{% block footer_links_extra %}
+    {% if privacy_urls|length == 1 %}
+        <li>
+            <a href="{{ privacy_urls[0].url }}">{% trans %}Event privacy notice{% endtrans %}</a>
+        </li>
+    {% elif privacy_urls %}
+        <li>
+            <div class="privacy-dropdown">
+                <a href="#" onclick="return false;">{% trans %}Event privacy notices{% endtrans %}</a>
+                <div class="menu">
+                    {% for privacy_url in privacy_urls  %}
+                        <a class="item" href="{{ privacy_url.url }}">{{ privacy_url.title }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </li>
+    {% elif privacy_text %}
+        <li>
+            <a href="{{ url_for('events.display_privacy', event) }}"
+               data-title="{% trans %}Event privacy notice{% endtrans %}"
+               data-href="{{ url_for('events.display_privacy', event) }}"
+               data-ajax-dialog
+               data-hide-page-header
+               data-close-button>
+                {% trans %}Event privacy notice{% endtrans %}
+            </a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+{% block footer_extra %}
+    {%- set url = event.short_external_url -%}
+
+    {% if show_social %}
+        <div class="social-share">
+            <h3>{% trans %}Share this page{% endtrans %}</h3>
+            <h4>{% trans %}Direct link{% endtrans %}</h4>
+            <a href="{{ url }}"
+               class="js-copy-to-clipboard"
+               title="{% trans %}Copy link to clipboard{% endtrans %}"
+               data-clipboard-text="{{ url }}"
+               data-clipboard-action="copy">
+                {{- url -}}
+            </a>
+            <div>
+                <h4>{% trans %}Social networks{% endtrans %}</h4>
+                <div>
+                    <span id="fb-loading">{% trans %}Loading...{% endtrans %}</span>
+                    <div id="fb-like" class="fb-like"
+                         data-href="{{ url }}"
+                         data-size="small"
+                         data-width="100"
+                         data-layout="standard"
+                         data-colorscheme="{{ 'dark' if dark else 'light' }}"
+                         data-action="like"
+                         data-show-faces="false"
+                         data-share="true"></div>
+                </div>
+                <div class="social-site">
+                    <div class="g-plusone"
+                         data-annotation="inline"
+                         data-width="220"
+                         data-href="{{ url }}"></div>
+                </div>
+                <div class="social-site">
+                    <a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal">
+                        {%- trans %}Tweet{% endtrans -%}
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4>{% trans %}Calendaring{% endtrans %}</h4>
+            </div>
+            <div class="social-site">
+                <a href="https://www.google.com/calendar/event?{{ google_calendar_params|urlencode }}" target="_blank">
+                    <img src="{{ url_for('assets.image', filename='google_calendar.gif') }}" alt="" border="0">
+                </a>
+            </div>
+        </div>
+
+        <div class="social-button-container f-j-end"
+             data-url="{{ url }}"
+             data-dark-theme="{{ dark|tojson|forceescape }}"
+             data-social-settings="{{ social_settings|tojson|forceescape }}">
+            <img src="{{ indico_config.IMAGES_BASE_URL }}/social.png"
+                 class="social-button"
+                 alt="{% trans %}Social Networks{% endtrans %}"
+                 title="{% trans %}Social Networks{% endtrans %}">
+        </div>
+    {% endif %}
+{% endblock %}

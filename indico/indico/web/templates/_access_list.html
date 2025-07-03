@@ -1,0 +1,36 @@
+<div class="i-box-group vert">
+    {% if acl %}
+        <div class="i-box just-group-list">
+            <div class="i-box-content">
+                <ul class="group-list">
+                    {% for item in acl|sort(attribute='name')|sort(attribute='principal_type') %}
+                        {% if item.principal_type.name in ['user', 'email'] %}
+                            <li class="icon-user">{{ item.name }}</li>
+                        {% elif item.principal_type.name in ['local_group', 'multipass_group'] %}
+                            <li class="icon-users">{{ item.name }}</li>
+                        {% elif item.principal_type.name == 'network' %}
+                            <li class="icon-lan">{{ item.name }}</li>
+                        {% elif item.principal_type.name in ['event_role', 'category_role'] %}
+                            <li class="icon-medal">{{ item.name }}</li>
+                        {% elif item.principal_type.name == 'registration_form' %}
+                            <li class="icon-ticket">{{ item.name }}</li>
+                        {% else %}
+                            {# just in case someone forgets to add a new principal type here... #}
+                            <li class="icon-users">{{ item.name }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+    <div class="action-box for-form highlight" style="display: block;">
+        <div class="section">
+            <div class="icon icon-info"></div>
+            <div class="text">
+                <div>
+                    {% trans %}Users with <strong>modification access</strong> to this resource and any parent resources <strong>will also have access</strong>{% endtrans %}.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

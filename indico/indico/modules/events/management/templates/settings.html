@@ -1,0 +1,74 @@
+{% extends 'events/management/base.html' %}
+{% from 'events/management/_settings.html' import render_event_settings %}
+{% from 'events/contributions/management/_draft_mode_warning.html' import render_draft_mode_warning %}
+
+{% block title %}{% trans %}Settings{% endtrans %}{% endblock %}
+
+{% block content %}
+    {{ template_hook('event-actions', event=event) }}
+    {% set move_request = event.pending_move_request %}
+    {%- if move_request -%}
+        <div class="action-box highlight">
+            <div class="section">
+                <div class="icon icon-bookmark"></div>
+                <div class="text">
+                    <div class="label">{% trans %}Awaiting moderation{% endtrans %}</div>
+                    {% trans url=move_request.category.url, category=move_request.category.title %}
+                        There is a pending request to move this event to <a href="{{ url }}">{{ category }}</a>.
+                    {% endtrans %}
+                </div>
+                <div class="toolbar">
+                    <div class="group">
+                        <button class="i-button icon-arrow-left hide-if-locked"
+                                data-href="{{ url_for('event_management.withdraw_move_request', event) }}"
+                                data-method="POST"
+                                data-reload-after>
+                            {% trans %}Withdraw{% endtrans %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {%- endif -%}
+    {%- if show_booking_warning -%}
+        <div class="action-box warning">
+            <div class="section">
+                <div class="icon icon-bookmark"></div>
+                <div class="text">
+                    <div class="label">{% trans %}Book the event location{% endtrans %}</div>
+                    {% trans %}
+                        There is no active booking linked to this event.
+                    {% endtrans %}
+                </div>
+                <div class="toolbar">
+                    <div class="group">
+                        <a class="i-button icon-settings"
+                           href="{{ url_for('rb.event_booking_list', event) }}">
+                            {% trans %}Book the room{% endtrans %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {%- endif -%}
+    {%- if event.is_unlisted and event.can_manage(session.user) -%}
+        <div class="action-box warning">
+            <div class="section">
+                <div class="icon icon-unlisted-event"></div>
+                <div class="text">
+                    <div class="label">{% trans %}This event is currently unlisted{% endtrans %}</div>
+                    {% trans %}
+                        Unlisted events are not shown in any category and only explicitly authorized users can see them.<br>
+                        <strong>Please note:</strong> If you want to preserve events long-term, you should consider publishing them to a category.
+                    {% endtrans %}
+                </div>
+            </div>
+        </div>
+    {%- endif -%}
+    {%- if show_draft_warning -%}
+        {{ render_draft_mode_warning(event) }}
+    {%- endif -%}
+    <div class="action-box event-settings">
+        {{ render_event_settings(event, has_reference_types, has_event_labels) }}
+    </div>
+{%- endblock %}

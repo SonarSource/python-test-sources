@@ -1,0 +1,58 @@
+version: "3"
+services:
+  timesketch:
+    environment:
+      - POSTGRES_USER=timesketch
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_ADDRESS=postgres
+      - POSTGRES_PORT=5432
+      - OPENSEARCH_HOST=opensearch
+      - OPENSEARCH_PORT=9200
+      - REDIS_ADDRESS=redis
+      - REDIS_PORT=6379
+      - TIMESKETCH_USER=test
+      - TIMESKETCH_PASSWORD=test
+    build:
+      context: ../../
+      dockerfile: ./docker/e2e/Dockerfile
+    ports:
+      - "80:80"
+    links:
+      - opensearch
+      - postgres
+      - redis
+    restart: always
+    volumes:
+      - ../../:/usr/local/src/timesketch/
+
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    restart: always
+    environment:
+      - TAKE_FILE_OWNERSHIP=1
+      - discovery.type=single-node
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true" # TODO: Enable when we have migrated the python client to Opensearch as well.
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=timesketch
+      - POSTGRES_PASSWORD=password
+    restart: always
+
+  redis:
+    image: redis
+    restart: always

@@ -1,0 +1,3 @@
+
+class InitMetaclass(type):
+    pass
