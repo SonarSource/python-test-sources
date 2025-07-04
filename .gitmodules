@@ -1,0 +1,3 @@
+[submodule "flickering/pypy"]
+	path = flickering/pypy
+	url = https://github.com/mozillazg/pypy.git
