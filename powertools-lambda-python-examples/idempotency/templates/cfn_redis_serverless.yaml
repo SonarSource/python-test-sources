@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  CacheServerlessIdempotency:
+    Type: AWS::ElastiCache::ServerlessCache
+    Properties:
+      Engine: redis
+      ServerlessCacheName: redis-cache
+      SecurityGroupIds: # (1)!
+        - sg-07d998809154f9d88
+      SubnetIds:
+        - subnet-{your_subnet_id_1}
+        - subnet-{your_subnet_id_2}
+
+  IdempotencyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.13
+      Handler: app.py
+      VpcConfig: # (1)!
+        SecurityGroupIds:
+          - sg-07d998809154f9d88
+        SubnetIds:
+          - subnet-{your_subnet_id_1}
+          - subnet-{your_subnet_id_2}
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: sample
+          CACHE_HOST: !GetAtt CacheServerlessIdempotency.Endpoint.Address
+          CACHE_PORT: !GetAtt CacheServerlessIdempotency.Endpoint.Port
