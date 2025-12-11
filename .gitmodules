@@ -1,3 +1,6 @@
 [submodule "flickering/pypy"]
 	path = flickering/pypy
 	url = https://github.com/mozillazg/pypy.git
+[submodule "pandas"]
+	path = pandas
+	url = https://github.com/pandas-dev/pandas.git
