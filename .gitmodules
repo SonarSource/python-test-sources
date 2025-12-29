@@ -4,3 +4,6 @@
 [submodule "pandas"]
 	path = pandas
 	url = https://github.com/pandas-dev/pandas.git
+[submodule "flickering/sympy"]
+	path = flickering/sympy
+	url = https://github.com/sympy/sympy.git
